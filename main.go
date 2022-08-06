@@ -12,8 +12,11 @@ package main
 // Learn the command-line options:
 // poco --help
 //
+// Use a style sheet from a CDN (you don't have to copy it to your project)
+// poco --styles "https://cdn.jsdelivr.net/npm/holiday.css"
+//
 // Include the 2 css files shown
-// poco -styles "theme.css light-mode.css"
+// poco --styles "theme.css light-mode.css"
 //
 // Use the docs subdirectory as the root of the site.
 // ./pococms -root "./docs"
