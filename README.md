@@ -1,2 +1,1 @@
-# go
-Open source Markdown static site generator in one file
+# PocoCMS: An open source, Markdown-based static site generator in one file
