@@ -8,5 +8,3 @@ $ go mod tidy
 $ go build # OR go run main.go
 
 ```
-
-Delete me
