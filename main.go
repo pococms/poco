@@ -44,6 +44,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 var indexSample = `---
@@ -100,6 +101,15 @@ func assemble(article string, frontMatter map[string]string, language string, st
 			sheets += s
 		}
 	}
+
+  // Execute templates. That way {{ .Title }} will be converted into
+  // whatever frontMatter["Title"] is set to, etc.
+  if parsedArticle, err := doTemplate("", article, frontMatter); err != nil {
+    quit(fmt.Sprintf("Unable to execute template on %v", "file"), err, 1)
+  } else {
+    article = parsedArticle
+  }
+
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
@@ -242,7 +252,7 @@ func main() {
 	if !fileExists(indexMd) {
 		writeStringToFile(indexMd, indexSample)
 	}
-	targetDir := mdDirectoryTreeToHTML(root, www, skip, markdownExtensions, language, stylesheets, cleanup)
+	targetDir := buildSite(root, www, skip, markdownExtensions, language, stylesheets, cleanup)
 	quit(fmt.Sprintf("Files published to %s", targetDir), nil, 0)
 	// TODO:
 	// Preserve for the single file demo
@@ -281,6 +291,31 @@ func mdFileToHTML(filename string) (string, error) {
 		return string(HTML), nil
 	}
 }
+// TEMPLATE FUNCTIONS
+
+// doTemplate takes HTML in source, expects parsed front
+// matter in app.metaData, and executes Go templates
+// against the source.
+// Returns a string containing the HTML with the
+// template values embedded.
+func doTemplate(templateName string, source string, frontMatter map[string]string) (string, error) {
+	if templateName == "" {
+		templateName = "PocoCMS"
+	}
+	tmpl, err := template.New(templateName).Parse(source)
+	if err != nil {
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+	//err = tmpl.Execute(buf, app)
+	err = tmpl.Execute(buf, frontMatter)
+
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), err
+}
+
 
 func quit(msg string, err error, exitCode int) {
 	if err != nil {
@@ -291,14 +326,13 @@ func quit(msg string, err error, exitCode int) {
 	os.Exit(exitCode)
 }
 
-// mdDirectoryTreeToHTML takes startDir as the root directory,
+// buildSite takes startDir as the root directory,
 // converts all files (except those in exclude.List) to HTML,
 // and deposits them in www. Attempts to create www if it
 // doesn't exist. www is expected to be a subdirectory of
 // startDir.
 // Return name of the root directory files are published to
-//func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExtensions searchInfo, language string, styles []string, cleanup bool) string {
-func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
+func buildSite(startDir string, www string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
 
 	var err error
 
