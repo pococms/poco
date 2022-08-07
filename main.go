@@ -50,6 +50,8 @@ var indexSample = `---
 Description: 'PocoCMS: Markdown-based CMS in 1 file, written in Go'
 Title: 'Powered by PocoCMS'
 Author: 'Tom Campbell'
+Sheets: 
+ - "https://cdn.jsdelivr.net/npm/holiday.css"
 ---
 # Welcome to PocoCMS
 
@@ -85,24 +87,43 @@ var docType = `<!DOCTYPE html>
 
 // Assemble takes the raw converted HTML and uses it to generated
 // a finished HTML document.
-func assemble(article string, frontMatter map[string]string, language string, styles []string) string {
+func assemble(article string, frontMatter map[string]string, language string, stylesheetList string) string {
 	var htmlFile string
-	var stylesheets string
-	for _, sheet := range styles {
-		s := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
-		stylesheets += s
-	}
+	var sheets string
+  styles := strings.Split(stylesheetList," ")
+  if stylesheetList != "" {
+    for _, sheet := range styles {
+      s := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
+      sheets += s
+    }
+  }
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
 		"\t<title>" + frontMatter["Title"] + "</title>\n" +
-    metatags(frontMatter) +
-		stylesheets +
+		metatags(frontMatter) +
+		stylesheets(frontMatter, sheets) +
 		"</head>\n<body>" +
 		article +
 		"</body>\n</html>"
 	return htmlFile
+}
+
+func stylesheets(frontMatter map[string]string, sheets string) string {
+	// xxxjlkjlk
+
+	s := strings.Split(frontMatter["Sheets"], " ")
+	var frontStyles string
+	for _, sheet := range s {
+		sheet = strings.ReplaceAll(sheet, "[", "")
+		sheet = strings.ReplaceAll(sheet, "]", "")
+		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
+		if sheet != "" {
+      frontStyles += tag
+    }
+	}
+	return frontStyles + sheets
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -156,11 +177,11 @@ func main() {
 	}
 
 	// Convert the list of stylesheets into a string slice.
-	styles := strings.Split(stylesheets, " ")
+	//styles := strings.Split(stylesheets, " ")
 
-  // markdownExtensions are how PocoCMS figures out whether
-  // a file is Markdown. If it ends in any one of these then
-  // it gets converted to HTML.
+	// markdownExtensions are how PocoCMS figures out whether
+	// a file is Markdown. If it ends in any one of these then
+	// it gets converted to HTML.
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
@@ -177,7 +198,7 @@ func main() {
 	if !fileExists(indexMd) {
 		writeStringToFile(indexMd, indexSample)
 	}
-	targetDir := mdDirectoryTreeToHTML(root, www, skip, markdownExtensions, language, styles, cleanup)
+	targetDir := mdDirectoryTreeToHTML(root, www, skip, markdownExtensions, language, stylesheets, cleanup)
 	quit(fmt.Sprintf("Files published to %s", targetDir), nil, 0)
 	// TODO:
 	// Preserve for the single file demo
@@ -232,7 +253,8 @@ func quit(msg string, err error, exitCode int) {
 // doesn't exist. www is expected to be a subdirectory of
 // startDir.
 // Return name of the root directory files are published to
-func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExtensions searchInfo, language string, styles []string, cleanup bool) string {
+//func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExtensions searchInfo, language string, styles []string, cleanup bool) string {
+func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
 
 	var err error
 
@@ -255,7 +277,6 @@ func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExt
 		}
 	}
 
-	// xxx
 	// Convert the list of exclusions into a string slice.
 	var exclude searchInfo
 	exclude.list = strings.Split(skip, " ")
@@ -339,8 +360,6 @@ func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExt
 			// Not a Markdown file. Copy unchanged.
 			source = filename
 			// Insert destination (WWW) directory
-			//target = filepath.Join(targetDir, filepath.Base(source))
-			//fmt.Printf("NOT Markdown: Copy %s to %s\n", filename, target)
 			converted = false
 		}
 		target = filepath.Join(targetDir, filepath.Base(source))
@@ -354,12 +373,11 @@ func mdDirectoryTreeToHTML(startDir string, www string, skip string, markdownExt
 			}
 		}
 		if converted {
-			h := assemble(HTML, frontMatter, language, styles)
+			h := assemble(HTML, frontMatter, language, stylesheets)
 			writeStringToFile(target, h)
 		} else {
 			copyFile(source, target)
 		}
-		///fmt.Println(filename)
 	}
 	// This is where the files were published
 	return targetDir
@@ -427,7 +445,6 @@ func fileToBuf(filename string) []byte {
 // filename is afully qualified pathname.
 // contents is the string to write
 func writeStringToFile(filename, contents string) {
-	//fmt.Printf("writeStringToFile filename: %s\n", filename)
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
@@ -588,15 +605,15 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]string, error) {
 
 // Generate common metatags
 func metatags(frontMatter map[string]string) string {
-  return metatag("description", frontMatter["Description"])+ 
-    metatag("author", frontMatter["Author"])
+	return metatag("description", frontMatter["Description"]) +
+		metatag("author", frontMatter["Author"])
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
 func metatag(tag string, content string) string {
-  if content == "" {
-    return ""
-  }
+	if content == "" {
+		return ""
+	}
 	return "\t<meta name=\"" + tag + "\"" +
 		" content=" + "\"" + content + "\">\n"
 }
