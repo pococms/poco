@@ -50,8 +50,11 @@ var indexSample = `---
 Description: 'PocoCMS: Markdown-based CMS in 1 file, written in Go'
 Title: 'Powered by PocoCMS'
 Author: 'Tom Campbell'
+Header: header.html
+Nav: nav.html
+Footer: footer.html
 Sheets: 
- - "https://cdn.jsdelivr.net/npm/holiday.css"
+ - 'https://cdn.jsdelivr.net/npm/holiday.css'
 ---
 # Welcome to PocoCMS
 
@@ -90,40 +93,81 @@ var docType = `<!DOCTYPE html>
 func assemble(article string, frontMatter map[string]string, language string, stylesheetList string) string {
 	var htmlFile string
 	var sheets string
-  styles := strings.Split(stylesheetList," ")
-  if stylesheetList != "" {
-    for _, sheet := range styles {
-      s := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
-      sheets += s
-    }
-  }
+	styles := strings.Split(stylesheetList, " ")
+	if stylesheetList != "" {
+		for _, sheet := range styles {
+			s := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
+			sheets += s
+		}
+	}
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
 		"\t<title>" + frontMatter["Title"] + "</title>\n" +
 		metatags(frontMatter) +
-		stylesheets(frontMatter, sheets) +
-		"</head>\n<body>" +
+		stylesheets(sheets, frontMatter) +
+		"</head>\n<body>\n" +
+    layoutEl(frontMatter, "Header") +
+    layoutEl(frontMatter, "Nav") +
 		article +
+    layoutEl(frontMatter, "Footer") +
 		"</body>\n</html>"
 	return htmlFile
 }
 
-func stylesheets(frontMatter map[string]string, sheets string) string {
-	// xxxjlkjlk
+// HTML UTILITIES
 
+// layoutEl() takes a layout element file named in the front matter.
+// For example, suppose you have a header file named head.html. It
+// would be named in the front matter like this:
+// ---
+// Header: head.html
+// ---
+// 
+// The layout element file is expected to be a complete tag. For example, 
+// the header file could be as simple as this: 
+//    <header>hello, world.</header>
+// This function would read in the head.html file (or whatever
+// the file was named in the front matter) and insert it before the
+// body of the document.
+func layoutEl(frontMatter map[string]string, element string) string {
+	filename := frontMatter[element]
+	if filename == ""{
+		return ""
+	}
+  if !fileExists(filename) {
+    return ""
+  }
+	return fileToString(filename) + "\n"
+}
+
+
+// stylesheets() takes stylesheets listed on the command line
+// e.g. --styles "foo.css bar.css" and adds them to
+// the head.
+// It does generates stylesheet tags for the ones listed in
+// the front matter. The latter are appended, so they take
+// priority.
+func stylesheets(sheets string, frontMatter map[string]string) string {
 	s := strings.Split(frontMatter["Sheets"], " ")
 	var frontStyles string
 	for _, sheet := range s {
+		// Why? This seems to be a Go thing.
+		// More likely I'm missing something.
 		sheet = strings.ReplaceAll(sheet, "[", "")
 		sheet = strings.ReplaceAll(sheet, "]", "")
 		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
 		if sheet != "" {
-      frontStyles += tag
-    }
+			frontStyles += tag
+		}
 	}
-	return frontStyles + sheets
+	// Stylesheets named in the front matter takes priority,
+	// so they goes last. This allows you to have stylesheets
+	// on the command line that act as templates, but that
+	// you can override using stylesheets named in
+	// the front matter.
+	return sheets + frontStyles
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -421,12 +465,17 @@ func dirExists(path string) bool {
 
 // fileExists() returns true, well, if the named file exists
 func fileExists(filename string) bool {
+  if filename == "" {
+    return false
+  }
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
 	}
 	return !info.IsDir()
-} // fileToBuf() reads the named file into a byte slice and returns
+}
+
+// fileToBuf() reads the named file into a byte slice and returns
 // that byte slice. In the spirit of HTML it simply returns an empty
 // slice on failure.
 func fileToBuf(filename string) []byte {
@@ -438,6 +487,17 @@ func fileToBuf(filename string) []byte {
 		return []byte{}
 	}
 	return input
+}
+
+// fileToString() sucks up a file and returns its contents as a string.
+// Fails quietly  if unable to open the file, since
+// we're just generating HTML.
+func fileToString(filename string) string {
+	input, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return ""
+	}
+	return string(input)
 }
 
 // writeStringToFile creates a file called filename without checking to see if it
