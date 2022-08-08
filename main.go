@@ -40,6 +40,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
+	"github.com/yuin/goldmark/text"
 	"io/ioutil"
 	"os"
 	"path"
@@ -51,12 +52,20 @@ import (
 )
 
 var indexSample = `---
-Description: 'PocoCMS: Markdown-based CMS in 1 file, written in Go'
 Title: 'Powered by PocoCMS'
+Description: PocoCMS: Markdown-based CMS in 1 file, written in Go
 Author: 'Tom Campbell'
 Header: header.html
 Nav: nav.html
 Footer: footer.html
+LinkTags:
+    - <link rel="icon" href="favicon.ico">
+    - <link rel="preconnect" href="https://fonts.googleapis.com">
+    - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    - <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+Tags:
+    - tag1
+    - tag2
 Sheets: 
  - 'https://cdn.jsdelivr.net/npm/holiday.css'
 ---
@@ -92,52 +101,40 @@ Use the docs subdirectory as the root of the site:
 var docType = `<!DOCTYPE html>
 <html lang=`
 
-// Assemble takes the raw converted HTML and uses it to generate
+// assemble takes the raw converted HTML and uses it to generate
 // a finished HTML document. Returns it as a string.
-func assemble(article string, frontMatter map[string]string, fm map[string]interface{}, language string, stylesheetList string) string {
-  // This will contain the completed document as a string.
-  htmlFile := ""
-	var sheets string
-	// The stylesheets are named in a string like "foo.css bar.css".
-	// Convert that to a string slice.
-	styles := strings.Split(stylesheetList, " ")
-	if stylesheetList != "" {
-		for _, sheet := range styles {
-			// Generate a stylesheet tag from the stylesheet name.
-			s := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
-			// Append all tags to one giant string.
-			sheets += s
-		}
-	}
-
+func assemble(article string, fm map[string]interface{}, language string, stylesheetList string) string {
+	// This will contain the completed document as a string.
+	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
-	if parsedArticle, err := doTemplate("", article, frontMatter); err != nil {
+	if parsedArticle, err := doTemplate("", article, fm); err != nil {
 		quit(fmt.Sprintf("Unable to execute template", "file"), err, 1)
 	} else {
 		article = parsedArticle
 	}
 
-  // Build the completed HTML document from the component pieces.
+	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		"\t<title>" + frontMatter["Title"] + "</title>\n" +
-		metatags(frontMatter) +
-		linktags(frontMatter, fm) +
-		stylesheets(sheets, frontMatter) +
-		"</head>\n<body>\n" +
-		layoutEl(frontMatter, "Header") +
-		layoutEl(frontMatter, "Nav") +
-		"<article>" + article + "</article>\n" +
-		layoutEl(frontMatter, "Aside") +
-		layoutEl(frontMatter, "Footer") +
-		"</body>\n</html>"
+		"\t<title>" + frontMatterStr("Title", fm) + "</title>\n" +
+		metatags(fm) +
+		linktags(fm) +
+		stylesheets(stylesheetList, fm) +
+			"</head>\n<body>\n" +
+			layoutEl(fm, "Header") +
+			layoutEl(fm, "Nav") +
+			"<article>" + article + "</article>\n" +
+			layoutEl(fm, "Aside") +
+			layoutEl(fm, "Footer") +
+			"</body>\n</html>"
 	return htmlFile
-}
+} //   assemble
 
 // HTML UTILITIES
+
 
 // layoutEl() takes a layout element file named in the front matter.
 // For example, suppose you have a header file named head.html. It
@@ -152,8 +149,8 @@ func assemble(article string, frontMatter map[string]string, fm map[string]inter
 // This function would read in the head.html file (or whatever
 // the file was named in the front matter) and insert it before the
 // body of the document.
-func layoutEl(frontMatter map[string]string, element string) string {
-	filename := frontMatter[element]
+func layoutEl(fm map[string]interface{}, element string) string {
+  filename := frontMatterStr(element, fm)
 	if filename == "" {
 		return ""
 	}
@@ -163,31 +160,44 @@ func layoutEl(frontMatter map[string]string, element string) string {
 	return fileToString(filename) + "\n"
 }
 
+
+
+// sliceToStyleSheetStr takes a slice of simple stylesheet names, such as 
+// [ "foo.css", "bar.css" ] and converts it into a string
+// consisting of stylesheet link tags separated by newlines:
+//
+// <link rel="stylesheet" href="foo.css"/>
+// <link rel="stylesheet" href="bar.css"/>
+// 
+func sliceToStyleetSheetStr(sheets []string) string {
+	var tags string
+	for _, sheet := range sheets {
+		tags += fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
+	}
+  return tags
+}
+
 // stylesheets() takes stylesheets listed on the command line
 // e.g. --styles "foo.css bar.css", and adds them to
 // the head. It then generates stylesheet tags for the ones listed in
-// the front matter. 
+// the front matter.
 // Those listed in the front matter are appended, so they take
 // priority.
-func stylesheets(sheets string, frontMatter map[string]string) string {
-	s := strings.Split(frontMatter["Sheets"], " ")
-	var frontStyles string
-	for _, sheet := range s {
-    // TODO: hackaroony
-		// I'm missing something.
-		sheet = strings.ReplaceAll(sheet, "[", "")
-		sheet = strings.ReplaceAll(sheet, "]", "")
-		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
-		if sheet != "" {
-			frontStyles += tag
-		}
-	}
+func stylesheets(sheets string, fm map[string]interface{}) string {
+	// Build a string from stylesheets named on the command line.
+	globalSlice := strings.Split(sheets, " ")
+  globals := sliceToStyleetSheetStr(globalSlice)
+
+	// Build a string from stylesheets named in the front matter for this page
+  localSlice := frontMatterStrSlice("Sheets", fm)
+  locals := sliceToStyleetSheetStr(localSlice)
+
 	// Stylesheets named in the front matter takes priority,
 	// so they goes last. This allows you to have stylesheets
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return sheets + frontStyles
+	return globals + locals
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -302,7 +312,7 @@ func mdFileToHTML(filename string) (string, error) {
 // against the source.
 // Returns a string containing the HTML with the
 // template values embedded.
-func doTemplate(templateName string, source string, frontMatter map[string]string) (string, error) {
+func doTemplate(templateName string, source string, frontMatter map[string]interface{}) (string, error) {
 	if templateName == "" {
 		templateName = "PocoCMS"
 	}
@@ -319,6 +329,8 @@ func doTemplate(templateName string, source string, frontMatter map[string]strin
 	}
 	return buf.String(), err
 }
+
+
 
 func quit(msg string, err error, exitCode int) {
 	if err != nil {
@@ -355,7 +367,7 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
-	if rawHTML, frontMatter, fm, err := mdYAMLFileToHTMLString(filename); err != nil {
+	if rawHTML, fm, err := mdYAMLFileToHTMLString(filename); err != nil {
 		quit("Error converting Markdown file to HTML", err, 1)
 		return "", ""
 	} else {
@@ -363,10 +375,10 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(rawHTML, frontMatter, fm, language, stylesheets)
+		finishedDocument := assemble(rawHTML, fm, language, stylesheets)
+    // Return the finished document and its filename
 		return finishedDocument, dest
 	}
-	// xxx
 }
 
 // buildSite takes startDir as the root directory,
@@ -430,7 +442,6 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 	// false if it's not a Markdown file, which means it will be copied
 	// unchanged to the output directory
 	var converted bool
-	var frontMatter map[string]string
 
 	// Name of directory used to publish output files
 	var targetDir string
@@ -470,7 +481,7 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		// Only convert to HTML if it has a Markdown extension.
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
-			if HTML, frontMatter, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
+			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
 				quit("Error converting Markdown file to HTML", err, 1)
 			}
 			// Strip original file's Markdown extension and make
@@ -495,7 +506,7 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		}
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(HTML, frontMatter, fm, language, stylesheets)
+			h := assemble(HTML, fm, language, stylesheets)
 			writeStringToFile(target, h)
 		} else {
 			copyFile(source, target)
@@ -666,7 +677,7 @@ func visit(files *[]string, exclude searchInfo) filepath.WalkFunc {
 
 // Obtain a list of all files in the specified project tree starting
 // at the root.
-// Ignore items in excluce.List
+// Ignore items in exclude.List
 func getProjectTree(path string, exclude searchInfo) (tree []string, err error) {
 	var files []string
 	err = filepath.Walk(path, visit(&files, exclude))
@@ -679,13 +690,12 @@ func getProjectTree(path string, exclude searchInfo) (tree []string, err error) 
 // mdYAMLFiletoHTML converts a Markdown document
 // with YAML front matter to HTML.
 // Returns a byte slice containing the HTML source.
-func mdYAMLFileToHTMLString(filename string) (string, map[string]string, map[string]interface{}, error) {
+func mdYAMLFileToHTMLString(filename string) (string, map[string]interface{}, error) {
 	source := fileToBuf(filename)
-	//frontMatter := make(map[string]string)
-	if HTML, frontMatter, fm, err := mdYAMLToHTML(source); err != nil {
-		return "", nil, nil, err
+	if HTML, fm, err := mdYAMLToHTML(source); err != nil {
+		return "", nil, err
 	} else {
-		return string(HTML), frontMatter, fm, nil
+		return string(HTML), fm, nil
 	}
 }
 
@@ -723,60 +733,104 @@ func newGoldmark() goldmark.Markdown {
 // mdYAMLtoHTML converts the Markdown file, which may
 // have front matter, to HTML. The  front matter
 // is deposited in frontMatter.
-func mdYAMLToHTML(source []byte) ([]byte, map[string]string, map[string]interface{}, error) {
+func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
+
+  // TODO: Does this obviate the need of some of the othe routines?
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
 
+	document := mdParser.Parser().Parse(text.NewReader([]byte(source)))
+	metaData := document.OwnerDocument().Meta()
 	var buf bytes.Buffer
 	// Convert Markdown source to HTML and deposit in buf.Bytes().
 	if err := mdParser.Convert(source, &buf, parser.WithContext(mdParserCtx)); err != nil {
-		return []byte{}, nil, nil, err
+		return []byte{}, nil, err
 	}
 	// Obtain YAML front matter from document.
-	fm := meta.Get(mdParserCtx)
-	frontMatterMap := make(map[string]string)
-	for key, value := range fm {
-		k := fmt.Sprintf("%v", key)
-		v := fmt.Sprintf("%v", value)
-		frontMatterMap[k] = v
-	}
-	return buf.Bytes(), frontMatterMap, fm, nil
+	return buf.Bytes(), metaData, nil
 }
 
 // Generate HTML
 
 // Generate <link> tags
-// TODO: I am so not doing this right. 
-func linktags(frontMatter map[string]string, fm map[string]interface{}) string {
-	rawTags := strings.Split(frontMatter["linktags"], " ")
-	var tags string
-	for _, link := range rawTags {
-    // TODO: hackaroony, once again. This is embarrassing.
-		// I'm missing something.
-		link = strings.ReplaceAll(link, "[", "")
-		link = strings.ReplaceAll(link, "]", "")
-		//tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
-		if link != "" {
-			tags += link + "\n"
-		}
+
+// frontMatterStr obtains a string value from the front matter. For example,
+// if you had this code in your Markdown file:
+// ---
+// Title: yo mama
+// ---
+// I like {{ .Title }}
+//
+// It would render like this in the HTML:
+// I like yo mama
+//
+func frontMatterStr(key string, fm map[string]interface{}) string {
+	v := fm[key]
+	value, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
+
+// frontMatterStrSlice obtains a list of string values from the front matter.
+// For example, if you had this code in your Markdown file:
+// ---
+// Sheets:
+//    - 'https://cdn.jsdelivr.net/npm/holiday.css'
+//    - 'fonts.css'
+// ---
+//
+// I like yo mama
+//
+func frontMatterStrSlice(key string, fm map[string]interface{}) []string {
+	if key == "" {
+		return []string{}
+	}
+	v, ok := fm[key].([]interface{})
+	if !ok {
+		return []string{}
+	}
+	s := make([]string, len(v))
+	for i, value := range v {
+		r := fmt.Sprintf("%s", value)
+		s[i] = r
+	}
+	return s
+}
+
+// linkTags() obtains the list of link tags from the "LinkTags" front matter
+// and inserts them into the document.
+func linktags(fm map[string]interface{}) string {
+	linkTags := frontMatterStrSlice("LinkTags", fm)
+	if len(linkTags) < 1 {
+		return ""
+	}
+	tags := ""
+	for _, tag := range linkTags {
+		tags += "\t" + tag + "\n"
 	}
 	return tags
 }
 
 // Generate common metatags
-func metatags(frontMatter map[string]string) string {
-	return metatag("description", frontMatter["Description"]) +
-		metatag("author", frontMatter["Author"])
+func metatags(fm map[string]interface{}) string {
+	return metatag("description", frontMatterStr("Description", fm)) +
+		metatag("keywords", frontMatterStr("Keywords", fm)) +
+		metatag("author", frontMatterStr("Author", fm))
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
 func metatag(tag string, content string) string {
-	if content == "" {
+	if content == "" || tag == "" {
 		return ""
 	}
 	return "\t<meta name=\"" + tag + "\"" +
 		" content=" + "\"" + content + "\">\n"
 }
+
+// Generate common metatags
+
 
 // Printy utilities
 
