@@ -3,8 +3,6 @@ package main
 
 // git clone https://github.com/pococms/poco
 // cd poco
-// go mod init github.com/pococms/poco
-// go mod tidy
 // go build # OR go run main.go
 //
 // Example invocations
