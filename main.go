@@ -132,7 +132,8 @@ func assemble(article string, frontMatter map[string]string, fm map[string]inter
 		"</head>\n<body>\n" +
 		layoutEl(frontMatter, "Header") +
 		layoutEl(frontMatter, "Nav") +
-		article +
+		"<article>" + article + "</article>\n" +
+		layoutEl(frontMatter, "Aside") +
 		layoutEl(frontMatter, "Footer") +
 		"</body>\n</html>"
 	return htmlFile
