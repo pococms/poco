@@ -1,8 +1,15 @@
 // PocoCMS: Markdown-based CMS in 1 file, written in Go
 package main
 
+// # Create a directory. It doesn't have to be here.
+// mkdir ~/pococms
+// # Navigate to that directory.
+// cd ~/pococms
+// # Clone the repo.
 // git clone https://github.com/pococms/poco
+// # The repo is now in ~/pococms/poco, so navigate there.
 // cd poco
+// And compile. There's one one file, so you can also use go run
 // go build # OR go run main.go
 //
 // Example invocations
