@@ -199,8 +199,8 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 	isMarkdown := false
 	fullPath := ""
 	tag := ""
-  layoutElSource := frontMatterStr(element, fm)
-  // xxx layoutEl()
+	layoutElSource := frontMatterStr(element, fm)
+	// xxx layoutEl()
 	fileDir := filepath.Dir(layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
@@ -224,12 +224,12 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
-    wholeTag := "<" + tag + ">" + parsedArticle + "<" + tag + "/>\n"
-		return  wholeTag
+		wholeTag := "<" + tag + ">" + parsedArticle + "<" + tag + "/>\n"
+		return wholeTag
 	}
 	return fileToString(fullPath) + "\n"
 
-} 
+}
 
 // sliceToStylesheetStr takes a slice of simple stylesheet names, such as
 // [ "foo.css", "bar.css" ] and converts it into a string
@@ -570,22 +570,22 @@ func ensureIndexHTML(path string) {
 	}
 
 	// Both README.html and index.html exist.  Or
-  // README.html exists but no index.html exists.
-  // Rename README.html
+	// README.html exists but no index.html exists.
+	// Rename README.html
 	if fileExists(readmeHTML) && (fileExists(newIndexHTML) || !fileExists(newIndexHTML)) {
 		err := os.Rename(readmeHTML, newIndexHTML)
 		if err != nil {
 			quit(1, err, "Unable to rename %v ", readmeHTML)
 		}
-    return
+		return
 	}
-  /*
-	// Only README.html remains. Rename it.
-	err := os.Rename(readmeHTML, newIndexHTML)
-	if err != nil {
-		quit(1, err, "Unable to create %v ", newIndexHTML)
-	}
-  */
+	/*
+		// Only README.html remains. Rename it.
+		err := os.Rename(readmeHTML, newIndexHTML)
+		if err != nil {
+			quit(1, err, "Unable to create %v ", newIndexHTML)
+		}
+	*/
 
 }
 
