@@ -136,9 +136,12 @@ Use the docs subdirectory as the root of the site:
     ./poco -root "./docs"
 `
 
+// Required begininng for a valid HTML document
 var docType = `<!DOCTYPE html>
 <html lang=`
 
+// If a page lacks a title tag, it fails validation.
+// Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
 
 // assemble takes the raw converted HTML and uses it to generate
@@ -423,11 +426,10 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
 
 	var err error
-	// Make sure it's a valid site.
+	// Make sure it's a valid site. If not, create a minimal home page.
 	if !isProject(projectDir) {
-		writeDefaultHomePage(projectDir)
-		//debug(createDefaultHomePage(projectDir))
-		//quit(1, err, "%s doesn't seem to be a valid site. There's no index.md or README.md", projectDir)
+    homePage := writeDefaultHomePage(projectDir)
+    warn("No index.md or README.md found. Created home page %v", homePage)
 	}
 
 	// Change to requested directory
@@ -586,14 +588,6 @@ func ensureIndexHTML(path string) {
 		}
 		return
 	}
-	/*
-		// Only README.html remains. Rename it.
-		err := os.Rename(readmeHTML, newIndexHTML)
-		if err != nil {
-			quit(1, err, "Unable to create %v ", newIndexHTML)
-		}
-	*/
-
 }
 
 func getSkipPublish() []string {
@@ -703,9 +697,12 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
 // segment of dir as the the H1 title.
-func writeDefaultHomePage(dir string) {
+// Returns the full pathname of the file.
+func writeDefaultHomePage(dir string) string {
 	html := defaultHomePage(dir)
-	writeStringToFile(filepath.Join(dir, "index.md"), html)
+  pathname := filepath.Join(dir, "index.md")
+	writeStringToFile(pathname, html)
+  return pathname
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -1027,6 +1024,12 @@ func quit(exitCode int, err error, format string, ss ...interface{}) {
 // A little list printing and easier to search
 func debug(format string, ss ...interface{}) {
 	fmt.Println(fmtMsg(format, ss...))
+}
+
+// warn displays messages to stderr using Fprintf syntax.
+func warn(format string, ss ...interface{}) {
+  msg := fmt.Sprintf(format, ss...)
+  fmt.Fprintln(os.Stderr, msg)
 }
 
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
