@@ -14,8 +14,14 @@ package main
 //
 // Example invocations
 //
+// If there's at least one Markdown file named index.md or README.md
+// in the current directory, PocoCMS assumes it's a site and will
+// create one. All you have to do is type the name of the program:
+// poco
+//
 // Learn the command-line options:
 // poco --help
+//
 //
 // Use a style sheet from a CDN (you don't have to copy it to your project)
 // poco --styles "https://cdn.jsdelivr.net/npm/holiday.css"
@@ -28,7 +34,7 @@ package main
 // Filename must come after all the options.
 // ./poco --styles "https://unpkg.com/hack@0.8.1/dist/hack.css" template.md
 // Use the docs subdirectory as the root of the site.
-// ./pococms --root "./docs"
+// ./poco --root "./docs"
 
 // Get CSS file from CDN
 // poco --styles "https://unpkg.com/spectre.css/dist/spectre.min.css"
@@ -55,6 +61,7 @@ import (
 	"text/template"
 )
 
+// TODO: No longer true
 // If you invoke poco without a filename, it creates an index file from this
 // and publishes it. It also works as an informal test harness.
 
@@ -200,7 +207,6 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 	fullPath := ""
 	tag := ""
 	layoutElSource := frontMatterStr(element, fm)
-	// xxx layoutEl()
 	fileDir := filepath.Dir(layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
@@ -220,7 +226,6 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
 		}
-		// xxx layoutEl
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
@@ -420,7 +425,9 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 	var err error
 	// Make sure it's a valid site.
 	if !isProject(projectDir) {
-		quit(1, err, "%s doesn't seem to be a valid site. There's no index.md or README.md", projectDir)
+		writeDefaultHomePage(projectDir)
+		//debug(createDefaultHomePage(projectDir))
+		//quit(1, err, "%s doesn't seem to be a valid site. There's no index.md or README.md", projectDir)
 	}
 
 	// Change to requested directory
@@ -642,7 +649,7 @@ func currDir() string {
 }
 
 // FILE UTILITIES
-// Clear but
+// copyFile, well, does just that. Doesnt' return errors.
 func copyFile(source string, target string) {
 	if source == target {
 		quit(1, nil, "copyFile: %s and %s are the same", source, target)
@@ -666,6 +673,39 @@ func copyFile(source string, target string) {
 	if _, err := trgt.ReadFrom(src); err != nil {
 		quit(1, err, "Error copying file %s to %s", source, target)
 	}
+}
+
+// Generates a simple home page as an HTML string
+// Uses the file segment of dir as the the H1 title.
+// Uses current directory if "." or "" are passed
+func defaultHomePage(dir string) string {
+
+	var indexMdFront = `---
+Sheets:
+    - https://unpkg.com/simpledotcss/simple.min.css
+---
+`
+	var indexMdBody = `
+hello, world.
+
+Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html) 
+`
+	if dir == "" || dir == "." {
+		dir, _ = os.Getwd()
+	}
+	h1 := filepath.Base(dir)
+	page := indexMdFront +
+		"# " + h1 + "\n" +
+		indexMdBody
+	return page
+}
+
+// Generates a simple home page
+// and writes it to index.md in dir. Uses the file
+// segment of dir as the the H1 title.
+func writeDefaultHomePage(dir string) {
+	html := defaultHomePage(dir)
+	writeStringToFile(filepath.Join(dir, "index.md"), html)
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -740,7 +780,7 @@ func writeStringToFile(filename, contents string) {
 // Searching a sorted slice is fast.
 // This tracks whether the slice has been sorted
 // and sorts it on first search.
-
+// TODO: document
 type searchInfo struct {
 	list   []string
 	sorted bool
@@ -972,7 +1012,6 @@ func Verbose(format string, ss ...interface{}) {
 	}
 }
 
-// / xxx
 func quit(exitCode int, err error, format string, ss ...interface{}) {
 	msg := fmt.Sprint(fmtMsg(format, ss...))
 	errmsg := ""
