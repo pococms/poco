@@ -9,7 +9,7 @@ package main
 // git clone https://github.com/pococms/poco
 // # The repo is now in ~/pococms/poco, so navigate there.
 // cd poco
-// And compile. There's one one file, so you can also use go run
+// And compile. There's only one file, so you can also use go run
 // go build # OR go run main.go
 //
 // Example invocations
@@ -28,14 +28,12 @@ package main
 // Filename must come after all the options.
 // ./poco --styles "https://unpkg.com/hack@0.8.1/dist/hack.css" template.md
 // Use the docs subdirectory as the root of the site.
-// ./pococms -root "./docs"
+// ./pococms --root "./docs"
 
 // Get CSS file from CDN
-// poco -styles "https://unpkg.com/spectre.css/dist/spectre.min.css"
-// poco -styles "//writ.cmcenroe.me/1.0.4/writ.min.css" foo.md
+// poco --styles "https://unpkg.com/spectre.css/dist/spectre.min.css"
+// poco --styles "//writ.cmcenroe.me/1.0.4/writ.min.css" foo.md
 
-// Notes:
-// - www is a subdir of project
 import (
 	"bytes"
 	"flag"
@@ -55,11 +53,21 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	//"reflect"
 )
 
+// If you invoke poco without a filename, it creates an index file from this
+// and publishes it. It also works as an informal test harness.
+
 var indexSample = `---
-Title: 'Powered by PocoCMS'
+Title: Try 4:37am
+---
+# Welcome to PocoCMS
+---
+Title: {{ .Title }}
+`
+
+var OLDindexSample = `---
+Title: 'inserttitle'
 Description: PocoCMS: Markdown-based CMS in 1 file, written in Go
 Author: 'Tom Campbell'
 Header: header.html
@@ -70,20 +78,36 @@ LinkTags:
     - <link rel="preconnect" href="https://fonts.googleapis.com">
     - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     - <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-Tags:
-    - tag1
-    - tag2
 Sheets: 
- - 'https://cdn.jsdelivr.net/npm/holiday.css'
+    - 'https://cdn.jsdelivr.net/npm/holiday.css'
+SkipPublish:
+    - node_modules
+    - htdocs
+    - public_html
+    - WWW
+    - .git
+    - .DS_Store
+    - .gitignore
 ---
 # Welcome to PocoCMS
 
 ## To build from source:
+    $ # Create a directory. It doesn't have to be here.
+    $ mkdir ~/pococms
+    # Navigate to that directory.
+    $ cd ~/pococms
+    $ # Clone the repo.
     $ git clone https://github.com/pococms/poco
+    $ # The repo is now in ~/pococms/poco, so navigate there.
     $ cd poco
-    $ go mod init github.com/pococms/poco
-    $ go mod tidy
-    $ go build # OR EVEN go run main.go
+    $ # And compile: 
+    $ go build 
+    $ ### OR....
+    $ # There's only one file, so you can also use go run.
+    $ # That runs the go compiler, then executes the program 
+    $ # if there are no compilation errors.
+    $ go run main.go
+    $ # This will generate an example file
     $ ./poco
     # (Then make sure poco is on your path)
 
@@ -108,15 +132,17 @@ Use the docs subdirectory as the root of the site:
 var docType = `<!DOCTYPE html>
 <html lang=`
 
+var poweredBy = `Powered by PocoCMS`
+
 // assemble takes the raw converted HTML and uses it to generate
 // a finished HTML document. Returns it as a string.
-func assemble(article string, fm map[string]interface{}, language string, stylesheetList string) string {
+func assemble(filename string, article string, fm map[string]interface{}, language string, stylesheetList string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
 	if parsedArticle, err := doTemplate("", article, fm); err != nil {
-		quit(fmt.Sprintf("Unable to execute template", "file"), err, 1)
+		quit(1, err, "%v: Unable to execute ", filename)
 	} else {
 		article = parsedArticle
 	}
@@ -126,22 +152,21 @@ func assemble(article string, fm map[string]interface{}, language string, styles
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		"\t<title>" + frontMatterStr("Title", fm) + "</title>\n" +
+		titletag(fm) +
 		metatags(fm) +
 		linktags(fm) +
 		stylesheets(stylesheetList, fm) +
-			"</head>\n<body>\n" +
-			layoutEl(fm, "Header") +
-			layoutEl(fm, "Nav") +
-			"<article>" + article + "</article>\n" +
-			layoutEl(fm, "Aside") +
-			layoutEl(fm, "Footer") +
-			"</body>\n</html>"
+		"</head>\n<body>\n" +
+		layoutEl(fm, "Header", filename) +
+		layoutEl(fm, "Nav", filename) +
+		"<article>" + article + "</article>\n" +
+		layoutEl(fm, "Aside", filename) +
+		layoutEl(fm, "Footer", filename) +
+		"</body>\n</html>"
 	return htmlFile
 } //   assemble
 
 // HTML UTILITIES
-
 
 // layoutEl() takes a layout element file named in the front matter.
 // For example, suppose you have a header file named head.html. It
@@ -152,36 +177,73 @@ func assemble(article string, fm map[string]interface{}, language string, styles
 //
 // The layout element file is expected to be a complete tag. For example,
 // the header file could be as simple as this:
-//    <header>hello, world.</header>
+//
+//	<header>hello, world.</header>
+//
 // This function would read in the head.html file (or whatever
 // the file was named in the front matter) and insert it before the
 // body of the document.
-func layoutEl(fm map[string]interface{}, element string) string {
-  filename := frontMatterStr(element, fm)
+//
+// fm contains the YAML front matter.
+// element is the file containing the layout element, for example, head.html.
+// If element  ends in ".html" it must be a complete header tag, with
+// both tags included. If element doesn't end in ".html" it is considered
+// to be a Markdown file and is processed that way.
+// sourcefile is the fully qualified pathname of the .md file being processed
+// TODO: Code smell
+func layoutEl(fm map[string]interface{}, element string, sourcefile string) string {
+	filename := frontMatterStr(element, fm)
 	if filename == "" {
 		return ""
 	}
-	if !fileExists(filename) {
-		return ""
+	isMarkdown := false
+	fullPath := ""
+	tag := ""
+  layoutElSource := frontMatterStr(element, fm)
+  // xxx layoutEl()
+	fileDir := filepath.Dir(layoutElSource)
+	if filepath.IsAbs(layoutElSource) {
+		fullPath = layoutElSource
+	} else {
+		fullPath = filepath.Join(fileDir, layoutElSource)
 	}
-	return fileToString(filename) + "\n"
-}
+	if filepath.Ext(fullPath) != ".html" {
+		isMarkdown = true
+	}
 
+	parsedArticle := ""
+	tag = strings.ToLower(element)
+	raw := ""
+	var err error
+	if isMarkdown {
+		if raw, _, err = mdYAMLFileToHTMLString(fullPath); err != nil {
+			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
+			return ""
+		}
+		// xxx layoutEl
+		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
+			quit(1, err, "%v: Unable to execute ", filename)
+		}
+    wholeTag := "<" + tag + ">" + parsedArticle + "<" + tag + "/>\n"
+		return  wholeTag
+	}
+	return fileToString(fullPath) + "\n"
 
+} 
 
-// sliceToStyleSheetStr takes a slice of simple stylesheet names, such as 
+// sliceToStylesheetStr takes a slice of simple stylesheet names, such as
 // [ "foo.css", "bar.css" ] and converts it into a string
 // consisting of stylesheet link tags separated by newlines:
 //
 // <link rel="stylesheet" href="foo.css"/>
 // <link rel="stylesheet" href="bar.css"/>
-// 
-func sliceToStyleetSheetStr(sheets []string) string {
+func sliceToStylesheetStr(sheets []string) string {
 	var tags string
 	for _, sheet := range sheets {
-		tags += fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\"/>\n", sheet)
+		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
+		tags += tag
 	}
-  return tags
+	return tags
 }
 
 // stylesheets() takes stylesheets listed on the command line
@@ -191,13 +253,16 @@ func sliceToStyleetSheetStr(sheets []string) string {
 // Those listed in the front matter are appended, so they take
 // priority.
 func stylesheets(sheets string, fm map[string]interface{}) string {
-	// Build a string from stylesheets named on the command line.
-	globalSlice := strings.Split(sheets, " ")
-  globals := sliceToStyleetSheetStr(globalSlice)
-
+	var globalSlice []string
+	var globals string
+	if sheets != "" {
+		// Build a string from stylesheets named on the command line.
+		globalSlice = strings.Split(sheets, " ")
+		globals = sliceToStylesheetStr(globalSlice)
+	}
 	// Build a string from stylesheets named in the front matter for this page
-  localSlice := frontMatterStrSlice("Sheets", fm)
-  locals := sliceToStyleetSheetStr(localSlice)
+	localSlice := frontMatterStrSlice("Sheets", fm)
+	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
 	// so they goes last. This allows you to have stylesheets
@@ -220,17 +285,14 @@ func main() {
 
 	// skip lets you skip the named files from being processed
 	var skip string
-	flag.StringVar(&skip, "skip", "List of files to skip when generating a site", "node_modules .git .DS_Store .gitignore")
+	flag.StringVar(&skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
 
 	// language sets HTML lang= value, such as <html lang="fr">
 	var language string
 	flag.StringVar(&language, "language", "en", "HTML language designation, such as en or fr")
 
-	// root is the project's root directory, where the home page is located.
-	// Defaults to the current directory but other choices might be
-	// "/docs" or "/_pub"
 	var root string
-	flag.StringVar(&root, "root", ".", "Subdirectory to use as root")
+	flag.StringVar(&root, "root", ".", "Starting directory of the project")
 
 	// List of stylesheets to include on each page.
 	var stylesheets string
@@ -238,14 +300,14 @@ func main() {
 
 	// Title tag.
 	var title string
-	flag.StringVar(&title, "title", "powered by PocoCMS", "Contents of the HTML title tag")
+	flag.StringVar(&title, "Title", poweredBy, "Contents of the HTML title tag")
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&gVerbose, "verbose", false, "Display information about project as it's generated")
 
-	// www is the directory used to house the final generated website.
-	var www string
-	flag.StringVar(&www, "www", "WWW", "Subdirectory used for generated HTML files")
+	// webroot is the directory used to house the final generated website.
+	var webroot string
+	flag.StringVar(&webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
 
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
@@ -254,98 +316,56 @@ func main() {
 	// and nested subdirectories are processed.
 	filename := flag.Arg(0)
 
-	// Special case: if you name a file on the command line, it will
-	// generate an HTML document from that file and pass you the new filename.
-	if filename != "" && fileExists(filename) {
-		// replaceExtension() is passed a filename and returns a filename
-		// with the specified extension.
-		htmlFilename := replaceExtension(filename, "html")
-		htmlFilename = buildFileToFile(filename, stylesheets, language)
-
-		quit("Built file "+htmlFilename, nil, 1)
+	if filename != "" {
+		// Something's left on the command line. It's presumed to
+		// be a filename.
+		if !fileExists(filename) {
+			quit(1, nil, "Can't find the file %v", filename)
+		} else {
+			// Special case: if you name a file on the command line, it will
+			// generate an HTML document from that file and pass you the new filename.
+			// The output file isn't published to webroot. It's published to the
+			// current directory.
+			htmlFilename := buildFileToFile(filename, stylesheets, language)
+			quit(0, nil, "Built file %s", htmlFilename)
+		}
 	}
+	// No file was given on the command line.
+	// Build the project in place.
+
 	// markdownExtensions are how PocoCMS figures out whether
 	// a file is Markdown. If it ends in any one of these then
 	// it gets converted to HTML.
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	// See if there's an index.md in the starting directory
-	var rootFile string
-	var err error
-	if rootFile, err = filepath.Abs(root); err != nil {
-		quit("Error detecting root file.", err, 1)
-	}
+	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup)
+	quit(0, nil, "Site published to %s", webrootPath)
 
-	// See if there's an index.md at the root of the
-	// project. If not, create one.
-	indexMd := filepath.Join(rootFile, "index.md")
-	if !fileExists(indexMd) {
-		writeStringToFile(indexMd, indexSample)
-	}
-	targetDir := buildSite(root, www, skip, markdownExtensions, language, stylesheets, cleanup)
-	quit(fmt.Sprintf("Files published to %s", targetDir), nil, 0)
-
-}
-
-// mdToHTML takes Markdown source as a byte slice and converts it to HTML
-// using Goldmark's default settings.
-func mdToHTML(input []byte) ([]byte, error) {
-	var buf bytes.Buffer
-	if err := goldmark.Convert(input, &buf); err != nil {
-		return []byte{}, err
-	}
-	return buf.Bytes(), nil
-}
-
-// mdFileToHTML converts a source file to an HTML string
-// using Goldmark's default settings.
-func mdFileToHTML(filename string) (string, error) {
-	bytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	if HTML, err := mdToHTML(bytes); err != nil {
-		return "", err
-	} else {
-		return string(HTML), nil
-	}
 }
 
 // TEMPLATE FUNCTIONS
 
 // doTemplate takes HTML in source, expects parsed front
-// matter in frontMatter, and executes Go templates
+// matter in fm, and executes Go templates
 // against the source.
 // Returns a string containing the HTML with the
 // template values embedded.
-func doTemplate(templateName string, source string, frontMatter map[string]interface{}) (string, error) {
+func doTemplate(templateName string, source string, fm map[string]interface{}) (string, error) {
 	if templateName == "" {
 		templateName = "PocoCMS"
 	}
+	// fmt.Printf("\tdoTemplate() fm: \n%v\n", fm)
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
 		return "", err
 	}
 	buf := new(bytes.Buffer)
-	//err = tmpl.Execute(buf, app)
-	err = tmpl.Execute(buf, frontMatter)
-
+	err = tmpl.Execute(buf, fm)
 	if err != nil {
 		return "", err
 	}
 	return buf.String(), err
-}
-
-
-
-func quit(msg string, err error, exitCode int) {
-	if err != nil {
-		fmt.Printf("%s: %v\n", msg, err.Error())
-	} else {
-		fmt.Printf("%s\n", msg)
-	}
-	os.Exit(exitCode)
 }
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
@@ -366,6 +386,7 @@ func buildFileToFile(filename string, stylesheets string, language string) (outf
 // and returns name of the destination HTML file
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
+// Reeturns the string and the filenlame
 func buildFileToString(filename string, stylesheets string, language string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
@@ -375,56 +396,63 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 	dest := ""
 	// Convert the Markdown file to an HTML string
 	if rawHTML, fm, err := mdYAMLFileToHTMLString(filename); err != nil {
-		quit("Error converting Markdown file to HTML", err, 1)
+		quit(1, err, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
 		// Strip original file's Markdown extension and make
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(rawHTML, fm, language, stylesheets)
-    // Return the finished document and its filename
+		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
+		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
 }
 
-// buildSite takes startDir as the root directory,
-// converts all files (except those in exclude.List) to HTML,
-// and deposits them in www. Attempts to create www if it
-// doesn't exist. www is expected to be a subdirectory of
-// startDir.
+// buildSite takes projectDir as the root directory,
+// converts all files (except those in skipPublish.List) to HTML,
+// and deposits them in webroot. Attempts to create webroot if it
+// doesn't exist. webroot is expected to be a subdirectory of
+// projectDir.
 // Return name of the root directory files are published to
-func buildSite(startDir string, www string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
+func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
 
 	var err error
-	var fm map[string]interface{}
+	// Make sure it's a valid site.
+	if !isProject(projectDir) {
+		quit(1, err, "%s doesn't seem to be a valid site. There's no index.md or README.md", projectDir)
+	}
+
 	// Change to requested directory
-	if err = os.Chdir(startDir); err != nil {
-		quit(fmt.Sprintf("Unable to change to directory %s", startDir), err, 1)
+	if err = os.Chdir(projectDir); err != nil {
+		quit(1, err, "Unable to change to directory %s", projectDir)
 	}
 
 	// Cache project's root directory
-	var currDir string
-	if currDir, err = os.Getwd(); err != nil {
-		quit("Unable to get name of current directory", err, 1)
+	var homeDir string
+	if homeDir, err = os.Getwd(); err != nil {
+		quit(1, err, "Unable to get name of current directory")
 	}
 
+	// Delete web root directory unless otherwise requested
 	if cleanup {
-		delDir := filepath.Join(currDir, www)
+		delDir := filepath.Join(homeDir, webroot)
 		Verbose("Deleting directory %v", delDir)
 		if err := os.RemoveAll(delDir); err != nil {
-			quit(fmt.Sprintf("Unable to delete publish directory %v", delDir), err, 1)
+			quit(1, err, "Unable to delete publish directory %v", delDir)
 		}
 	}
 
 	// Convert the list of exclusions into a string slice.
-	var exclude searchInfo
-	exclude.list = strings.Split(skip, " ")
+	// xxx
+	// skipPublish = getSkipPublish()
+	var skipPublish searchInfo
+	skipPublish.list = strings.Split(skip, " ")
 
 	// Collect all the files required for this project.
-	files, err := getProjectTree(".", exclude)
+	files, err := getProjectTree(".", skipPublish)
 	if err != nil {
-		quit("Unable to get directory tree", err, 1)
+		quit(1, err, "Unable to get directory tree")
 	}
 
 	// Now have list of all files in directory tree.
@@ -451,7 +479,10 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 	var converted bool
 
 	// Name of directory used to publish output files
-	var targetDir string
+	var webrootPath string
+
+	// Parsed front matter
+	var fm map[string]interface{}
 
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
@@ -464,7 +495,7 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		converted = false
 
 		// Get the fully qualified pathname for this file.
-		filename = filepath.Join(currDir, filename)
+		filename = filepath.Join(homeDir, filename)
 
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(filename)
@@ -474,14 +505,12 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
-		if rel, err = filepath.Rel(currDir, sourceDir); err != nil {
-			quit(fmt.Sprintf("Unable to get relative paths of %s and %s\n", filename, www), err, 1)
+		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
+			quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
 		}
 
-		// Determine the destination directory. If the base publish
-		// directory is named WWW, then in the previous example
-		// it would be ~/raj/blog/WWW, or ~/raj/blog/WWW/2023/may
-		targetDir = filepath.Join(currDir, www, rel)
+		// Determine the destination directory.
+		webrootPath = filepath.Join(homeDir, webroot, rel)
 		// Obtain file extension.
 		ext := path.Ext(filename)
 		// Replace converted filename extension, from markdown to HTML.
@@ -489,7 +518,7 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
 			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
-				quit("Error converting Markdown file to HTML", err, 1)
+				quit(1, err, "Error converting Markdown file to HTML")
 			}
 			// Strip original file's Markdown extension and make
 			// the destination files' extension HTML
@@ -498,55 +527,144 @@ func buildSite(startDir string, www string, skip string, markdownExtensions sear
 		} else {
 			// Not a Markdown file. Copy unchanged.
 			source = filename
-			// Insert destination (WWW) directory
+			// Insert destination (webroot) directory
 			converted = false
 		}
-		target = filepath.Join(targetDir, filepath.Base(source))
+		target = filepath.Join(webrootPath, filepath.Base(source))
 
 		// Create the target directory for this file if it
 		// doesn't exist.
-		if !dirExists(targetDir) {
-			err := os.MkdirAll(targetDir, os.ModePerm)
+		if !dirExists(webrootPath) {
+			err := os.MkdirAll(webrootPath, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
-				quit(fmt.Sprintf("Unable to create directory %s", targetDir), err, 1)
+				quit(1, err, "Unable to create directory %s", webrootPath)
 			}
 		}
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(HTML, fm, language, stylesheets)
+			h := assemble(filename, HTML, fm, language, stylesheets)
 			writeStringToFile(target, h)
 		} else {
 			copyFile(source, target)
 		}
 	}
 	// This is where the files were published
-	return targetDir
+	ensureIndexHTML(webrootPath)
+	return webrootPath
+}
+
+// ensureIndexHTML makes sure there's an index.html file
+// in the directory. It's required because some existing
+// projects use README.md instead of index.md.
+// Even if a project directory had both
+// an index.md and a README.md, the output README.html
+// would be renamed to index.html
+func ensureIndexHTML(path string) {
+	readmeHTML := filepath.Join(path, "README.html")
+	newIndexHTML := filepath.Join(path, "index.html")
+
+	// if neither index.html nor README.html, then they
+	// were missing source files to begin with.
+	if !fileExists(readmeHTML) && !fileExists(newIndexHTML) {
+		quit(1, nil, "No README.html or index.html could be found in %v", path)
+	}
+
+	// Both README.html and index.html exist.  Or
+  // README.html exists but no index.html exists.
+  // Rename README.html
+	if fileExists(readmeHTML) && (fileExists(newIndexHTML) || !fileExists(newIndexHTML)) {
+		err := os.Rename(readmeHTML, newIndexHTML)
+		if err != nil {
+			quit(1, err, "Unable to rename %v ", readmeHTML)
+		}
+    return
+	}
+  /*
+	// Only README.html remains. Rename it.
+	err := os.Rename(readmeHTML, newIndexHTML)
+	if err != nil {
+		quit(1, err, "Unable to create %v ", newIndexHTML)
+	}
+  */
+
+}
+
+func getSkipPublish() []string {
+	// var skipPublish searchInfo
+	// skipPublish.list = strings.Split(skip, " ")
+	// xxx
+	// var skipPublish searchInfo
+	// skipPublish.list = strings.Split(skip, " ")
+	// skipPublish = getSkipPublish()
+	return []string{}
+
+}
+
+// isProject() looks at the structure of the specified directory
+// and tries to determine if there's already a project here.
+func isProject(path string) bool {
+	// If the directory doesn't exist, that's easy.
+	if !dirExists(path) {
+		return false
+	}
+	if indexFile(path) == "" {
+		return false
+	} else {
+		return true
+	}
+}
+
+// indexFile looks in the specified path for either index.md
+// or README.md. Returns that filename if it exists.
+// If it has both README.md,  takes priority.
+func indexFile(path string) string {
+	var indexMd, readmeMd string
+	indexMd = filepath.Join(path, "index.md")
+	if fileExists(indexMd) {
+		return indexMd
+	}
+	readmeMd = filepath.Join(path, "README.md")
+	if fileExists(readmeMd) {
+		return readmeMd
+	}
+	return ""
+}
+
+// SYSTEM UTILITIES
+// curDir() returns the current directory name.
+func currDir() string {
+	// if path, err := os.Executable(); err != nil {
+	if path, err := os.Getwd(); err != nil {
+		return "unknown directory"
+	} else {
+		return path
+	}
 }
 
 // FILE UTILITIES
 // Clear but
 func copyFile(source string, target string) {
 	if source == target {
-		quit(fmt.Sprintf("copyFile: %s and %s are the same", source, target), nil, 1)
+		quit(1, nil, "copyFile: %s and %s are the same", source, target)
 	}
 	if source == "" {
-		quit("copyFile: no source file specified", nil, 1)
+		quit(1, nil, "copyFile: no source file specified")
 	}
 	if target == "" {
-		quit(fmt.Sprintf("copyFile: no destination file specified for file %s", source), nil, 1)
+		quit(1, nil, "copyFile: no destination file specified for file %s", source)
 	}
 	var src, trgt *os.File
 	var err error
 	if src, err = os.Open(source); err != nil {
-		quit(fmt.Sprintf("copyFile: Unable to open file %s", source), err, 1)
+		quit(1, err, "copyFile: Unable to open file %s", source)
 	}
 	defer src.Close()
 
 	if trgt, err = os.Create(target); err != nil {
-		quit(fmt.Sprintf("copyFile: Unable to create file %s", target), err, 1)
+		quit(1, err, "copyFile: Unable to create file %s", target)
 	}
 	if _, err := trgt.ReadFrom(src); err != nil {
-		quit(fmt.Sprintf("Error copying file %s to %s", source, target), err, 1)
+		quit(1, err, "Error copying file %s to %s", source, target)
 	}
 }
 
@@ -610,11 +728,11 @@ func writeStringToFile(filename, contents string) {
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
-		quit(fmt.Sprintf("writeStringToFile: Unable to create file %s", filename), err, 1)
+		quit(1, err, "writeStringToFile: Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		// TODO: Renumber error code?
-		quit(fmt.Sprintf("Error writing to file %s", filename), err, 1)
+		quit(1, err, "Error writing to file %s", filename)
 	}
 }
 
@@ -650,10 +768,8 @@ func (s *searchInfo) Found(searchFor string) bool {
 
 // DIRECTORY TREE
 
-func visit(files *[]string, exclude searchInfo) filepath.WalkFunc {
-	// var exclude searchInfo
+func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 	// Find out what directories to exclude
-	//exclude.list = []string{"node_modules", "main.bak", ".git", "pub", ".DS_Store", ".gitignore"}
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// Quietly fail if unable to access path.
@@ -666,11 +782,11 @@ func visit(files *[]string, exclude searchInfo) filepath.WalkFunc {
 
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
-		if exclude.Found(name) && isDir {
+		if skipPublish.Found(name) && isDir {
 			return filepath.SkipDir
 		}
 		// It may be just a filename on the exclude list.
-		if exclude.Found(name) {
+		if skipPublish.Found(name) {
 			return nil
 		}
 
@@ -685,9 +801,9 @@ func visit(files *[]string, exclude searchInfo) filepath.WalkFunc {
 // Obtain a list of all files in the specified project tree starting
 // at the root.
 // Ignore items in exclude.List
-func getProjectTree(path string, exclude searchInfo) (tree []string, err error) {
+func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
-	err = filepath.Walk(path, visit(&files, exclude))
+	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
 		return []string{}, err
 	}
@@ -742,7 +858,7 @@ func newGoldmark() goldmark.Markdown {
 // is deposited in frontMatter.
 func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 
-  // TODO: Does this obviate the need of some of the othe routines?
+	// TODO: Does this obviate the need of some of the othe routines?
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
 
@@ -770,7 +886,6 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 //
 // It would render like this in the HTML:
 // I like yo mama
-//
 func frontMatterStr(key string, fm map[string]interface{}) string {
 	v := fm[key]
 	value, ok := v.(string)
@@ -784,12 +899,12 @@ func frontMatterStr(key string, fm map[string]interface{}) string {
 // For example, if you had this code in your Markdown file:
 // ---
 // Sheets:
-//    - 'https://cdn.jsdelivr.net/npm/holiday.css'
-//    - 'fonts.css'
+//   - 'https://cdn.jsdelivr.net/npm/holiday.css'
+//   - 'fonts.css'
+//
 // ---
 //
 // I like yo mama
-//
 func frontMatterStrSlice(key string, fm map[string]interface{}) []string {
 	if key == "" {
 		return []string{}
@@ -820,6 +935,15 @@ func linktags(fm map[string]interface{}) string {
 	return tags
 }
 
+func titletag(fm map[string]interface{}) string {
+	title := frontMatterStr("Title", fm)
+	if title == "" {
+		return "\t<title>" + poweredBy + "</title>\n"
+	} else {
+		return "\t<title>" + title + "</title>\n"
+	}
+}
+
 // Generate common metatags
 func metatags(fm map[string]interface{}) string {
 	return metatag("description", frontMatterStr("Description", fm)) +
@@ -838,7 +962,6 @@ func metatag(tag string, content string) string {
 
 // Generate common metatags
 
-
 // Printy utilities
 
 // If the Verbose flag is set, use the Printf style parameters
@@ -847,6 +970,24 @@ func Verbose(format string, ss ...interface{}) {
 	if gVerbose {
 		fmt.Println(fmtMsg(format, ss...))
 	}
+}
+
+// / xxx
+func quit(exitCode int, err error, format string, ss ...interface{}) {
+	msg := fmt.Sprint(fmtMsg(format, ss...))
+	errmsg := ""
+	if err != nil {
+		errmsg = " " + err.Error()
+	}
+	// fmt.Println(msg + errmsg)
+	fmt.Printf("PocoCMS: %s%s\n", msg, errmsg)
+	os.Exit(exitCode)
+}
+
+// debug displays messages to stdout using Fprintf syntax.
+// A little list printing and easier to search
+func debug(format string, ss ...interface{}) {
+	fmt.Println(fmtMsg(format, ss...))
 }
 
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
