@@ -59,6 +59,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+  "encoding/json"
 )
 
 // TODO: No longer true
@@ -536,6 +537,7 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
 				quit(1, err, "Error converting Markdown file to HTML")
 			}
+      // If asked, display the front matter
       if debugFrontMatter  {
         debug(dumpFrontMatter(fm))
       }
@@ -1050,14 +1052,13 @@ func fmtMsg(format string, ss ...interface{}) string {
 }
 
 // DEBUG UTILITIES
+//
 func dumpFrontMatter(fm map[string]interface{}) string {
-  return fmt.Sprintf("%#v", fm)
+      b, err := json.MarshalIndent(fm, "", "  ")
+      if err == nil {
+              return string(b)
+      }
+      return err.Error() 
 }
-
-// DEBUG UTILITIES
-
-
-
-// DEBUG UTILITIES
 
 
