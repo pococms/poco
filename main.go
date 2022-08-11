@@ -42,6 +42,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/yuin/goldmark"
@@ -59,8 +60,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-  "encoding/json"
-  "unicode/utf8"
+	//"unicode/utf8"
 )
 
 // TODO: No longer true
@@ -234,7 +234,7 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
-		wholeTag := "<" + tag + ">" + parsedArticle + "<" + tag + "/>\n"
+		wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
 		return wholeTag
 	}
 	return fileToString(fullPath) + "\n"
@@ -293,8 +293,8 @@ func main() {
 	var cleanup bool
 	flag.BoolVar(&cleanup, "cleanup", true, "Delete publish directory before converting files")
 
-  // debugFrontmatter command-line option shows the front matter of each page
-  var debugFrontMatter bool
+	// debugFrontmatter command-line option shows the front matter of each page
+	var debugFrontMatter bool
 	flag.BoolVar(&debugFrontMatter, "debug-frontmatter", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
@@ -420,8 +420,8 @@ func buildFileToString(filename string, stylesheets string, language string, deb
 		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
 		// Return the finished document and its filename
 
-    // Display raw front matter if requested
-    // xxx
+		// Display raw front matter if requested
+		// xxx
 		return finishedDocument, dest
 	}
 }
@@ -538,10 +538,10 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
 				quit(1, err, "Error converting Markdown file to HTML")
 			}
-      // If asked, display the front matter
-      if debugFrontMatter  {
-        debug(dumpFrontMatter(fm))
-      }
+			// If asked, display the front matter
+			if debugFrontMatter {
+				debug(dumpFrontMatter(fm))
+			}
 			// Strip original file's Markdown extension and make
 			// the destination files' extension HTML
 			source = filename[0:len(filename)-len(ext)] + ".html"
@@ -1056,22 +1056,22 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpFrontMatter Displays the contents of the page's front matter in JSON format
 func dumpFrontMatter(fm map[string]interface{}) string {
-      b, err := json.MarshalIndent(fm, "", "  ")
-      s := string(b)
-      // Let's see if removing some seemingly useless characters works
-      // Remove the first  "{"
-      _, last := utf8.DecodeRuneInString(s)
-      s = s[last:] 
-      // Remove the last  "{"
-      // the other { characters may help clarity in arrays, maps, etc
-      s = s[:len(s)-1]
-      s = strings.ReplaceAll(s, "[", "")
-      s = strings.ReplaceAll(s, "]", "")
-      s = strings.ReplaceAll(s, "\"", "")
-      if err == nil {
-              return s
-      }
-      return err.Error() 
+	b, err := json.MarshalIndent(fm, "", "  ")
+	s := string(b)
+	// Let's see if removing some seemingly useless characters works
+	// Remove the first  "{"
+	//_, last := utf8.DecodeRuneInString(s)
+	//s = s[last:]
+	// Remove the last  "{"
+	// the other { characters may help clarity in arrays, maps, etc
+	// s = s[:len(s)-1]
+	s = strings.ReplaceAll(s, "{", "")
+	s = strings.ReplaceAll(s, "}", "")
+	s = strings.ReplaceAll(s, "[", "")
+	s = strings.ReplaceAll(s, "]", "")
+	s = strings.ReplaceAll(s, "\"", "")
+	if err == nil {
+		return s
+	}
+	return err.Error()
 }
-
-
