@@ -60,20 +60,13 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	//"unicode/utf8"
 )
 
 // TODO: No longer true
 // If you invoke poco without a filename, it creates an index file from this
 // and publishes it. It also works as an informal test harness.
 
-var indexSample = `---
-Title: Try 4:37am
----
-# Welcome to PocoCMS
----
-Title: {{ .Title }}
-`
+
 
 var OLDindexSample = `---
 Title: 'inserttitle'
