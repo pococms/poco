@@ -428,8 +428,8 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
 	if !isProject(projectDir) {
-    homePage := writeDefaultHomePage(projectDir)
-    warn("No index.md or README.md found. Created home page %v", homePage)
+		homePage := writeDefaultHomePage(projectDir)
+		warn("No index.md or README.md found. Created home page %v", homePage)
 	}
 
 	// Change to requested directory
@@ -700,9 +700,9 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 // Returns the full pathname of the file.
 func writeDefaultHomePage(dir string) string {
 	html := defaultHomePage(dir)
-  pathname := filepath.Join(dir, "index.md")
+	pathname := filepath.Join(dir, "index.md")
 	writeStringToFile(pathname, html)
-  return pathname
+	return pathname
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -997,9 +997,7 @@ func metatag(tag string, content string) string {
 		" content=" + "\"" + content + "\">\n"
 }
 
-// Generate common metatags
-
-// Printy utilities
+// PRINTY utilities
 
 // If the Verbose flag is set, use the Printf style parameters
 // to format the input and return a string.
@@ -1009,6 +1007,9 @@ func Verbose(format string, ss ...interface{}) {
 	}
 }
 
+// quit displays a message fmt.Printf style and exits to the OS.
+// That format string must be preceded by an exit code and an
+// error object (nil if an error didn't occur).
 func quit(exitCode int, err error, format string, ss ...interface{}) {
 	msg := fmt.Sprint(fmtMsg(format, ss...))
 	errmsg := ""
@@ -1028,8 +1029,8 @@ func debug(format string, ss ...interface{}) {
 
 // warn displays messages to stderr using Fprintf syntax.
 func warn(format string, ss ...interface{}) {
-  msg := fmt.Sprintf(format, ss...)
-  fmt.Fprintln(os.Stderr, msg)
+	msg := fmt.Sprintf(format, ss...)
+	fmt.Fprintln(os.Stderr, msg)
 }
 
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
