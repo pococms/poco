@@ -60,6 +60,7 @@ import (
 	"strings"
 	"text/template"
   "encoding/json"
+  "unicode/utf8"
 )
 
 // TODO: No longer true
@@ -1052,11 +1053,23 @@ func fmtMsg(format string, ss ...interface{}) string {
 }
 
 // DEBUG UTILITIES
-//
+
+// dumpFrontMatter Displays the contents of the page's front matter in JSON format
 func dumpFrontMatter(fm map[string]interface{}) string {
       b, err := json.MarshalIndent(fm, "", "  ")
+      s := string(b)
+      // Let's see if removing some seemingly useless characters works
+      // Remove the first  "{"
+      _, last := utf8.DecodeRuneInString(s)
+      s = s[last:] 
+      // Remove the last  "{"
+      // the other { characters may help clarity in arrays, maps, etc
+      s = s[:len(s)-1]
+      s = strings.ReplaceAll(s, "[", "")
+      s = strings.ReplaceAll(s, "]", "")
+      s = strings.ReplaceAll(s, "\"", "")
       if err == nil {
-              return string(b)
+              return s
       }
       return err.Error() 
 }
