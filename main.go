@@ -882,7 +882,9 @@ func newGoldmark() goldmark.Markdown {
 		extension.Table,
 		extension.GFM,
 		extension.DefinitionList,
+    extension.TaskList,
 		extension.Footnote,
+    extension.Linkify,
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
