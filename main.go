@@ -162,7 +162,7 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		titletag(fm) +
+		titleTag(fm) +
 		metatags(fm) +
 		linktags(fm) +
 		stylesheets(stylesheetList, fm) +
@@ -972,7 +972,7 @@ func linktags(fm map[string]interface{}) string {
 	return tags
 }
 
-func titletag(fm map[string]interface{}) string {
+func titleTag(fm map[string]interface{}) string {
 	title := frontMatterStr("Title", fm)
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
