@@ -21,14 +21,14 @@ type stringTest struct {
 	expected string
 }
 
+// Plan to get all string values here
 var stringTests = []stringTest{
 	{"Title", "PocoCMS title"},
 }
 
-func fmTest(key string, fm map[string]interface{}) string {
-	fmt.Println("fmTest()")
+// fmtTest
+func fmTestStr(key string, fm map[string]interface{}) string {
 	s := fmt.Sprintf("%s", fm[key])
-	fmt.Printf("fm[%s] = %s\n", key, s)
 	return s
 }
 
@@ -44,25 +44,11 @@ func TestAllFrontMatterStrings(t *testing.T) {
 		t.Errorf("Unable to get front matter from %s", source)
 	}
 	for _, tt := range stringTests {
-		actual := fmTest(tt.key, fm)
+		actual := fmTestStr(tt.key, fm)
 		if actual != tt.expected {
 			t.Errorf("FrontMatter:%s: expected \"%s\", actual \"%s\"", tt.key, actual, tt.expected)
 		}
 	}
-}
-
-// TestHelloName calls greetings.Hello with a name, checking
-// for a valid return value.
-func TestHelloName(t *testing.T) {
-	source := fmAllStr
-	if HTML, fm, err := mdYAMLToHTML([]byte(source)); err != nil {
-		t.Errorf("Failed converting %s to HTML and obtaining front matter", source)
-	} else {
-		fmt.Println(fm["Title"], HTML, err)
-		s := fm["Title"]
-		fmt.Println(s)
-	}
-
 }
 
 func TestMissingTitleTag(t *testing.T) {
@@ -75,8 +61,8 @@ func TestMissingTitleTag(t *testing.T) {
 	}
 
 	//value := fmTest("Title", fm)
-  expected := "\t<title>" + tagLine + "</title>\n"
-  actual := titleTag(fm)
+	expected := "\t<title>" + tagLine + "</title>\n"
+	actual := titleTag(fm)
 	if actual != expected {
 		t.Errorf("FrontMatter[\"Title\"]: expected \"%s\", actual \"%s\"", expected, actual)
 	}
