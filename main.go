@@ -291,6 +291,10 @@ func main() {
 	var cleanup bool
 	flag.BoolVar(&cleanup, "cleanup", true, "Delete publish directory before converting files")
 
+  // debugFrontmatter command-line option shows the front matter of each page
+  var debugFrontMatter bool
+	flag.BoolVar(&debugFrontMatter, "debug-frontmatter", false, "Shows the front matter of each page")
+
 	// skip lets you skip the named files from being processed
 	var skip string
 	flag.StringVar(&skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
@@ -334,7 +338,7 @@ func main() {
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(filename, stylesheets, language)
+			htmlFilename := buildFileToFile(filename, stylesheets, language, debugFrontMatter)
 			quit(0, nil, "Built file %s", htmlFilename)
 		}
 	}
@@ -347,7 +351,7 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup)
+	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
 	quit(0, nil, "Site published to %s", webrootPath)
 
 }
@@ -378,10 +382,10 @@ func doTemplate(templateName string, source string, fm map[string]interface{}) (
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
-func buildFileToFile(filename string, stylesheets string, language string) (outfile string) {
+func buildFileToFile(filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
-	html, htmlFilename := buildFileToString(filename, stylesheets, language)
+	html, htmlFilename := buildFileToString(filename, stylesheets, language, false)
 	// Write the contents of the completed HTML document to a file.
 	writeStringToFile(htmlFilename, html)
 	// Return the name of the converted file
@@ -395,7 +399,7 @@ func buildFileToFile(filename string, stylesheets string, language string) (outf
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
 // Reeturns the string and the filenlame
-func buildFileToString(filename string, stylesheets string, language string) (string, string) {
+func buildFileToString(filename string, stylesheets string, language string, debugFrontMatter bool) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -413,6 +417,9 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
 		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
 		// Return the finished document and its filename
+
+    // Display raw front matter if requested
+    // xxx
 		return finishedDocument, dest
 	}
 }
@@ -423,7 +430,7 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 // Return name of the root directory files are published to
-func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
+func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -529,6 +536,9 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
 				quit(1, err, "Error converting Markdown file to HTML")
 			}
+      if debugFrontMatter  {
+        debug(dumpFrontMatter(fm))
+      }
 			// Strip original file's Markdown extension and make
 			// the destination files' extension HTML
 			source = filename[0:len(filename)-len(ext)] + ".html"
@@ -859,6 +869,7 @@ func mdYAMLFileToHTMLString(filename string) (string, map[string]interface{}, er
 	}
 }
 
+// xxx newGol
 func newGoldmark() goldmark.Markdown {
 	exts := []goldmark.Extender{
 		meta.New(
@@ -900,14 +911,14 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 	mdParserCtx := parser.NewContext()
 
 	document := mdParser.Parser().Parse(text.NewReader([]byte(source)))
-	metaData := document.OwnerDocument().Meta()
+	fm := document.OwnerDocument().Meta()
 	var buf bytes.Buffer
 	// Convert Markdown source to HTML and deposit in buf.Bytes().
 	if err := mdParser.Convert(source, &buf, parser.WithContext(mdParserCtx)); err != nil {
 		return []byte{}, nil, err
 	}
 	// Obtain YAML front matter from document.
-	return buf.Bytes(), metaData, nil
+	return buf.Bytes(), fm, nil
 }
 
 // Generate HTML
@@ -1037,3 +1048,16 @@ func warn(format string, ss ...interface{}) {
 func fmtMsg(format string, ss ...interface{}) string {
 	return fmt.Sprintf(format, ss...)
 }
+
+// DEBUG UTILITIES
+func dumpFrontMatter(fm map[string]interface{}) string {
+  return fmt.Sprintf("%#v", fm)
+}
+
+// DEBUG UTILITIES
+
+
+
+// DEBUG UTILITIES
+
+
