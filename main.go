@@ -42,6 +42,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/yuin/goldmark"
@@ -166,6 +167,8 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		metatags(fm) +
 		linktags(fm) +
 		stylesheets(stylesheetList, fm) +
+		"<style>\n" + endingTags(fm) + "</style>\n" +
+		// xxx
 		"</head>\n<body>\n" +
 		layoutEl(fm, "Header", filename) +
 		layoutEl(fm, "Nav", filename) +
@@ -178,7 +181,8 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 
 // HTML UTILITIES
 
-// layoutEl() takes a layout element file named in the front matter.
+// layoutEl() takes a layout element file named in the front matter
+// and generates HTML, but it executes templates also.
 // For example, suppose you have a header file named head.html. It
 // would be named in the front matter like this:
 // ---
@@ -254,6 +258,36 @@ func sliceToStylesheetStr(sheets []string) string {
 	return tags
 }
 
+// endingTags takes a list of tags and inserts them into right before the
+// closing head tag, so they can override anything that came before.
+// These are literal tags, not filenames.
+// They're listed under "EndingTags" in the front matter
+// Returns them as a string. For clarity each tag is indented
+// and ends with a newline.
+// Example:
+//
+// EndingTags:
+//   - h1{color:blue;}
+//   - p{color:darkgray;}
+//
+// Would yield:
+//
+//	"\t{color:blue;}\n\tp{color:darkgray;}\n"
+func endingTags(fm map[string]interface{}) string {
+	tagSlice := frontMatterStrSlice("EndingTags", fm)
+	if tagSlice == nil {
+		return ""
+	}
+	// Return value
+	tags := ""
+	for _, value := range tagSlice {
+		tags = tags + fmt.Sprintf("\t%s\n", value)
+	}
+	return tags
+}
+
+// endingTags xxx
+
 // stylesheets() takes stylesheets listed on the command line
 // e.g. --styles "foo.css bar.css", and adds them to
 // the head. It then generates stylesheet tags for the ones listed in
@@ -290,6 +324,10 @@ func main() {
 	// gets deleted on start.
 	var cleanup bool
 	flag.BoolVar(&cleanup, "cleanup", true, "Delete publish directory before converting files")
+
+	// debugFrontmatter command-line option shows the front matter of each page
+	var debugFrontMatter bool
+	flag.BoolVar(&debugFrontMatter, "debug-frontmatter", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
 	var skip string
@@ -334,7 +372,7 @@ func main() {
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(filename, stylesheets, language)
+			htmlFilename := buildFileToFile(filename, stylesheets, language, debugFrontMatter)
 			quit(0, nil, "Built file %s", htmlFilename)
 		}
 	}
@@ -347,7 +385,7 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup)
+	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
 	quit(0, nil, "Site published to %s", webrootPath)
 
 }
@@ -378,24 +416,25 @@ func doTemplate(templateName string, source string, fm map[string]interface{}) (
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
-func buildFileToFile(filename string, stylesheets string, language string) (outfile string) {
+func buildFileToFile(filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
-	html, htmlFilename := buildFileToString(filename, stylesheets, language)
+	html, htmlFilename := buildFileToTemplatedString(filename, stylesheets, language)
 	// Write the contents of the completed HTML document to a file.
 	writeStringToFile(htmlFilename, html)
 	// Return the name of the converted file
 	return htmlFilename
 }
 
-// buildFileToString converts a file from Markdown to raw HTML,
+// buildFileToTemplatedString converts a file from Markdown to raw HTML,
 // pulls in everything required to create a complete HTML document,
+// executes templates,
 // generates an output file,
 // and returns name of the destination HTML file
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
 // Reeturns the string and the filenlame
-func buildFileToString(filename string, stylesheets string, language string) (string, string) {
+func buildFileToTemplatedString(filename string, stylesheets string, language string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -412,6 +451,8 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
 		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
+		debug("BUILD FILE TO STRING")
+
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
@@ -423,7 +464,7 @@ func buildFileToString(filename string, stylesheets string, language string) (st
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 // Return name of the root directory files are published to
-func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool) string {
+func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -529,8 +570,13 @@ func buildSite(projectDir string, webroot string, skip string, markdownExtension
 			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
 				quit(1, err, "Error converting Markdown file to HTML")
 			}
-			// Strip original file's Markdown extension and make
-			// the destination files' extension HTML
+			// xxx in buildSite
+			// If asked, display the front matter
+			debug("dumpFrontMatter() TODO not hit in 1 file situation")
+			if debugFrontMatter {
+				debug(dumpFrontMatter(fm))
+			}
+
 			source = filename[0:len(filename)-len(ext)] + ".html"
 			converted = true
 		} else {
@@ -730,6 +776,9 @@ func fileExists(filename string) bool {
 // that byte slice. In the spirit of HTML it simply returns an empty
 // slice on failure.
 func fileToBuf(filename string) []byte {
+	if !fileExists(filename) {
+		return []byte{}
+	}
 	var input []byte
 	var err error
 	// Read the whole file into memory as a byte slice.
@@ -849,6 +898,7 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 
 // mdYAMLFiletoHTML converts a Markdown document
 // with YAML front matter to HTML.
+// The HTML file has not yet had templates executed,
 // Returns a byte slice containing the HTML source.
 func mdYAMLFileToHTMLString(filename string) (string, map[string]interface{}, error) {
 	source := fileToBuf(filename)
@@ -958,6 +1008,34 @@ func frontMatterStrSlice(key string, fm map[string]interface{}) []string {
 	return s
 }
 
+// frontMatterStrSliceStr obtains the front matter value at
+// key, which is presumed to be a string array/slice.
+// Returns these values concatenated into a string
+// (each string gets a newline appended for clarity)
+func frontMatterStrSliceStr(key string, fm map[string]interface{}) string {
+
+	// Return empty string if no key provided.
+	if key == "" {
+		return ""
+	}
+
+	// Return empty string if requested key has no value
+	// associated with it.
+	v, ok := fm[key].([]interface{})
+	if !ok {
+		debug("frontMatterStrSliceStr: Key %s not found", key)
+		return ""
+	}
+	//s := make([]string, len(v))
+	var tags string
+	debug("frontMatterStrSliceStr: Key %s WAS found", key)
+	for _, value := range v {
+		tag := fmt.Sprintf("%s\n", value)
+		tags = tags + tag
+	}
+	return tags
+}
+
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
 func linktags(fm map[string]interface{}) string {
@@ -1036,4 +1114,21 @@ func warn(format string, ss ...interface{}) {
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
 func fmtMsg(format string, ss ...interface{}) string {
 	return fmt.Sprintf(format, ss...)
+}
+
+// DEBUG UTILITIES
+
+// dumpFrontMatter Displays the contents of the page's front matter in JSON format
+func dumpFrontMatter(fm map[string]interface{}) string {
+	b, err := json.MarshalIndent(fm, "", "  ")
+	s := string(b)
+	s = strings.ReplaceAll(s, "{", "")
+	s = strings.ReplaceAll(s, "}", "")
+	s = strings.ReplaceAll(s, "[", "")
+	s = strings.ReplaceAll(s, "]", "")
+	s = strings.ReplaceAll(s, "\"", "")
+	if err == nil {
+		return s
+	}
+	return err.Error()
 }
