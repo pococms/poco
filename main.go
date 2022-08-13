@@ -170,12 +170,14 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		"\t<style>\n" + StyleTags(fm) + "</style>\n" +
 		// xxx
 		"</head>\n<body>\n" +
-		layoutEl(fm, "Header", filename) +
-		layoutEl(fm, "Nav", filename) +
-		"<article>" + article + "</article>\n" +
-		layoutEl(fm, "Aside", filename) +
-		layoutEl(fm, "Footer", filename) +
-		"</body>\n</html>"
+      //"<div class=\"container\">\n" +
+        "\t" + layoutEl(fm, "Header", filename) +
+        "\t" + layoutEl(fm, "Nav", filename) +
+        "\t" + layoutEl(fm, "Aside", filename) +
+        "\t" + "<article>" + article + "</article>" + "\n" +
+        "\t" + layoutEl(fm, "Footer", filename) +
+      //"</div>\n" +
+		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
 
@@ -236,10 +238,10 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
-		wholeTag := "<" + tag + ">" + parsedArticle + "<" + tag + "/>\n"
+		wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
 		return wholeTag
 	}
-	return fileToString(fullPath) + "\n"
+	return fileToString(fullPath) 
 
 }
 
