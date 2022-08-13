@@ -86,7 +86,7 @@ LinkTags:
     - <link rel="preconnect" href="https://fonts.googleapis.com">
     - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     - <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-Sheets: 
+StyleFiles: 
     - 'https://cdn.jsdelivr.net/npm/holiday.css'
 SkipPublish:
     - node_modules
@@ -167,7 +167,7 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		metatags(fm) +
 		linktags(fm) +
 		stylesheets(stylesheetList, fm) +
-		"<style>\n" + endingTags(fm) + "</style>\n" +
+		"\t<style>\n" + StyleTags(fm) + "</style>\n" +
 		// xxx
 		"</head>\n<body>\n" +
 		layoutEl(fm, "Header", filename) +
@@ -258,35 +258,38 @@ func sliceToStylesheetStr(sheets []string) string {
 	return tags
 }
 
-// endingTags takes a list of tags and inserts them into right before the
+// StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
 // These are literal tags, not filenames.
-// They're listed under "EndingTags" in the front matter
+// They're listed under "StyleTags" in the front matter
 // Returns them as a string. For clarity each tag is indented
 // and ends with a newline.
 // Example:
 //
-// EndingTags:
+// StyleTags:
 //   - h1{color:blue;}
 //   - p{color:darkgray;}
 //
 // Would yield:
 //
-//	"\t{color:blue;}\n\tp{color:darkgray;}\n"
-func endingTags(fm map[string]interface{}) string {
-	tagSlice := frontMatterStrSlice("EndingTags", fm)
+//	"\t\t{color:blue;}\n\t\tp{color:darkgray;}\n"
+func StyleTags(fm map[string]interface{}) string {
+	tagSlice := frontMatterStrSlice("StyleTags", fm)
 	if tagSlice == nil {
+    debug("Didn't find StyleTags")
 		return ""
 	}
 	// Return value
 	tags := ""
+  debug("Found StyleTags")
 	for _, value := range tagSlice {
-		tags = tags + fmt.Sprintf("\t%s\n", value)
+		tags = tags + fmt.Sprintf("\t\t%s\n", value)
 	}
+  debug("\t%v", tags)
 	return tags
 }
 
-// endingTags xxx
+// StyleTags() xxx
 
 // stylesheets() takes stylesheets listed on the command line
 // e.g. --styles "foo.css bar.css", and adds them to
@@ -303,7 +306,7 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 		globals = sliceToStylesheetStr(globalSlice)
 	}
 	// Build a string from stylesheets named in the front matter for this page
-	localSlice := frontMatterStrSlice("Sheets", fm)
+	localSlice := frontMatterStrSlice("StyleFiles", fm)
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -721,7 +724,7 @@ func copyFile(source string, target string) {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-Sheets:
+StyleFiles:
     - https://unpkg.com/simpledotcss/simple.min.css
 ---
 `
@@ -985,7 +988,7 @@ func frontMatterStr(key string, fm map[string]interface{}) string {
 // frontMatterStrSlice obtains a list of string values from the front matter.
 // For example, if you had this code in your Markdown file:
 // ---
-// Sheets:
+// StyleFiles:
 //   - 'https://cdn.jsdelivr.net/npm/holiday.css'
 //   - 'fonts.css'
 //
