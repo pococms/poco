@@ -238,8 +238,11 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
-		wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
-		return wholeTag
+    if parsedArticle != "" {
+		  wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
+		  return wholeTag
+    }
+    return ""
 	}
 	return fileToString(fullPath) 
 
