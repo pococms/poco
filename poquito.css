@@ -1,9 +1,27 @@
 /* Heavily based on enough.css: https://github.com/jeffkreeftmeijer/enough.css */
+html,body{
+  height:100vh;
+}
+
+aside{ /* Load left.css after this file for left sidebar */
+  float:right;
+  width:10em;
+  padding:1em;
+  height:100vh;
+  margin-right:10em;
+}
+
 body{
   font: 22px/1.6 system-ui, sans-serif;
-  margin: auto;
-  max-width: 35em;
+  margin: auto; 
+  max-width: 40em;
   padding: 0 1em;
+}
+
+article{
+  height:100vh;
+  margin-left:0em;
+  overflow:hidden;
 }
 
 img, video{
@@ -27,20 +45,26 @@ pre{
   body{
     font-size: 20px;
   }
+  article{
+    margin:0;
+    width:100%;
+  }
+  header,nav,aside,footer{display:none}
 }
 @media (max-width:740px){ /* (35 + 2) × 20 */
   body{
     font-size: 18px;
   }
+  header,nav,aside,footer{display:none}
 }
 @media (max-width:466px){ /* (35 + 2) × 18 × 0.7 */
   body{
     font-size: 16px;
   }
+  header,nav,aside,footer{display:none}
 }
 
 /* enough.table.css */
-
 table{
   border-collapse: collapse;
   width: 100%;
