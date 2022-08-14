@@ -145,8 +145,27 @@ var docType = `<!DOCTYPE html>
 // Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
 
-// assemble takes the raw converted HTML and uses it to generate
-// a finished HTML document. Returns it as a string.
+
+// there are no configuration files (yet) but this holds
+// configuration info for the project, for example, template
+// stylesheets and current file being processed.
+type config struct {
+  // Home directory for source code
+  projectDir string
+
+  // Output directory for published files
+  webroot string
+
+  // Name of Markdown file being processed
+  filename string
+  // xxx
+}
+
+
+
+// assemble takes the raw converted HTML in article,
+// uses it to generate finished HTML document, and returns
+// that document as a string.
 func assemble(filename string, article string, fm map[string]interface{}, language string, stylesheetList string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
@@ -170,13 +189,15 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		"\t<style>\n" + StyleTags(fm) + "</style>\n" +
 		// xxx
 		"</head>\n<body>\n" +
-      //"<div class=\"container\">\n" +
-        "\t" + layoutEl(fm, "Header", filename) +
-        "\t" + layoutEl(fm, "Nav", filename) +
-        "\t" + layoutEl(fm, "Aside", filename) +
-        "\t" + "<article>" + article + "</article>" + "\n" +
+      "<div id=\"page-container\">\n" +
+        "<div id=\"content-wrap\">\n" +
+          "\t" + layoutEl(fm, "Header", filename) +
+          "\t" + layoutEl(fm, "Nav", filename) +
+          "\t" + layoutEl(fm, "Aside", filename) +
+          "\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
+        "</div><!-- content-wrap -->\n" +
         "\t" + layoutEl(fm, "Footer", filename) +
-      //"</div>\n" +
+        "</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
@@ -213,24 +234,38 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		return ""
 	}
 	isMarkdown := false
+
+  // Full path to layout element file. So the file 'layout/myheader.md'
+  // woud be transformed into /Users/tom/mysite/layout/myheader.md'
+  // or something similar.
 	fullPath := ""
 	tag := ""
+
+  // Get the name of the file. For example, the front
+  // matter my say Header: myheader.md so 
+  // layoutElSource is `myheader.md`
 	layoutElSource := frontMatterStr(element, fm)
-	fileDir := filepath.Dir(layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
+    debug("%s is an absolute filepath", layoutElSource)
 		fullPath = layoutElSource
 	} else {
-		fullPath = filepath.Join(fileDir, layoutElSource)
+		fullPath = filepath.Join(currDir(), layoutElSource)
+    // xxx in layoutEl()
+    //debug("\tfullPath %s", fullPath)
 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
 	}
+  //debug("\tfullPath is now %s", fullPath)
 
 	parsedArticle := ""
 	tag = strings.ToLower(element)
 	raw := ""
 	var err error
 	if isMarkdown {
+    if !fileExists(fullPath) {
+      quit(1, nil, "%s: specified file %s but can't find it", element, fullPath)
+    }
 		if raw, _, err = mdYAMLFileToHTMLString(fullPath); err != nil {
 			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
@@ -286,11 +321,9 @@ func StyleTags(fm map[string]interface{}) string {
 	}
 	// Return value
 	tags := ""
-  debug("Found StyleTags")
 	for _, value := range tagSlice {
 		tags = tags + fmt.Sprintf("\t\t%s\n", value)
 	}
-  debug("\t%v", tags)
 	return tags
 }
 
@@ -310,9 +343,22 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 		globalSlice = strings.Split(sheets, " ")
 		globals = sliceToStylesheetStr(globalSlice)
 	}
-	// Build a string from stylesheets named in the front matter for this page
+
+  // xxx HUGE BUG in stylesheets(): Need to put in WWW directory
+  // Get a list of stylesheet names
 	localSlice := frontMatterStrSlice("StyleFiles", fm)
+	for _, sheet := range localSlice {
+		tag := fmt.Sprintf("%s\n", sheet)
+    
+    // xxxx
+    debug(fullPathNameToWebroot(tag, frontMatterStr("Webroot", fm)))
+	}
+
+  // Neeed a general purpose fullPathNameToWebroot() function
+	// Build a string from stylesheets named in the front matter for this page
+	localSlice = frontMatterStrSlice("StyleFiles", fm)
 	locals := sliceToStylesheetStr(localSlice)
+  debug("localSlice: %v\nlocals: %v\n", localSlice, locals)
 
 	// Stylesheets named in the front matter takes priority,
 	// so they goes last. This allows you to have stylesheets
@@ -322,11 +368,35 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 	return globals + locals
 }
 
+
+// fullPathNameToWebroot takes a fully qualified pathnaem like "~/myprojects/css/styles.css"
+// and given the webroot "WWW" returns
+//~/myprojects/WWW/css/styles.css" 
+// TODO: CONFIRM
+// webroot is treated as as a subdirectory of filename
+func fullPathNameToWebroot(filename string, webroot string) string {
+  rel := ""
+  var err error
+  if rel, err = filepath.Rel(filename, webroot); err != nil {
+			quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
+		}
+
+		// Determine the destination directory.
+    webrootPath := filepath.Join(filename, webroot, rel)
+    debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
+    return webrootPath
+} // xxxx
+
+
+
+
+
 // The --verbose flag. It shows progress as the site is created.
 // Required by the Verbose() function.
 var gVerbose bool
 
 func main() {
+  config := config{}
 
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
@@ -345,8 +415,8 @@ func main() {
 	var language string
 	flag.StringVar(&language, "language", "en", "HTML language designation, such as en or fr")
 
-	var root string
-	flag.StringVar(&root, "root", ".", "Starting directory of the project")
+	//var root string
+	flag.StringVar(&config.projectDir, "root", ".", "Starting directory of the project")
 
 	// List of stylesheets to include on each page.
 	var stylesheets string
@@ -360,27 +430,28 @@ func main() {
 	flag.BoolVar(&gVerbose, "verbose", false, "Display information about project as it's generated")
 
 	// webroot is the directory used to house the final generated website.
-	var webroot string
-	flag.StringVar(&webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
+	flag.StringVar(&config.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
 
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
 
-	// See if asource file was specified. Otherwise the whole directory
-	// and nested subdirectories are processed.
-	filename := flag.Arg(0)
+  // Collect configuration info for this project
 
-	if filename != "" {
+	// See if a source file was specified. Otherwise the whole directory
+	// and nested subdirectories are processed.
+  config.filename = flag.Arg(0)
+
+	if config.filename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a filename.
-		if !fileExists(filename) {
-			quit(1, nil, "Can't find the file %v", filename)
+		if !fileExists(config.filename) {
+			quit(1, nil, "Can't find the file %v", config.filename)
 		} else {
 			// Special case: if you name a file on the command line, it will
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(filename, stylesheets, language, debugFrontMatter)
+			htmlFilename := buildFileToFile(config.filename, stylesheets, language, debugFrontMatter)
 			quit(0, nil, "Built file %s", htmlFilename)
 		}
 	}
@@ -393,7 +464,7 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	webrootPath := buildSite(root, webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
+	webrootPath := buildSite(config, config.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
 	quit(0, nil, "Site published to %s", webrootPath)
 
 }
@@ -459,31 +530,31 @@ func buildFileToTemplatedString(filename string, stylesheets string, language st
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
 		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
-		debug("BUILD FILE TO STRING")
+		//debug("BUILD FILE TO STRING")
 
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
 }
 
-// buildSite takes projectDir as the root directory,
+// buildSite takes config.projectDir as the root directory,
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 // Return name of the root directory files are published to
-func buildSite(projectDir string, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
+func buildSite(config config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(projectDir) {
-		homePage := writeDefaultHomePage(projectDir)
+	if !isProject(config.projectDir) {
+		homePage := writeDefaultHomePage(config.projectDir)
 		warn("No index.md or README.md found. Created home page %v", homePage)
 	}
 
 	// Change to requested directory
-	if err = os.Chdir(projectDir); err != nil {
-		quit(1, err, "Unable to change to directory %s", projectDir)
+	if err = os.Chdir(config.projectDir); err != nil {
+		quit(1, err, "Unable to change to directory %s", config.projectDir)
 	}
 
 	// Cache project's root directory
