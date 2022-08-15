@@ -154,7 +154,7 @@ type config struct {
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(filename string, article string, fm map[string]interface{}, language string, stylesheetList string) string {
+func assemble(config config, filename string, article string, fm map[string]interface{}, language string, stylesheetList string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
@@ -178,12 +178,12 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
-		"\t" + layoutEl(fm, "Header", filename) +
-		"\t" + layoutEl(fm, "Nav", filename) +
-		"\t" + layoutEl(fm, "Aside", filename) +
+		"\t" + layoutEl(config, fm, "Header", filename) +
+		"\t" + layoutEl(config, fm, "Nav", filename) +
+		"\t" + layoutEl(config, fm, "Aside", filename) +
 		"\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
-		"\t" + layoutEl(fm, "Footer", filename) +
+		"\t" + layoutEl(config, fm, "Footer", filename) +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
@@ -220,7 +220,7 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 // to be a Markdown file and is processed that way.
 // sourcefile is the fully qualified pathname of the .md file being processed
 // TODO: Code smell
-func layoutEl(fm map[string]interface{}, element string, sourcefile string) string {
+func layoutEl(config config, fm map[string]interface{}, element string, sourcefile string) string {
 	filename := frontMatterStr(element, fm)
 	if filename == "" {
 		return ""
@@ -243,13 +243,13 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		fullPath = layoutElSource
 	} else {
 		var err error
-    var rel string
-    // TODO: Cache current directory
-		if rel, err = filepath.Rel(currDir(),sourcefile); err != nil {
+		var rel string
+		// TODO: Cache current directory
+		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
 			quit(1, nil, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
-		} 
-    rel = filepath.Dir(rel)
-    fullPath = filepath.Join(currDir(),rel, layoutElSource)
+		}
+		rel = filepath.Dir(rel)
+		fullPath = filepath.Join(currDir(), rel, layoutElSource)
 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
@@ -263,7 +263,7 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if !fileExists(fullPath) {
 			quit(1, nil, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
-		if raw, _, err = mdYAMLFileToHTMLString(fullPath); err != nil {
+		if raw, _, err = mdYAMLFileToHTMLString(config, fullPath); err != nil {
 			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
 		}
@@ -304,12 +304,12 @@ func sliceToStylesheetStr(sheets []string) string {
 // Example:
 //
 // StyleTags:
-//   - h1{color:blue;}
-//   - p{color:darkgray;}
+//   - "h1{color:blue;}"
+//   - "p{color:darkgray;}"
 //
 // Would yield:
 //
-//	"\t\t{color:blue;}\n\t\tp{color:darkgray;}\n"
+//	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 func StyleTags(fm map[string]interface{}) string {
 	tagSlice := frontMatterStrSlice("StyleTags", fm)
 	if tagSlice == nil {
@@ -337,7 +337,14 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 		globalSlice = strings.Split(sheets, " ")
 		globals = sliceToStylesheetStr(globalSlice)
 	}
-	// Build a string from stylesheets named in the front matter for this page
+	// Build a string from stylesheets named in the
+	// StyleFileTemplates: front matter for this page
+	// Only applicable for home page
+	templateSlice := frontMatterStrSlice("StyleFileTemplates", fm)
+	templates := sliceToStylesheetStr(templateSlice)
+
+	// Build a string from stylesheets named in the
+	// StyleFiles: front matter for this page
 	localSlice := frontMatterStrSlice("StyleFiles", fm)
 	locals := sliceToStylesheetStr(localSlice)
 
@@ -346,7 +353,7 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return globals + locals
+	return globals + templates + locals
 }
 
 // fullPathNameToWebroot takes a fully qualified pathnaem like "~/myprojects/css/styles.css"
@@ -427,7 +434,7 @@ func main() {
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(config.filename, stylesheets, language, debugFrontMatter)
+			htmlFilename := buildFileToFile(config, config.filename, stylesheets, language, debugFrontMatter)
 			quit(0, nil, "Built file %s", htmlFilename)
 		}
 	}
@@ -471,10 +478,10 @@ func doTemplate(templateName string, source string, fm map[string]interface{}) (
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
-func buildFileToFile(filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
+func buildFileToFile(config config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
-	html, htmlFilename := buildFileToTemplatedString(filename, stylesheets, language)
+	html, htmlFilename := buildFileToTemplatedString(config, filename, stylesheets, language)
 	// Write the contents of the completed HTML document to a file.
 	writeStringToFile(htmlFilename, html)
 	// Return the name of the converted file
@@ -489,7 +496,7 @@ func buildFileToFile(filename string, stylesheets string, language string, debug
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
 // Reeturns the string and the filenlame
-func buildFileToTemplatedString(filename string, stylesheets string, language string) (string, string) {
+func buildFileToTemplatedString(config config, filename string, stylesheets string, language string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -497,7 +504,7 @@ func buildFileToTemplatedString(filename string, stylesheets string, language st
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
-	if rawHTML, fm, err := mdYAMLFileToHTMLString(filename); err != nil {
+	if rawHTML, fm, err := mdYAMLFileToHTMLString(config, filename); err != nil {
 		quit(1, err, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
@@ -505,7 +512,7 @@ func buildFileToTemplatedString(filename string, stylesheets string, language st
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(filename, rawHTML, fm, language, stylesheets)
+		finishedDocument := assemble(config, filename, rawHTML, fm, language, stylesheets)
 		//debug("BUILD FILE TO STRING")
 
 		// Return the finished document and its filename
@@ -621,7 +628,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		// Only convert to HTML if it has a Markdown extension.
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
-			if HTML, fm, err = mdYAMLFileToHTMLString(filename); err != nil {
+			if HTML, fm, err = mdYAMLFileToHTMLString(config, filename); err != nil {
 				quit(1, err, "Error converting Markdown file to HTML")
 			}
 			// xxx in buildSite
@@ -651,7 +658,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		}
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(filename, HTML, fm, language, stylesheets)
+			h := assemble(config, filename, HTML, fm, language, stylesheets)
 			writeStringToFile(target, h)
 		} else {
 			copyFile(source, target)
@@ -953,7 +960,7 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 // with YAML front matter to HTML.
 // The HTML file has not yet had templates executed,
 // Returns a byte slice containing the HTML source.
-func mdYAMLFileToHTMLString(filename string) (string, map[string]interface{}, error) {
+func mdYAMLFileToHTMLString(config config, filename string) (string, map[string]interface{}, error) {
 	source := fileToBuf(filename)
 	if HTML, fm, err := mdYAMLToHTML(source); err != nil {
 		return "", nil, err
