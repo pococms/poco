@@ -27,6 +27,24 @@ td, th{
   padding: 0.5em;
   border: 1px solid;
 }
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+pre{
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1em;
+}
+/* enough.table.css */
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5em;
+  border: 1px solid LightGray;
+}
 @media (max-width:1024px){
   header,nav,aside,footer{display:none}
   article{padding:1em;}

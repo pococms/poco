@@ -137,23 +137,19 @@ var docType = `<!DOCTYPE html>
 // Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
 
-
 // there are no configuration files (yet) but this holds
 // configuration info for the project, for example, template
 // stylesheets and current file being processed.
 type config struct {
-  // Home directory for source code
-  projectDir string
+	// Home directory for source code
+	projectDir string
 
-  // Output directory for published files
-  webroot string
+	// Output directory for published files
+	webroot string
 
-  // Name of Markdown file being processed
-  filename string
-  // xxx
+	// Name of Markdown file being processed
+	filename string
 }
-
-
 
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
@@ -180,15 +176,15 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		stylesheets(stylesheetList, fm) +
 		"\t<style>\n" + StyleTags(fm) + "\t</style>\n" +
 		"</head>\n<body>\n" +
-      "<div id=\"page-container\">\n" +
-        "<div id=\"content-wrap\">\n" +
-          "\t" + layoutEl(fm, "Header", filename) +
-          "\t" + layoutEl(fm, "Nav", filename) +
-          "\t" + layoutEl(fm, "Aside", filename) +
-          "\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
-        "</div><!-- content-wrap -->\n" +
-        "\t" + layoutEl(fm, "Footer", filename) +
-        "</div><!-- page-container -->\n" +
+		"<div id=\"page-container\">\n" +
+		"<div id=\"content-wrap\">\n" +
+		"\t" + layoutEl(fm, "Header", filename) +
+		"\t" + layoutEl(fm, "Nav", filename) +
+		"\t" + layoutEl(fm, "Aside", filename) +
+		"\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
+		"</div><!-- content-wrap -->\n" +
+		"\t" + layoutEl(fm, "Footer", filename) +
+		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
@@ -198,7 +194,7 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 // layoutEl() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
 // A layout element one of the HTML tags such
-// as header, nav, 
+// as header, nav,
 // aside, article, and a few others
 // For more info on layout elements see:
 // https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
@@ -231,20 +227,45 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 	}
 	isMarkdown := false
 
-  // Full path to layout element file. So the file 'layout/myheader.md'
-  // woud be transformed into /Users/tom/mysite/layout/myheader.md'
-  // or something similar.
+	// Full path to layout element file. So the file 'layout/myheader.md'
+	// woud be transformed into /Users/tom/mysite/layout/myheader.md'
+	// or something similar.
 	fullPath := ""
 	tag := ""
 
-  // Get the name of the file. For example, the front
-  // matter my say Header: myheader.md so 
-  // layoutElSource is 'myheader.md'
+	// Get the name of the file. For example, the front
+	// matter my say Header: myheader.md so
+	// layoutElSource is 'myheader.md'
+
 	layoutElSource := frontMatterStr(element, fm)
 	if filepath.IsAbs(layoutElSource) {
+		// debug("\t%s isAbs", layoutElSource)
 		fullPath = layoutElSource
 	} else {
-		fullPath = filepath.Join(currDir(), layoutElSource)
+		// debug("\t%s is NOT Abs", layoutElSource)
+    /*
+		if layoutElSource, err = filepath.Abs(layoutElSource); err != nil {
+			quit(1, nil, "Error getting the absolute representation of %v", layoutElSource)
+		}
+    */
+		var err error
+		// debug("\tlayoutSource: %s", layoutElSource)
+		// debug("\tsourcefile: %s", sourcefile)
+		//var err error
+    var rel string
+    // TODO: Cache current directory
+		if rel, err = filepath.Rel(currDir(),sourcefile); err != nil {
+			quit(1, nil, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
+		} 
+    // Strip filename
+    // debug("\tlayoutEl source: %v", layoutElSource)
+		//fullPath = layoutElSource
+    //debug("\tFilename: %s", filepath.Join(currDir(),rel,layoutElSource))
+    rel = filepath.Dir(rel)
+    // debug("\trel: %v", rel)
+    // debug("\tcurrDir: %v", currDir())
+    // debug("\tFilename: %s\n", filepath.Join(currDir(),layoutElSource))
+    fullPath = filepath.Join(currDir(),rel, layoutElSource)
 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
@@ -255,9 +276,9 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 	raw := ""
 	var err error
 	if isMarkdown {
-    if !fileExists(fullPath) {
-      quit(1, nil, "%s: specified file %s but can't find it", element, fullPath)
-    }
+		if !fileExists(fullPath) {
+			quit(1, nil, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
+		}
 		if raw, _, err = mdYAMLFileToHTMLString(fullPath); err != nil {
 			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
@@ -265,13 +286,13 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
 			quit(1, err, "%v: Unable to execute ", filename)
 		}
-    if parsedArticle != "" {
-		  wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
-		  return wholeTag
-    }
-    return ""
+		if parsedArticle != "" {
+			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
+			return wholeTag
+		}
+		return ""
 	}
-	return fileToString(fullPath) 
+	return fileToString(fullPath)
 
 }
 
@@ -318,7 +339,6 @@ func StyleTags(fm map[string]interface{}) string {
 	return tags
 }
 
-
 // stylesheets() takes stylesheets listed on the command line
 // e.g. --styles "foo.css bar.css", and adds them to
 // the head. It then generates stylesheet tags for the ones listed in
@@ -345,35 +365,30 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 	return globals + locals
 }
 
-
 // fullPathNameToWebroot takes a fully qualified pathnaem like "~/myprojects/css/styles.css"
 // and given the webroot "WWW" returns
-//~/myprojects/WWW/css/styles.css" 
+// ~/myprojects/WWW/css/styles.css"
 // TODO: CONFIRM. Not sure this is used or necessary.
 // webroot is treated as as a subdirectory of filename
 func fullPathNameToWebroot(filename string, webroot string) string {
-  rel := ""
-  var err error
-  if rel, err = filepath.Rel(filename, webroot); err != nil {
-			quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
-		}
+	rel := ""
+	var err error
+	if rel, err = filepath.Rel(filename, webroot); err != nil {
+		quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
+	}
 
-		// Determine the destination directory.
-    webrootPath := filepath.Join(filename, webroot, rel)
-    //debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
-    return webrootPath
-} // 
-
-
-
-
+	// Determine the destination directory.
+	webrootPath := filepath.Join(filename, webroot, rel)
+	//debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
+	return webrootPath
+} //
 
 // The --verbose flag. It shows progress as the site is created.
 // Required by the Verbose() function.
 var gVerbose bool
 
 func main() {
-  config := config{}
+	config := config{}
 
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
@@ -412,11 +427,11 @@ func main() {
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
 
-  // Collect configuration info for this project
+	// Collect configuration info for this project
 
 	// See if a source file was specified. Otherwise the whole directory
 	// and nested subdirectories are processed.
-  config.filename = flag.Arg(0)
+	config.filename = flag.Arg(0)
 
 	if config.filename != "" {
 		// Something's left on the command line. It's presumed to
@@ -550,7 +565,6 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	}
 
 	// Convert the list of exclusions into a string slice.
-	// xxx
 	// skipPublish = getSkipPublish()
 	var skipPublish searchInfo
 	skipPublish.list = strings.Split(skip, " ")
@@ -629,7 +643,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 			// xxx in buildSite
 			// If asked, display the front matter
 			if debugFrontMatter {
-        debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
+				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
 				debug(dumpFrontMatter(fm))
 			}
 
@@ -695,7 +709,6 @@ func ensureIndexHTML(path string) {
 func getSkipPublish() []string {
 	// var skipPublish searchInfo
 	// skipPublish.list = strings.Split(skip, " ")
-	// xxx
 	// var skipPublish searchInfo
 	// skipPublish.list = strings.Split(skip, " ")
 	// skipPublish = getSkipPublish()

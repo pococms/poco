@@ -1,33 +1,27 @@
 ---
-Header: ./pages/diagnostics/layout/header.md
+Header: pages/home/header.md
 Nav: ./pages/diagnostics/layout/nav.md
 Aside: ./pages/diagnostics/layout/aside.md
 Footer: ./pages/diagnostics/layout/footer.md
 
 StyleFiles:
   - pages/assets/css/poquito.css
-  #- pages/assets/css/new-poquito.css
+  - pages/assets/css/pococms.css
+
+StyleTags:
+  - "article{margin-left:12em;margin-right:5em;background-color:white;}"
 ---
 ## Diagnostics
 
-Style sheets: {{ .StyleFiles }}
+* Page showing all [FrontMatter setting](pages/diagnostics/allfeatures.html)
+
+## Demos
+
+* [Probot theme](pages/demo/probot.html) and [Left sidebar version](pages/demo/probot-left.html)
 
 ## Sidebar tests
 
 ### NEWER left and right sidebars
-
-* **Left sidebar using newer-poquito.css** [nwr-poquito-lside](nwr-poquito-lside.html)
-* **Right sidebar using newer-poquito.css** [nwr-poquito-lside](nwr-poquito-rside.html)
-
-### NEW left and right sidebars
-
-[new-left-sidebar](new-left-sidebar.html)
-
-[new-right-sidebar](new-right-sidebar.html)
-
-[Probot right sidebar](probot.html) 
-
-[Probot left sidebar](probot-left.html) theme
 
 ## OLD left and right sidebars
 `poquito.css` has left and right sidebar support. Right sidebars are
