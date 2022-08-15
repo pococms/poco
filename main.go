@@ -186,8 +186,7 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 		metatags(fm) +
 		linktags(fm) +
 		stylesheets(stylesheetList, fm) +
-		"\t<style>\n" + StyleTags(fm) + "</style>\n" +
-		// xxx
+		"\t<style>\n" + StyleTags(fm) + "\t</style>\n" +
 		"</head>\n<body>\n" +
       "<div id=\"page-container\">\n" +
         "<div id=\"content-wrap\">\n" +
@@ -206,6 +205,11 @@ func assemble(filename string, article string, fm map[string]interface{}, langua
 
 // layoutEl() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
+// A layout element one of the HTML tags such
+// as header, nav, 
+// aside, article, and a few others
+// For more info on layout elements see:
+// https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
 // For example, suppose you have a header file named head.html. It
 // would be named in the front matter like this:
 // ---
@@ -243,20 +247,16 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 
   // Get the name of the file. For example, the front
   // matter my say Header: myheader.md so 
-  // layoutElSource is `myheader.md`
+  // layoutElSource is 'myheader.md'
 	layoutElSource := frontMatterStr(element, fm)
 	if filepath.IsAbs(layoutElSource) {
-    debug("%s is an absolute filepath", layoutElSource)
 		fullPath = layoutElSource
 	} else {
 		fullPath = filepath.Join(currDir(), layoutElSource)
-    // xxx in layoutEl()
-    //debug("\tfullPath %s", fullPath)
 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
 	}
-  //debug("\tfullPath is now %s", fullPath)
 
 	parsedArticle := ""
 	tag = strings.ToLower(element)
@@ -316,7 +316,6 @@ func sliceToStylesheetStr(sheets []string) string {
 func StyleTags(fm map[string]interface{}) string {
 	tagSlice := frontMatterStrSlice("StyleTags", fm)
 	if tagSlice == nil {
-    debug("Didn't find StyleTags")
 		return ""
 	}
 	// Return value
@@ -327,7 +326,6 @@ func StyleTags(fm map[string]interface{}) string {
 	return tags
 }
 
-// StyleTags() xxx
 
 // stylesheets() takes stylesheets listed on the command line
 // e.g. --styles "foo.css bar.css", and adds them to
@@ -343,22 +341,9 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 		globalSlice = strings.Split(sheets, " ")
 		globals = sliceToStylesheetStr(globalSlice)
 	}
-
-  // xxx HUGE BUG in stylesheets(): Need to put in WWW directory
-  // Get a list of stylesheet names
-	localSlice := frontMatterStrSlice("StyleFiles", fm)
-	for _, sheet := range localSlice {
-		tag := fmt.Sprintf("%s\n", sheet)
-    
-    // xxxx
-    debug(fullPathNameToWebroot(tag, frontMatterStr("Webroot", fm)))
-	}
-
-  // Neeed a general purpose fullPathNameToWebroot() function
 	// Build a string from stylesheets named in the front matter for this page
-	localSlice = frontMatterStrSlice("StyleFiles", fm)
+	localSlice := frontMatterStrSlice("StyleFiles", fm)
 	locals := sliceToStylesheetStr(localSlice)
-  debug("localSlice: %v\nlocals: %v\n", localSlice, locals)
 
 	// Stylesheets named in the front matter takes priority,
 	// so they goes last. This allows you to have stylesheets
@@ -372,7 +357,7 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 // fullPathNameToWebroot takes a fully qualified pathnaem like "~/myprojects/css/styles.css"
 // and given the webroot "WWW" returns
 //~/myprojects/WWW/css/styles.css" 
-// TODO: CONFIRM
+// TODO: CONFIRM. Not sure this is used or necessary.
 // webroot is treated as as a subdirectory of filename
 func fullPathNameToWebroot(filename string, webroot string) string {
   rel := ""
@@ -383,9 +368,9 @@ func fullPathNameToWebroot(filename string, webroot string) string {
 
 		// Determine the destination directory.
     webrootPath := filepath.Join(filename, webroot, rel)
-    debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
+    //debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
     return webrootPath
-} // xxxx
+} // 
 
 
 
@@ -651,8 +636,8 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 			}
 			// xxx in buildSite
 			// If asked, display the front matter
-			debug("dumpFrontMatter() TODO not hit in 1 file situation")
 			if debugFrontMatter {
+        debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
 				debug(dumpFrontMatter(fm))
 			}
 
