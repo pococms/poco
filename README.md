@@ -17,6 +17,17 @@ StyleTags:
 * [Simplicity](pages/themes/simplicity.html) is arrestingly simple,
 with no header, footer, nav, or aside.
 
+## Tools
+
+### HTML references
+
+* [HTML Color Names](https://htmlcolorcodes.com/color-names) for people who like a simplified color chart and who like using actual names for colors
+
+## Web page performance
+
+* Google's [web.dev](https://web.dev/measure/) page quality measurement tool
+* The [Pingdom Website Speed Test](https://tools.pingdom.com/) produces the clearest results
+
 ## Diagnostics
 
 * Page showing all [FrontMatter settings](pages/diagnostics/allfeatures.html)
