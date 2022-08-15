@@ -512,7 +512,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(config, filename, rawHTML, fm, language, stylesheets)
+		finishedDocument := assemble(config, config.filename, rawHTML, fm, language, stylesheets)
 		//debug("BUILD FILE TO STRING")
 
 		// Return the finished document and its filename
@@ -606,12 +606,12 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		converted = false
 
 		// Get the fully qualified pathname for this file.
-		filename = filepath.Join(homeDir, filename)
+		config.filename = filepath.Join(homeDir, filename)
 
 		// Separate out the file's origin directory
-		sourceDir := filepath.Dir(filename)
+		sourceDir := filepath.Dir(config.filename)
 
-		Verbose("%s", filename)
+		Verbose("%s", config.filename)
 
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
@@ -658,7 +658,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		}
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(config, filename, HTML, fm, language, stylesheets)
+			h := assemble(config, config.filename, HTML, fm, language, stylesheets)
 			writeStringToFile(target, h)
 		} else {
 			copyFile(source, target)
