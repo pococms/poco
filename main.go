@@ -242,29 +242,13 @@ func layoutEl(fm map[string]interface{}, element string, sourcefile string) stri
 		// debug("\t%s isAbs", layoutElSource)
 		fullPath = layoutElSource
 	} else {
-		// debug("\t%s is NOT Abs", layoutElSource)
-    /*
-		if layoutElSource, err = filepath.Abs(layoutElSource); err != nil {
-			quit(1, nil, "Error getting the absolute representation of %v", layoutElSource)
-		}
-    */
 		var err error
-		// debug("\tlayoutSource: %s", layoutElSource)
-		// debug("\tsourcefile: %s", sourcefile)
-		//var err error
     var rel string
     // TODO: Cache current directory
 		if rel, err = filepath.Rel(currDir(),sourcefile); err != nil {
 			quit(1, nil, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
 		} 
-    // Strip filename
-    // debug("\tlayoutEl source: %v", layoutElSource)
-		//fullPath = layoutElSource
-    //debug("\tFilename: %s", filepath.Join(currDir(),rel,layoutElSource))
     rel = filepath.Dir(rel)
-    // debug("\trel: %v", rel)
-    // debug("\tcurrDir: %v", currDir())
-    // debug("\tFilename: %s\n", filepath.Join(currDir(),layoutElSource))
     fullPath = filepath.Join(currDir(),rel, layoutElSource)
 	}
 	if filepath.Ext(fullPath) != ".html" {
