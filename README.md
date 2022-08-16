@@ -4,17 +4,23 @@ Header: pages/home/header.md
 Aside: ./pages/diagnostics/layout/aside.md
 Footer: ./pages/diagnostics/layout/footer.md
 
-StyleFiles:
+StyleFileTemplates:
   - pages/assets/css/poquito.css
   - pages/assets/css/pococms.css
 
 StyleTags:
   - "article{margin-left:12em;margin-right:5em;background-color:white;}"
 ---
+
+## Creating pages
+[Front Matter](pages/front-matter.html)  
+[CSS tips](pages/css-tips.html)  
+
 ## Themes
 
 * [Probot theme](pages/themes/probot.html) and [Left sidebar version](pages/themes/probot-left.html)
-* [Simplicity](pages/themes/simplicity.html) is arrestingly simple,
+* [Simplicity](pages/themes/simplicity.html) is 
+HTML minimalism at its purest, 
 with no header, footer, nav, or aside.
 
 ## Tools

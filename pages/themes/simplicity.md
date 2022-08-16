@@ -4,8 +4,9 @@ StyleTags:
   - "html{background-color:gray}"
   - "article{background-color:white;padding:4em}"
   - "pre{background-color: ghostwhite;font-size: smaller;overflow: auto;padding: .5em}"
+  - "@media (max-width:960px){header,nav,aside,footer{display:none} article{padding:1em;}body{margin:1em}"
 ---
-# Simplicity theme
+# Simplicity theme for PocoCMS
 
 Simplicity uses no external style sheets.
 It employs plain HTML and just a few tweaks to default
@@ -18,7 +19,8 @@ which appears at the top of this page in the front matter:
         - "html{background-color:gray}"
         - "article{background-color:white;padding:4em}"
         - "pre{background-color: ghostwhite;font-size: smaller;overflow: auto;padding: .5em}"
-      ---
+        - "@media (max-width:960px){header,nav,aside,footer{display:none} article{padding:1em;}body{margin:1em}"
+       ---
 
 ## Code examples
 

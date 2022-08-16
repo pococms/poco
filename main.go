@@ -141,14 +141,27 @@ var poweredBy = `Powered by PocoCMS`
 // configuration info for the project, for example, template
 // stylesheets and current file being processed.
 type config struct {
+	// Name of Markdown file being processed
+	filename string
+
+	// List of all files being processed
+	files []string
+
+  // This is true only when a home page 
+  // (root of the directoryh tree) README.md 
+  // or index.md is being processed
+  hitHomePage bool
+
 	// Home directory for source code
-	projectDir string
+	root string
+
+	// List of stylesheets to apply to every page in
+	// string form, ready to drop into the
+	// <head>
+	styleFileTemplates string
 
 	// Output directory for published files
 	webroot string
-
-	// Name of Markdown file being processed
-	filename string
 }
 
 // assemble takes the raw converted HTML in article,
@@ -160,7 +173,7 @@ func assemble(config config, filename string, article string, fm map[string]inte
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
 	if parsedArticle, err := doTemplate("", article, fm); err != nil {
-		quit(1, err, "%v: Unable to execute ", filename)
+		quit(1, err, config, "%v: Unable to execute ", filename)
 	} else {
 		article = parsedArticle
 	}
@@ -173,7 +186,7 @@ func assemble(config config, filename string, article string, fm map[string]inte
 		titleTag(fm) +
 		metatags(fm) +
 		linktags(fm) +
-		stylesheets(stylesheetList, fm) +
+		stylesheets(stylesheetList, config, fm) +
 		"\t<style>\n" + StyleTags(fm) + "\t</style>\n" +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
@@ -246,7 +259,7 @@ func layoutEl(config config, fm map[string]interface{}, element string, sourcefi
 		var rel string
 		// TODO: Cache current directory
 		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
-			quit(1, nil, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
+			quit(1, nil, config, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
 		}
 		rel = filepath.Dir(rel)
 		fullPath = filepath.Join(currDir(), rel, layoutElSource)
@@ -261,14 +274,14 @@ func layoutEl(config config, fm map[string]interface{}, element string, sourcefi
 	var err error
 	if isMarkdown {
 		if !fileExists(fullPath) {
-			quit(1, nil, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
+			quit(1, nil, config, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
 		if raw, _, err = mdYAMLFileToHTMLString(config, fullPath); err != nil {
-			quit(1, err, "Error converting Markdown file %v to HTML", fullPath)
+			quit(1, err, config, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
 		}
 		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
-			quit(1, err, "%v: Unable to execute ", filename)
+			quit(1, err, config, "%v: Unable to execute ", filename)
 		}
 		if parsedArticle != "" {
 			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
@@ -329,7 +342,7 @@ func StyleTags(fm map[string]interface{}) string {
 // the front matter.
 // Those listed in the front matter are appended, so they take
 // priority.
-func stylesheets(sheets string, fm map[string]interface{}) string {
+func stylesheets(sheets string, config config, fm map[string]interface{}) string {
 	var globalSlice []string
 	var globals string
 	if sheets != "" {
@@ -342,7 +355,11 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 	// Only applicable for home page
 	templateSlice := frontMatterStrSlice("StyleFileTemplates", fm)
 	templates := sliceToStylesheetStr(templateSlice)
-
+	config.styleFileTemplates = templates
+	debug("config.styleFileTemplates: %s", config.styleFileTemplates)
+	debug("projectDir: %s. config.styleFileTemplates", config.root,
+config.styleFileTemplates)
+	// xxxx
 	// Build a string from stylesheets named in the
 	// StyleFiles: front matter for this page
 	localSlice := frontMatterStrSlice("StyleFiles", fm)
@@ -355,24 +372,6 @@ func stylesheets(sheets string, fm map[string]interface{}) string {
 	// the front matter.
 	return globals + templates + locals
 }
-
-// fullPathNameToWebroot takes a fully qualified pathnaem like "~/myprojects/css/styles.css"
-// and given the webroot "WWW" returns
-// ~/myprojects/WWW/css/styles.css"
-// TODO: CONFIRM. Not sure this is used or necessary.
-// webroot is treated as as a subdirectory of filename
-func fullPathNameToWebroot(filename string, webroot string) string {
-	rel := ""
-	var err error
-	if rel, err = filepath.Rel(filename, webroot); err != nil {
-		quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
-	}
-
-	// Determine the destination directory.
-	webrootPath := filepath.Join(filename, webroot, rel)
-	//debug("\tfullPathNameToWebroot(%s,%s): %s", filename, webroot, webrootPath)
-	return webrootPath
-} //
 
 // The --verbose flag. It shows progress as the site is created.
 // Required by the Verbose() function.
@@ -399,7 +398,7 @@ func main() {
 	flag.StringVar(&language, "language", "en", "HTML language designation, such as en or fr")
 
 	//var root string
-	flag.StringVar(&config.projectDir, "root", ".", "Starting directory of the project")
+	flag.StringVar(&config.root, "root", ".", "Starting directory of the project")
 
 	// List of stylesheets to include on each page.
 	var stylesheets string
@@ -424,18 +423,22 @@ func main() {
 	// and nested subdirectories are processed.
 	config.filename = flag.Arg(0)
 
+	var err error
+	if config.root, err = filepath.Abs(config.root); err != nil {
+		quit(1, err, config, "Unable to absolute path of %s", config.root)
+	}
 	if config.filename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a filename.
 		if !fileExists(config.filename) {
-			quit(1, nil, "Can't find the file %v", config.filename)
+			quit(1, nil, config, "Can't find the file %v", config.filename)
 		} else {
 			// Special case: if you name a file on the command line, it will
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
 			htmlFilename := buildFileToFile(config, config.filename, stylesheets, language, debugFrontMatter)
-			quit(0, nil, "Built file %s", htmlFilename)
+			quit(0, nil, config, "Built file %s", htmlFilename)
 		}
 	}
 	// No file was given on the command line.
@@ -448,7 +451,7 @@ func main() {
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
 	webrootPath := buildSite(config, config.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
-	quit(0, nil, "Site published to %s", webrootPath)
+	quit(0, nil, config, "Site published to %s", webrootPath)
 
 }
 
@@ -483,7 +486,7 @@ func buildFileToFile(config config, filename string, stylesheets string, languag
 	// Return the document as a string.
 	html, htmlFilename := buildFileToTemplatedString(config, filename, stylesheets, language)
 	// Write the contents of the completed HTML document to a file.
-	writeStringToFile(htmlFilename, html)
+	writeStringToFile(config, htmlFilename, html)
 	// Return the name of the converted file
 	return htmlFilename
 }
@@ -505,7 +508,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 	dest := ""
 	// Convert the Markdown file to an HTML string
 	if rawHTML, fm, err := mdYAMLFileToHTMLString(config, filename); err != nil {
-		quit(1, err, "Error converting Markdown file %v to HTML", filename)
+		quit(1, err, config, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
 		// Strip original file's Markdown extension and make
@@ -520,7 +523,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 	}
 }
 
-// buildSite takes config.projectDir as the root directory,
+// buildSite takes config.root as the root directory,
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
@@ -530,20 +533,20 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(config.projectDir) {
-		homePage := writeDefaultHomePage(config.projectDir)
+	if !isProject(config.root) {
+		homePage := writeDefaultHomePage(config, config.root)
 		warn("No index.md or README.md found. Created home page %v", homePage)
 	}
 
 	// Change to requested directory
-	if err = os.Chdir(config.projectDir); err != nil {
-		quit(1, err, "Unable to change to directory %s", config.projectDir)
+	if err = os.Chdir(config.root); err != nil {
+		quit(1, err, config, "Unable to change to directory %s", config.root)
 	}
 
 	// Cache project's root directory
 	var homeDir string
 	if homeDir, err = os.Getwd(); err != nil {
-		quit(1, err, "Unable to get name of current directory")
+		quit(1, err, config, "Unable to get name of current directory")
 	}
 
 	// Delete web root directory unless otherwise requested
@@ -551,7 +554,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		delDir := filepath.Join(homeDir, webroot)
 		Verbose("Deleting directory %v", delDir)
 		if err := os.RemoveAll(delDir); err != nil {
-			quit(1, err, "Unable to delete publish directory %v", delDir)
+			quit(1, err, config, "Unable to delete publish directory %v", delDir)
 		}
 	}
 
@@ -561,14 +564,10 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	skipPublish.list = strings.Split(skip, " ")
 
 	// Collect all the files required for this project.
-	files, err := getProjectTree(".", skipPublish)
+	config.files, err = getProjectTree(".", skipPublish)
 	if err != nil {
-		quit(1, err, "Unable to get directory tree")
+		quit(1, err, config, "Unable to get directory tree")
 	}
-
-	// Now have list of all files in directory tree.
-	// If markdown, convert to HTML and copy that file to the HTML publication directory.
-	// If not, copy to target publication directory unchanged.
 
 	// Full pathname of file to copy to target directory
 	var source string
@@ -600,7 +599,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
-	for _, filename := range files {
+	for _, filename := range config.files {
 
 		// true if it's  Markdown file converted to HTML
 		converted = false
@@ -608,16 +607,32 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		// Get the fully qualified pathname for this file.
 		config.filename = filepath.Join(homeDir, filename)
 
+		Verbose("%s", config.filename)
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(config.filename)
+    debug("Filename: %s\nSourceDir: %s\nconfig.Filename: %s\nRoot: %s\n", 
+      filename, sourceDir, config.filename, config.root)
+    base := filepath.Base(config.filename)
 
-		Verbose("%s", config.filename)
+    // It's sort of hard to tell whether this file is the index.md
+    // or README.md in something other than the home directory.
+    // If it's a home page Markdown file then flag.
+    // That's how to know not to pick it up in other files
+    // that are't in the root.
+    if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
+      debug("*** BINGO ON %s ***", base)
+      // NOT TRUE. Just in the right place is all.
+      config.hitHomePage = true
+      // xxxx
+    } else {
+      config.hitHomePage = false
+    }
 
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
 		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
-			quit(1, err, "Unable to get relative paths of %s and %s", filename, webroot)
+			quit(1, err, config, "Unable to get relative paths of %s and %s", filename, webroot)
 		}
 
 		// Determine the destination directory.
@@ -629,7 +644,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
 			if HTML, fm, err = mdYAMLFileToHTMLString(config, filename); err != nil {
-				quit(1, err, "Error converting Markdown file to HTML")
+				quit(1, err, config, "Error converting Markdown file to HTML")
 			}
 			// xxx in buildSite
 			// If asked, display the front matter
@@ -653,19 +668,26 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		if !dirExists(webrootPath) {
 			err := os.MkdirAll(webrootPath, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
-				quit(1, err, "Unable to create directory %s", webrootPath)
+				quit(1, err, config, "Unable to create directory %s", webrootPath)
 			}
 		}
+
+		// Now have list of all files in directory tree.
+		// If markdown, convert to HTML and copy that file to the HTML publication directory.
+		// If not, copy to target publication directory unchanged.
+
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
 			h := assemble(config, config.filename, HTML, fm, language, stylesheets)
-			writeStringToFile(target, h)
+			writeStringToFile(config, target, h)
 		} else {
-			copyFile(source, target)
+			copyFile(config, source, target)
 		}
 	}
 	// This is where the files were published
-	ensureIndexHTML(webrootPath)
+	ensureIndexHTML(webrootPath, config)
+	// Display all files, Markdown or not, that were processed
+	//debug("\n%v\n", config.files)
 	return webrootPath
 }
 
@@ -675,14 +697,14 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 // Even if a project directory had both
 // an index.md and a README.md, the output README.html
 // would be renamed to index.html
-func ensureIndexHTML(path string) {
+func ensureIndexHTML(path string, config config) {
 	readmeHTML := filepath.Join(path, "README.html")
 	newIndexHTML := filepath.Join(path, "index.html")
 
 	// if neither index.html nor README.html, then they
 	// were missing source files to begin with.
 	if !fileExists(readmeHTML) && !fileExists(newIndexHTML) {
-		quit(1, nil, "No README.html or index.html could be found in %v", path)
+		quit(1, nil, config, "No README.html or index.html could be found in %v", path)
 	}
 
 	// Both README.html and index.html exist.  Or
@@ -691,7 +713,7 @@ func ensureIndexHTML(path string) {
 	if fileExists(readmeHTML) && (fileExists(newIndexHTML) || !fileExists(newIndexHTML)) {
 		err := os.Rename(readmeHTML, newIndexHTML)
 		if err != nil {
-			quit(1, err, "Unable to rename %v ", readmeHTML)
+			quit(1, err, config, "Unable to rename %v ", readmeHTML)
 		}
 		return
 	}
@@ -750,28 +772,28 @@ func currDir() string {
 
 // FILE UTILITIES
 // copyFile, well, does just that. Doesnt' return errors.
-func copyFile(source string, target string) {
+func copyFile(config config, source string, target string) {
 	if source == target {
-		quit(1, nil, "copyFile: %s and %s are the same", source, target)
+		quit(1, nil, config, "copyFile: %s and %s are the same", source, target)
 	}
 	if source == "" {
-		quit(1, nil, "copyFile: no source file specified")
+		quit(1, nil, config, "copyFile: no source file specified")
 	}
 	if target == "" {
-		quit(1, nil, "copyFile: no destination file specified for file %s", source)
+		quit(1, nil, config, "copyFile: no destination file specified for file %s", source)
 	}
 	var src, trgt *os.File
 	var err error
 	if src, err = os.Open(source); err != nil {
-		quit(1, err, "copyFile: Unable to open file %s", source)
+		quit(1, err, config, "copyFile: Unable to open file %s", source)
 	}
 	defer src.Close()
 
 	if trgt, err = os.Create(target); err != nil {
-		quit(1, err, "copyFile: Unable to create file %s", target)
+		quit(1, err, config, "copyFile: Unable to create file %s", target)
 	}
 	if _, err := trgt.ReadFrom(src); err != nil {
-		quit(1, err, "Error copying file %s to %s", source, target)
+		quit(1, err, config, "Error copying file %s to %s", source, target)
 	}
 }
 
@@ -804,10 +826,10 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 // and writes it to index.md in dir. Uses the file
 // segment of dir as the the H1 title.
 // Returns the full pathname of the file.
-func writeDefaultHomePage(dir string) string {
+func writeDefaultHomePage(config config, dir string) string {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
-	writeStringToFile(pathname, html)
+	writeStringToFile(config, pathname, html)
 	return pathname
 }
 
@@ -870,15 +892,15 @@ func replaceExtension(filename string, newExtension string) string {
 // exists, then writes contents to it.
 // filename is afully qualified pathname.
 // contents is the string to write
-func writeStringToFile(filename, contents string) {
+func writeStringToFile(config config, filename, contents string) {
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
-		quit(1, err, "writeStringToFile: Unable to create file %s", filename)
+		quit(1, err, config, "writeStringToFile: Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		// TODO: Renumber error code?
-		quit(1, err, "Error writing to file %s", filename)
+		quit(1, err, config, "Error writing to file %s", filename)
 	}
 }
 
@@ -1148,14 +1170,18 @@ func Verbose(format string, ss ...interface{}) {
 // quit displays a message fmt.Printf style and exits to the OS.
 // That format string must be preceded by an exit code and an
 // error object (nil if an error didn't occur).
-func quit(exitCode int, err error, format string, ss ...interface{}) {
+func quit(exitCode int, err error, config config, format string, ss ...interface{}) {
 	msg := fmt.Sprint(fmtMsg(format, ss...))
 	errmsg := ""
 	if err != nil {
 		errmsg = " " + err.Error()
 	}
 	// fmt.Println(msg + errmsg)
-	fmt.Printf("PocoCMS: %s%s\n", msg, errmsg)
+	if config.filename != "" {
+		fmt.Printf("PocoCMS %s:\n \t%s%s\n", config.filename, msg, errmsg)
+	} else {
+		fmt.Printf("%s%s\n", msg, errmsg)
+	}
 	os.Exit(exitCode)
 }
 
