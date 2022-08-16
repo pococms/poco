@@ -60,6 +60,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	//"reflect"
 )
 
 // TODO: No longer true
@@ -141,16 +142,19 @@ var poweredBy = `Powered by PocoCMS`
 // configuration info for the project, for example, template
 // stylesheets and current file being processed.
 type config struct {
+	// Front matter
+	fm map[string]interface{}
+
 	// Name of Markdown file being processed
 	filename string
 
 	// List of all files being processed
 	files []string
 
-  // This is true only when a home page 
-  // (root of the directoryh tree) README.md 
-  // or index.md is being processed
-  hitHomePage bool
+	// This is true only when a home page
+	// (root of the directoryh tree) README.md
+	// or index.md is being processed
+	hitHomePage bool
 
 	// Home directory for source code
 	root string
@@ -167,12 +171,12 @@ type config struct {
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(config config, filename string, article string, fm map[string]interface{}, language string, stylesheetList string) string {
+func assemble(config config, filename string, article string, language string, stylesheetList string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
-	if parsedArticle, err := doTemplate("", article, fm); err != nil {
+	if parsedArticle, err := doTemplate("", article, config); err != nil {
 		quit(1, err, config, "%v: Unable to execute ", filename)
 	} else {
 		article = parsedArticle
@@ -183,20 +187,20 @@ func assemble(config config, filename string, article string, fm map[string]inte
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		titleTag(fm) +
-		metatags(fm) +
-		linktags(fm) +
-		stylesheets(stylesheetList, config, fm) +
-		"\t<style>\n" + StyleTags(fm) + "\t</style>\n" +
+		titleTag(config) +
+		metatags(config) +
+		linktags(config) +
+		stylesheets(stylesheetList, config) +
+		"\t<style>\n" + StyleTags(config) + "\t</style>\n" +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
-		"\t" + layoutEl(config, fm, "Header", filename) +
-		"\t" + layoutEl(config, fm, "Nav", filename) +
-		"\t" + layoutEl(config, fm, "Aside", filename) +
+		"\t" + layoutEl(config, "Header", filename) +
+		"\t" + layoutEl(config, "Nav", filename) +
+		"\t" + layoutEl(config, "Aside", filename) +
 		"\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
-		"\t" + layoutEl(config, fm, "Footer", filename) +
+		"\t" + layoutEl(config, "Footer", filename) +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
@@ -233,8 +237,8 @@ func assemble(config config, filename string, article string, fm map[string]inte
 // to be a Markdown file and is processed that way.
 // sourcefile is the fully qualified pathname of the .md file being processed
 // TODO: Code smell
-func layoutEl(config config, fm map[string]interface{}, element string, sourcefile string) string {
-	filename := frontMatterStr(element, fm)
+func layoutEl(config config, element string, sourcefile string) string {
+	filename := frontMatterStr(element, config)
 	if filename == "" {
 		return ""
 	}
@@ -250,7 +254,7 @@ func layoutEl(config config, fm map[string]interface{}, element string, sourcefi
 	// matter my say Header: myheader.md so
 	// layoutElSource is 'myheader.md'
 
-	layoutElSource := frontMatterStr(element, fm)
+	layoutElSource := frontMatterStr(element, config)
 	if filepath.IsAbs(layoutElSource) {
 		// debug("\t%s isAbs", layoutElSource)
 		fullPath = layoutElSource
@@ -276,11 +280,11 @@ func layoutEl(config config, fm map[string]interface{}, element string, sourcefi
 		if !fileExists(fullPath) {
 			quit(1, nil, config, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
-		if raw, _, err = mdYAMLFileToHTMLString(config, fullPath); err != nil {
+		if raw, err = mdYAMLFileToHTMLString(&config, fullPath); err != nil {
 			quit(1, err, config, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
 		}
-		if parsedArticle, err = doTemplate("", raw, fm); err != nil {
+		if parsedArticle, err = doTemplate("", raw, config); err != nil {
 			quit(1, err, config, "%v: Unable to execute ", filename)
 		}
 		if parsedArticle != "" {
@@ -323,8 +327,8 @@ func sliceToStylesheetStr(sheets []string) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func StyleTags(fm map[string]interface{}) string {
-	tagSlice := frontMatterStrSlice("StyleTags", fm)
+func StyleTags(config config) string {
+	tagSlice := frontMatterStrSlice("StyleTags", config)
 	if tagSlice == nil {
 		return ""
 	}
@@ -342,7 +346,7 @@ func StyleTags(fm map[string]interface{}) string {
 // the front matter.
 // Those listed in the front matter are appended, so they take
 // priority.
-func stylesheets(sheets string, config config, fm map[string]interface{}) string {
+func stylesheets(sheets string, config config) string {
 	var globalSlice []string
 	var globals string
 	if sheets != "" {
@@ -353,16 +357,22 @@ func stylesheets(sheets string, config config, fm map[string]interface{}) string
 	// Build a string from stylesheets named in the
 	// StyleFileTemplates: front matter for this page
 	// Only applicable for home page
-	templateSlice := frontMatterStrSlice("StyleFileTemplates", fm)
-	templates := sliceToStylesheetStr(templateSlice)
-	config.styleFileTemplates = templates
-	debug("config.styleFileTemplates: %s", config.styleFileTemplates)
-	debug("projectDir: %s. config.styleFileTemplates", config.root,
-config.styleFileTemplates)
-	// xxxx
+	//templates := ""
+	if config.hitHomePage {
+		templateSlice := frontMatterStrSlice("StyleFileTemplates", config)
+		// xxxx
+		config.styleFileTemplates = sliceToStylesheetStr(templateSlice)
+		debug("*** home page: %s", config.styleFileTemplates)
+		//templates = sliceToStylesheetStr(templateSlice)
+		//config.styleFileTemplates = templates
+	} else {
+		debug("NOT at home page: %s", config.styleFileTemplates)
+	}
+	//debug("projectDir: %s\nconfig.styleFileTemplates: \n%v", config.root, config.styleFileTemplates)
+	// xxx
 	// Build a string from stylesheets named in the
 	// StyleFiles: front matter for this page
-	localSlice := frontMatterStrSlice("StyleFiles", fm)
+	localSlice := frontMatterStrSlice("StyleFiles", config)
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -370,7 +380,8 @@ config.styleFileTemplates)
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return globals + templates + locals
+	return globals + config.styleFileTemplates + locals
+	//return globals + config.styleFileTemplates + locals
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -378,6 +389,8 @@ config.styleFileTemplates)
 var gVerbose bool
 
 func main() {
+	// Initialize only once per site. Don't do it every time a file gets processed
+	// because certain config values are read only on the home page.
 	config := config{}
 
 	// cleanup determines whether or not the publish (aka WWW) directory
@@ -462,17 +475,17 @@ func main() {
 // against the source.
 // Returns a string containing the HTML with the
 // template values embedded.
-func doTemplate(templateName string, source string, fm map[string]interface{}) (string, error) {
+func doTemplate(templateName string, source string, config config) (string, error) {
 	if templateName == "" {
 		templateName = "PocoCMS"
 	}
-	// fmt.Printf("\tdoTemplate() fm: \n%v\n", fm)
+	//debug("\tdoTemplate() config is: \n%+v\nfm is: \n%+v", config, config.fm)
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
 		return "", err
 	}
 	buf := new(bytes.Buffer)
-	err = tmpl.Execute(buf, fm)
+	err = tmpl.Execute(buf, config.fm)
 	if err != nil {
 		return "", err
 	}
@@ -507,7 +520,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
-	if rawHTML, fm, err := mdYAMLFileToHTMLString(config, filename); err != nil {
+	if rawHTML, err := mdYAMLFileToHTMLString(&config, filename); err != nil {
 		quit(1, err, config, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
@@ -515,9 +528,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(config, config.filename, rawHTML, fm, language, stylesheets)
-		//debug("BUILD FILE TO STRING")
-
+		finishedDocument := assemble(config, config.filename, rawHTML, language, stylesheets)
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
@@ -591,9 +602,6 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	// Name of directory used to publish output files
 	var webrootPath string
 
-	// Parsed front matter
-	var fm map[string]interface{}
-
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
 	// convert to HTML and copy to output directory.
@@ -610,24 +618,11 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		Verbose("%s", config.filename)
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(config.filename)
-    debug("Filename: %s\nSourceDir: %s\nconfig.Filename: %s\nRoot: %s\n", 
-      filename, sourceDir, config.filename, config.root)
-    base := filepath.Base(config.filename)
-
-    // It's sort of hard to tell whether this file is the index.md
-    // or README.md in something other than the home directory.
-    // If it's a home page Markdown file then flag.
-    // That's how to know not to pick it up in other files
-    // that are't in the root.
-    if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
-      debug("*** BINGO ON %s ***", base)
-      // NOT TRUE. Just in the right place is all.
-      config.hitHomePage = true
-      // xxxx
-    } else {
-      config.hitHomePage = false
-    }
-
+		/*
+			debug("Filename: %s\nSourceDir: %s\nconfig.Filename: %s\nRoot: %s",
+				filename, sourceDir, config.filename, config.root)
+		*/
+		base := filepath.Base(config.filename)
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
@@ -643,14 +638,39 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		// Only convert to HTML if it has a Markdown extension.
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
-			if HTML, fm, err = mdYAMLFileToHTMLString(config, filename); err != nil {
+			if HTML, err = mdYAMLFileToHTMLString(&config, filename); err != nil {
 				quit(1, err, config, "Error converting Markdown file to HTML")
 			}
+			//debug("fm after mdYAMLFileToHTMLString: %+v", config.fm)
 			// xxx in buildSite
 			// If asked, display the front matter
 			if debugFrontMatter {
 				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
-				debug(dumpFrontMatter(fm))
+				debug(dumpFrontMatter(config))
+			}
+			// It's sort of hard to tell whether this file is the index.md
+			// or README.md in something other than the home directory.
+			// If it's a home page Markdown file then flag.
+			// That's how to know not to pick it up in other files
+			// that are't in the root.
+			if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
+				// NOT TRUE. Just in the right place is all.
+				config.hitHomePage = true
+			} else {
+				config.hitHomePage = false
+			}
+
+			// It's sort of hard to tell whether this file is the index.md
+			// or README.md in something other than the home directory.
+			// If it's a home page Markdown file then flag.
+			// That's how to know not to pick it up in other files
+			// that are't in the root.
+			if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
+				// NOT TRUE. Just in the right place is all.
+				config.hitHomePage = true
+				// xxx
+			} else {
+				config.hitHomePage = false
 			}
 
 			source = filename[0:len(filename)-len(ext)] + ".html"
@@ -678,7 +698,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(config, config.filename, HTML, fm, language, stylesheets)
+			h := assemble(config, config.filename, HTML, language, stylesheets)
 			writeStringToFile(config, target, h)
 		} else {
 			copyFile(config, source, target)
@@ -982,12 +1002,15 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 // with YAML front matter to HTML.
 // The HTML file has not yet had templates executed,
 // Returns a byte slice containing the HTML source.
-func mdYAMLFileToHTMLString(config config, filename string) (string, map[string]interface{}, error) {
+func mdYAMLFileToHTMLString(config *config, filename string) (string, error) {
 	source := fileToBuf(filename)
-	if HTML, fm, err := mdYAMLToHTML(source); err != nil {
-		return "", nil, err
+	//if HTML, fm, err := mdYAMLToHTML(source); err != nil {
+	var err error
+	var HTML []byte
+	if HTML, config.fm, err = mdYAMLToHTML(source); err != nil {
+		return "", err
 	} else {
-		return string(HTML), fm, nil
+		return string(HTML), nil
 	}
 }
 
@@ -1055,8 +1078,8 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 //
 // It would render like this in the HTML:
 // I like yo mama
-func frontMatterStr(key string, fm map[string]interface{}) string {
-	v := fm[key]
+func frontMatterStr(key string, config config) string {
+	v := config.fm[key]
 	value, ok := v.(string)
 	if !ok {
 		return ""
@@ -1074,11 +1097,11 @@ func frontMatterStr(key string, fm map[string]interface{}) string {
 // ---
 //
 // I like yo mama
-func frontMatterStrSlice(key string, fm map[string]interface{}) []string {
+func frontMatterStrSlice(key string, config config) []string {
 	if key == "" {
 		return []string{}
 	}
-	v, ok := fm[key].([]interface{})
+	v, ok := config.fm[key].([]interface{})
 	if !ok {
 		return []string{}
 	}
@@ -1094,7 +1117,7 @@ func frontMatterStrSlice(key string, fm map[string]interface{}) []string {
 // key, which is presumed to be a string array/slice.
 // Returns these values concatenated into a string
 // (each string gets a newline appended for clarity)
-func frontMatterStrSliceStr(key string, fm map[string]interface{}) string {
+func frontMatterStrSliceStr(key string, config config) string {
 
 	// Return empty string if no key provided.
 	if key == "" {
@@ -1103,14 +1126,13 @@ func frontMatterStrSliceStr(key string, fm map[string]interface{}) string {
 
 	// Return empty string if requested key has no value
 	// associated with it.
-	v, ok := fm[key].([]interface{})
+	v, ok := config.fm[key].([]interface{})
 	if !ok {
-		debug("frontMatterStrSliceStr: Key %s not found", key)
 		return ""
 	}
 	//s := make([]string, len(v))
 	var tags string
-	debug("frontMatterStrSliceStr: Key %s WAS found", key)
+	//debug("frontMatterStrSliceStr: Key %s WAS found", key)
 	for _, value := range v {
 		tag := fmt.Sprintf("%s\n", value)
 		tags = tags + tag
@@ -1120,8 +1142,8 @@ func frontMatterStrSliceStr(key string, fm map[string]interface{}) string {
 
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
-func linktags(fm map[string]interface{}) string {
-	linkTags := frontMatterStrSlice("LinkTags", fm)
+func linktags(config config) string {
+	linkTags := frontMatterStrSlice("LinkTags", config)
 	if len(linkTags) < 1 {
 		return ""
 	}
@@ -1132,8 +1154,8 @@ func linktags(fm map[string]interface{}) string {
 	return tags
 }
 
-func titleTag(fm map[string]interface{}) string {
-	title := frontMatterStr("Title", fm)
+func titleTag(config config) string {
+	title := frontMatterStr("Title", config)
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
 	} else {
@@ -1142,10 +1164,10 @@ func titleTag(fm map[string]interface{}) string {
 }
 
 // Generate common metatags
-func metatags(fm map[string]interface{}) string {
-	return metatag("description", frontMatterStr("Description", fm)) +
-		metatag("keywords", frontMatterStr("Keywords", fm)) +
-		metatag("author", frontMatterStr("Author", fm))
+func metatags(config config) string {
+	return metatag("description", frontMatterStr("Description", config)) +
+		metatag("keywords", frontMatterStr("Keywords", config)) +
+		metatag("author", frontMatterStr("Author", config))
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
@@ -1205,8 +1227,8 @@ func fmtMsg(format string, ss ...interface{}) string {
 // DEBUG UTILITIES
 
 // dumpFrontMatter Displays the contents of the page's front matter in JSON format
-func dumpFrontMatter(fm map[string]interface{}) string {
-	b, err := json.MarshalIndent(fm, "", "  ")
+func dumpFrontMatter(config config) string {
+	b, err := json.MarshalIndent(config.fm, "", "  ")
 	s := string(b)
 	s = strings.ReplaceAll(s, "{", "")
 	s = strings.ReplaceAll(s, "}", "")
