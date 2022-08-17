@@ -1,4 +1,3 @@
-// PocoCMS: Markdown-based CMS in 1 file, written in Go.
 package main
 
 // # Create a directory. It doesn't have to be here.
@@ -152,6 +151,9 @@ func assemble(config config, filename string, article string, language string, s
 		article = parsedArticle
 	}
 
+  // If a theme directory was named in FrontMatter's Theme:,
+  // read it in.
+  config.loadTheme()
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
@@ -175,6 +177,78 @@ func assemble(config config, filename string, article string, language string, s
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
+
+// THEME
+
+// loadTheme tries to find the named theme directory
+// and load its files into config.theme
+// Tests:
+// - Missing README.md
+// - Missing StyleFiles, StyleFileTemplates
+// - Missing LICENSE file
+func (c *config) loadTheme() {
+	themeDir := frontMatterStr("Theme", *c)
+	if themeDir == "" {
+		debug("loadTheme() no theme specified for %v", c.currentFilename)
+	}
+	file := filepath.Join(themeDir, "README.md")
+	if !fileExists(file) {
+		quit(1, nil, *c, "Theme %s is missing a README.md", themeDir)
+	}
+	// xxxx loadTheme()
+	// Make sure there's a LICENSE file
+	license := filepath.Join(themeDir, "LICENSE")
+	if fileToString(license) == "" {
+		quit(1, nil, *c, "%s theme is missing a LICENSE file", themeDir)
+	}
+	header := filepath.Join(themeDir, "header.md")
+	c.theme.header = fileToString(header)
+
+	nav := filepath.Join(themeDir, "nav.md")
+	c.theme.nav = fileToString(nav)
+
+	aside := filepath.Join(themeDir, "aside.md")
+	c.theme.aside = fileToString(aside)
+
+	footer := filepath.Join(themeDir, "footer.md")
+	c.theme.footer = fileToString(footer)
+
+  /*
+	debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
+		themeDir,
+		c.theme.header,
+		c.theme.nav,
+		c.theme.aside,
+		c.theme.footer)
+    */
+	// First try
+}
+
+/*
+type theme struct {
+  // Contents of LICENSE file. Can't be empty
+  license string
+  // Who created it, natch
+  author string
+  // Name for the theme with spaces and other characters allowed.
+  // If the directory name is my-great-theme you might
+  // want this to be "My Great! Theme"
+  branding string
+  // One or more sentences selling the theme.
+  description string
+  // Contents of header.md
+  header string
+  // Contents of nav.md
+  nav string
+  // Contents of aside.md
+  aside string
+  // Contents of footer.md
+  footer string
+  // Contents of stylesheets, each one in a string
+  StyleFiles []string
+  // Contents of template stylesheets, each one in a string
+  StyleFileTemplates []string
+*/
 
 // HTML UTILITIES
 
@@ -347,6 +421,42 @@ func stylesheets(sheets string, config config) string {
 // Required by the Verbose() function.
 var gVerbose bool
 
+// theme contains all the (lightweight) files needed for a theme:
+// header.md, style sheets, etc.
+type theme struct {
+	// xxx
+	// Contents of LICENSE file. Can't be empty
+	license string
+
+	// Who created it, natch
+	author string
+
+	// Name for the theme with spaces and other characters allowed.
+	// If the directory name is my-great-theme you might
+	// want this to be "My Great! Theme"
+	branding string
+
+	// One or more sentences selling the theme.
+	description string
+
+	// Contents of header.md
+	header string
+
+	// Contents of nav.md
+	nav string
+
+	// Contents of aside.md
+	aside string
+
+	// Contents of footer.md
+	footer string
+
+	// Contents of stylesheets, each one in a string
+	StyleFiles []string
+
+	// Contents of template stylesheets, each one in a string
+	StyleFileTemplates []string
+}
 
 // there are no configuration files (yet) but this holds
 // configuration info for the project, for example, template
@@ -358,7 +468,7 @@ type config struct {
 	fm map[string]interface{}
 
 	// Name of Markdown file being processed
-	filename string
+	currentFilename string
 
 	// List of all files being processed
 	files []string
@@ -366,12 +476,12 @@ type config struct {
 	// This is true only when a home page
 	// (root of the directoryh tree) README.md
 	// or index.md is being processed
-  // TODO: Probably unnecessary
+	// TODO: Probably unnecessary
 	hitHomePage bool
 
-  // Full pathname of the root index file Markdown in the root directory.
-  // If present, it's either "README.md" or "index.md"
-  homePage string
+	// Full pathname of the root index file Markdown in the root directory.
+	// If present, it's either "README.md" or "index.md"
+	homePage string
 
 	// Home directory for source code
 	root string
@@ -381,58 +491,54 @@ type config struct {
 	// <head>
 	styleFileTemplates string
 
+	// Contents of a theme directory
+	theme theme
+
 	// Output directory for published files
 	webroot string
 }
 
-
 // findHomePage() returns the source file used for the root
-// index page in the root directory. Since README.md is 
+// index page in the root directory. Since README.md is
 // commonly used, it takes priority. Next priority is index.md
 func (c *config) findHomePage() {
-  if c.root == "." || c.root == "" {
-    c.root = currDir()
-  }
-  debug("findHomePage: c.root: %s", c.root)
-  // Look for "README.md" or "index.md" in that order.
-  // return "" if neither found.
-  c.homePage = indexFile(c.root)
-  if c.homePage == "" {
-    quit(1, nil, *c, "Can't find README.md or index.md in root TODO: FINISH THIS")
-  }
+	if c.root == "." || c.root == "" {
+		c.root = currDir()
+	}
+	// Look for "README.md" or "index.md" in that order.
+	// return "" if neither found.
+	c.homePage = indexFile(c.root)
+	if c.homePage == "" {
+		quit(1, nil, *c, "Can't find README.md or index.md in root TODO: FINISH THIS")
+	}
 }
 
 // setup() Obtains README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 func (c *config) setup() {
-  c.findHomePage()
+	c.findHomePage()
 
-  // TODO: Improve error message at the very least
+	// TODO: Improve error message at the very least
 	if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
-    quit(1, nil, *c, "Can't get home page TODO: FINISH THIS MSG")
-  }
-
-
-  templateSlice := frontMatterStrSlice("StyleFileTemplates", *c)
+		quit(1, nil, *c, "Can't get home page TODO: FINISH THIS MSG")
+	}
+	templateSlice := frontMatterStrSlice("StyleFileTemplates", *c)
 	c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
-	debug("*** setup() styleFileTemplates: %s", c.styleFileTemplates)
-  // xxxx
 
 }
 
-// xxxx
 // initConfig reads the home page and gets
 // sitewide configuration info.
 func initConfig() config {
-  config := config{}
-  return config
+	config := config{}
+	return config
 }
+
 // xxx initConfig()
 
 func main() {
-  // xxxx
-  config := initConfig()
+	config := initConfig()
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	var cleanup bool
@@ -474,33 +580,33 @@ func main() {
 
 	// See if a source file was specified. Otherwise the whole directory
 	// and nested subdirectories are processed.
-	config.filename = flag.Arg(0)
+	config.currentFilename = flag.Arg(0)
 
 	var err error
 	if config.root, err = filepath.Abs(config.root); err != nil {
 		quit(1, err, config, "Unable to absolute path of %s", config.root)
 	}
-	if config.filename != "" {
+	if config.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a filename.
-		if !fileExists(config.filename) {
-			quit(1, nil, config, "Can't find the file %v", config.filename)
+		if !fileExists(config.currentFilename) {
+			quit(1, nil, config, "Can't find the file %v", config.currentFilename)
 		} else {
 			// Special case: if you name a file on the command line, it will
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(config, config.filename, stylesheets, language, debugFrontMatter)
+			htmlFilename := buildFileToFile(config, config.currentFilename, stylesheets, language, debugFrontMatter)
 			quit(0, nil, config, "Built file %s", htmlFilename)
 		}
 	}
 	// No file was given on the command line.
 	// Build the project in place.
 
-  // Obtain README.md or index.md.
-  // Read in the front matter to get its config information.
-  // Set values accordingly.
-  config.setup()
+	// Obtain README.md or index.md.
+	// Read in the front matter to get its config information.
+	// Set values accordingly.
+	config.setup()
 
 	// markdownExtensions are how PocoCMS figures out whether
 	// a file is Markdown. If it ends in any one of these then
@@ -573,7 +679,7 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(config, config.filename, rawHTML, language, stylesheets)
+		finishedDocument := assemble(config, config.currentFilename, rawHTML, language, stylesheets)
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
@@ -658,11 +764,11 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		converted = false
 
 		// Get the fully qualified pathname for this file.
-		config.filename = filepath.Join(homeDir, filename)
+		config.currentFilename = filepath.Join(homeDir, filename)
 
-    Verbose("%s", config.filename)
+		Verbose("%s", config.currentFilename)
 		// Separate out the file's origin directory
-		sourceDir := filepath.Dir(config.filename)
+		sourceDir := filepath.Dir(config.currentFilename)
 
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
@@ -714,7 +820,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(config, config.filename, HTML, language, stylesheets)
+			h := assemble(config, config.currentFilename, HTML, language, stylesheets)
 			writeStringToFile(config, target, h)
 		} else {
 			copyFile(config, source, target)
@@ -1118,7 +1224,7 @@ func frontMatterStrSlice(key string, config config) []string {
 		return []string{}
 	}
 	v, ok := config.fm[key].([]interface{})
-  //debug("frontMatterStrSlice[%s], key: %v, config.fm %+v", key, v, config.fm)
+	//debug("frontMatterStrSlice[%s], key: %v, config.fm %+v", key, v, config.fm)
 	if !ok {
 		return []string{}
 	}
@@ -1216,8 +1322,8 @@ func quit(exitCode int, err error, config config, format string, ss ...interface
 		errmsg = " " + err.Error()
 	}
 	// fmt.Println(msg + errmsg)
-	if config.filename != "" {
-		fmt.Printf("PocoCMS %s:\n \t%s%s\n", config.filename, msg, errmsg)
+	if config.currentFilename != "" {
+		fmt.Printf("PocoCMS %s:\n \t%s%s\n", config.currentFilename, msg, errmsg)
 	} else {
 		fmt.Printf("%s%s\n", msg, errmsg)
 	}
