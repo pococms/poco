@@ -49,7 +49,7 @@ td, th{
   aside{display:none}
   article{padding:1rem;}
 }
-@media (max-width:960px){
+@media (max-width:720px){
   header,nav,aside,footer{display:none}
   article{padding:1rem;}
 }
