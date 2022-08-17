@@ -5,8 +5,8 @@ Aside: ./pages/diagnostics/layout/aside.md
 Footer: ./pages/diagnostics/layout/footer.md
 
 StyleFileTemplates:
-  - pages/assets/css/poquito.css
-  - pages/assets/css/pococms.css
+  - /pages/assets/css/poquito.css
+  - /pages/assets/css/pococms.css
 
 StyleTags:
   - "article{margin-left:12em;margin-right:5em;background-color:white;}"
