@@ -138,36 +138,6 @@ var docType = `<!DOCTYPE html>
 // Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
 
-// there are no configuration files (yet) but this holds
-// configuration info for the project, for example, template
-// stylesheets and current file being processed.
-type config struct {
-	// Front matter
-	fm map[string]interface{}
-
-	// Name of Markdown file being processed
-	filename string
-
-	// List of all files being processed
-	files []string
-
-	// This is true only when a home page
-	// (root of the directoryh tree) README.md
-	// or index.md is being processed
-	hitHomePage bool
-
-	// Home directory for source code
-	root string
-
-	// List of stylesheets to apply to every page in
-	// string form, ready to drop into the
-	// <head>
-	styleFileTemplates string
-
-	// Output directory for published files
-	webroot string
-}
-
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
@@ -358,17 +328,6 @@ func stylesheets(sheets string, config config) string {
 	// StyleFileTemplates: front matter for this page
 	// Only applicable for home page
 	//templates := ""
-	if config.hitHomePage {
-		templateSlice := frontMatterStrSlice("StyleFileTemplates", config)
-		// xxxx
-		config.styleFileTemplates = sliceToStylesheetStr(templateSlice)
-		debug("*** home page: %s", config.styleFileTemplates)
-		//templates = sliceToStylesheetStr(templateSlice)
-		//config.styleFileTemplates = templates
-	} else {
-		debug("NOT at home page: %s", config.styleFileTemplates)
-	}
-	//debug("projectDir: %s\nconfig.styleFileTemplates: \n%v", config.root, config.styleFileTemplates)
 	// xxx
 	// Build a string from stylesheets named in the
 	// StyleFiles: front matter for this page
@@ -388,11 +347,92 @@ func stylesheets(sheets string, config config) string {
 // Required by the Verbose() function.
 var gVerbose bool
 
-func main() {
-	// Initialize only once per site. Don't do it every time a file gets processed
-	// because certain config values are read only on the home page.
-	config := config{}
 
+// there are no configuration files (yet) but this holds
+// configuration info for the project, for example, template
+// stylesheets and current file being processed.
+// That stuff lives in the front matter of the home
+// page (first checks for README.md, then checks for index.md)
+type config struct {
+	// Front matter
+	fm map[string]interface{}
+
+	// Name of Markdown file being processed
+	filename string
+
+	// List of all files being processed
+	files []string
+
+	// This is true only when a home page
+	// (root of the directoryh tree) README.md
+	// or index.md is being processed
+  // TODO: Probably unnecessary
+	hitHomePage bool
+
+  // Full pathname of the root index file Markdown in the root directory.
+  // If present, it's either "README.md" or "index.md"
+  homePage string
+
+	// Home directory for source code
+	root string
+
+	// List of stylesheets to apply to every page in
+	// string form, ready to drop into the
+	// <head>
+	styleFileTemplates string
+
+	// Output directory for published files
+	webroot string
+}
+
+
+// findHomePage() returns the source file used for the root
+// index page in the root directory. Since README.md is 
+// commonly used, it takes priority. Next priority is index.md
+func (c *config) findHomePage() {
+  if c.root == "." || c.root == "" {
+    c.root = currDir()
+  }
+  debug("findHomePage: c.root: %s", c.root)
+  // Look for "README.md" or "index.md" in that order.
+  // return "" if neither found.
+  c.homePage = indexFile(c.root)
+  if c.homePage == "" {
+    quit(1, nil, *c, "Can't find README.md or index.md in root TODO: FINISH THIS")
+  }
+}
+
+// setup() Obtains README.md or index.md.
+// Reads in the front matter to get its config information.
+// Sets values accordingly.
+func (c *config) setup() {
+  c.findHomePage()
+
+  // TODO: Improve error message at the very least
+	if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
+    quit(1, nil, *c, "Can't get home page TODO: FINISH THIS MSG")
+  }
+
+
+  templateSlice := frontMatterStrSlice("StyleFileTemplates", *c)
+	c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
+	debug("*** setup() styleFileTemplates: %s", c.styleFileTemplates)
+  // xxxx
+
+}
+
+// xxxx
+// initConfig reads the home page and gets
+// sitewide configuration info.
+func initConfig() config {
+  config := config{}
+  return config
+}
+// xxx initConfig()
+
+func main() {
+  // xxxx
+  config := initConfig()
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	var cleanup bool
@@ -456,6 +496,11 @@ func main() {
 	}
 	// No file was given on the command line.
 	// Build the project in place.
+
+  // Obtain README.md or index.md.
+  // Read in the front matter to get its config information.
+  // Set values accordingly.
+  config.setup()
 
 	// markdownExtensions are how PocoCMS figures out whether
 	// a file is Markdown. If it ends in any one of these then
@@ -615,14 +660,10 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		// Get the fully qualified pathname for this file.
 		config.filename = filepath.Join(homeDir, filename)
 
-		Verbose("%s", config.filename)
+    Verbose("%s", config.filename)
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(config.filename)
-		/*
-			debug("Filename: %s\nSourceDir: %s\nconfig.Filename: %s\nRoot: %s",
-				filename, sourceDir, config.filename, config.root)
-		*/
-		base := filepath.Base(config.filename)
+
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
@@ -648,31 +689,6 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
 				debug(dumpFrontMatter(config))
 			}
-			// It's sort of hard to tell whether this file is the index.md
-			// or README.md in something other than the home directory.
-			// If it's a home page Markdown file then flag.
-			// That's how to know not to pick it up in other files
-			// that are't in the root.
-			if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
-				// NOT TRUE. Just in the right place is all.
-				config.hitHomePage = true
-			} else {
-				config.hitHomePage = false
-			}
-
-			// It's sort of hard to tell whether this file is the index.md
-			// or README.md in something other than the home directory.
-			// If it's a home page Markdown file then flag.
-			// That's how to know not to pick it up in other files
-			// that are't in the root.
-			if (sourceDir == config.root) && (base == "README.md" || base == "index.md") {
-				// NOT TRUE. Just in the right place is all.
-				config.hitHomePage = true
-				// xxx
-			} else {
-				config.hitHomePage = false
-			}
-
 			source = filename[0:len(filename)-len(ext)] + ".html"
 			converted = true
 		} else {
@@ -1102,6 +1118,7 @@ func frontMatterStrSlice(key string, config config) []string {
 		return []string{}
 	}
 	v, ok := config.fm[key].([]interface{})
+  //debug("frontMatterStrSlice[%s], key: %v, config.fm %+v", key, v, config.fm)
 	if !ok {
 		return []string{}
 	}
