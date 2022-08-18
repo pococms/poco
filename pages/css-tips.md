@@ -7,9 +7,19 @@ In case you're new to CSS, here's some handy code
 you can drop right into your own themes.
 
 ## Contents
+[Centering old-school](#centering)
 [Font stacks](#font-stacks)  
 [Downloadable fonts](#downloadble-fonts)
 
+## Centering
+
+Here's how to center a div (or any block-level element) using
+old techniques that will work on any mobile browser. 
+Replace `header` with whatever element you want centered.
+
+```
+header {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+```
 
 <a name="font-stacks"></a>
 ## Font stacks for sans-serif, serif, and monospace 

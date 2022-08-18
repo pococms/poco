@@ -140,39 +140,39 @@ var poweredBy = `Powered by PocoCMS`
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(config config, filename string, article string, language string, stylesheetList string) string {
+func assemble(c *config, filename string, article string, language string, stylesheetList string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
-	if parsedArticle, err := doTemplate("", article, config); err != nil {
-		quit(1, err, config, "%v: Unable to execute ", filename)
+	if parsedArticle, err := doTemplate("", article, c); err != nil {
+		quit(1, err, c, "%v: Unable to execute ", filename)
 	} else {
 		article = parsedArticle
 	}
 
-  // If a theme directory was named in FrontMatter's Theme:,
-  // read it in.
-  config.loadTheme()
+	// If a theme directory was named in FrontMatter's Theme:,
+	// read it in.
+	c.loadTheme()
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		titleTag(config) +
-		metatags(config) +
-		linktags(config) +
-		stylesheets(stylesheetList, config) +
-		"\t<style>\n" + StyleTags(config) + "\t</style>\n" +
+		titleTag(c) +
+		metatags(c) +
+		linktags(c) +
+		stylesheets(stylesheetList, c) +
+		"\t<style>\n" + StyleTags(c) + "\t</style>\n" +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
-		"\t" + layoutEl(config, "Header", filename) +
-		"\t" + layoutEl(config, "Nav", filename) +
-		"\t" + layoutEl(config, "Aside", filename) +
+		"\t" + layoutEl(c, "Header", filename) +
+		"\t" + layoutEl(c, "Nav", filename) +
+		"\t" + layoutEl(c, "Aside", filename) +
 		"\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
-		"\t" + layoutEl(config, "Footer", filename) +
+		"\t" + layoutEl(c, "Footer", filename) +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
@@ -180,26 +180,51 @@ func assemble(config config, filename string, article string, language string, s
 
 // THEME
 
+// getFrontMatter() takes a file, typically the README.md
+// for a theme, and extracts its front matter. It does all 
+// the usual template execution, etc. It discards the 
+// generated HTML and returns a dummy config object with
+// the front matter from the file in nc.fm.
+func getFrontMatter(filename string) (newConfig *config) {
+	nc := initConfig()
+  var rawHTML string
+  var err error
+
+  // Convert a Markdown file, possibly with front matter, to HTML
+	if rawHTML, err = mdYAMLFileToHTMLString(nc, filename); err != nil {
+		quit(1, err, nc, "%v: convert %s to HTML", filename)
+	}
+
+  // Execute its templates.
+	if _, err = doTemplate("", rawHTML, nc); err != nil {
+		quit(1, err, nc, "%v: Unable to execute ", filename)
+	}
+
+  // And return a new config object with the front matter ready to go.
+	return nc
+}
+
 // loadTheme tries to find the named theme directory
-// and load its files into config.theme
+// and load its files into c.theme
 // Tests:
 // - Missing README.md
 // - Missing StyleFiles, StyleFileTemplates
 // - Missing LICENSE file
 func (c *config) loadTheme() {
-	themeDir := frontMatterStr("Theme", *c)
+
+
+	themeDir := frontMatterStr("Theme", c)
 	if themeDir == "" {
 		debug("loadTheme() no theme specified for %v", c.currentFilename)
 	}
 	file := filepath.Join(themeDir, "README.md")
 	if !fileExists(file) {
-		quit(1, nil, *c, "Theme %s is missing a README.md", themeDir)
+		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
 	}
-	// xxxx loadTheme()
 	// Make sure there's a LICENSE file
 	license := filepath.Join(themeDir, "LICENSE")
 	if fileToString(license) == "" {
-		quit(1, nil, *c, "%s theme is missing a LICENSE file", themeDir)
+		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	header := filepath.Join(themeDir, "header.md")
 	c.theme.header = fileToString(header)
@@ -213,14 +238,46 @@ func (c *config) loadTheme() {
 	footer := filepath.Join(themeDir, "footer.md")
 	c.theme.footer = fileToString(footer)
 
-  /*
-	debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
-		themeDir,
-		c.theme.header,
-		c.theme.nav,
-		c.theme.aside,
-		c.theme.footer)
-    */
+  // Obtain the front matter from the README.md
+  // (inside a dummy config object)
+  nc := getFrontMatter(file)
+
+  debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
+
+  // Get the list of style sheets required for this theme.
+  // Remember that stylesheets not in this list won't
+  // be copid in. This is different from the non-theme
+  // behavior of just copying all stylesheets 
+  // to the webroot.
+
+  // Read each stylesheet into a string, then appened
+  // it into the theme file's styleFilesEmbedded
+  // member. It will then be injected into the
+  // HTML file directly, in order requested.
+	styleFiles := frontMatterStrSlice("StyleFiles", nc)
+  for _, filename := range styleFiles{
+	  fullPath := filepath.Join(themeDir, filename)
+    // TODO: Handle filepaths outside this directory,
+    // or with http addresses.
+    s := fileToString(fullPath)
+    // TODO: Easy optimization here
+    c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+  }
+  // c.theme.styleFiles = nc.fm["StyleFiles"]
+  //StyleFileTemplates []string
+  
+
+  debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
+  debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
+	// xxxx loadTheme()
+	/*
+		debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
+			themeDir,
+			c.theme.header,
+			c.theme.nav,
+			c.theme.aside,
+			c.theme.footer)
+	*/
 	// First try
 }
 
@@ -281,8 +338,8 @@ type theme struct {
 // to be a Markdown file and is processed that way.
 // sourcefile is the fully qualified pathname of the .md file being processed
 // TODO: Code smell
-func layoutEl(config config, element string, sourcefile string) string {
-	filename := frontMatterStr(element, config)
+func layoutEl(c *config, element string, sourcefile string) string {
+	filename := frontMatterStr(element, c)
 	if filename == "" {
 		return ""
 	}
@@ -298,7 +355,7 @@ func layoutEl(config config, element string, sourcefile string) string {
 	// matter my say Header: myheader.md so
 	// layoutElSource is 'myheader.md'
 
-	layoutElSource := frontMatterStr(element, config)
+	layoutElSource := frontMatterStr(element, c)
 	if filepath.IsAbs(layoutElSource) {
 		// debug("\t%s isAbs", layoutElSource)
 		fullPath = layoutElSource
@@ -307,7 +364,7 @@ func layoutEl(config config, element string, sourcefile string) string {
 		var rel string
 		// TODO: Cache current directory
 		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
-			quit(1, nil, config, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
+			quit(1, nil, c, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
 		}
 		rel = filepath.Dir(rel)
 		fullPath = filepath.Join(currDir(), rel, layoutElSource)
@@ -322,14 +379,14 @@ func layoutEl(config config, element string, sourcefile string) string {
 	var err error
 	if isMarkdown {
 		if !fileExists(fullPath) {
-			quit(1, nil, config, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
+			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
-		if raw, err = mdYAMLFileToHTMLString(&config, fullPath); err != nil {
-			quit(1, err, config, "Error converting Markdown file %v to HTML", fullPath)
+		if raw, err = mdYAMLFileToHTMLString(c, fullPath); err != nil {
+			quit(1, err, c, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
 		}
-		if parsedArticle, err = doTemplate("", raw, config); err != nil {
-			quit(1, err, config, "%v: Unable to execute ", filename)
+		if parsedArticle, err = doTemplate("", raw, c); err != nil {
+			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
 		if parsedArticle != "" {
 			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
@@ -371,8 +428,8 @@ func sliceToStylesheetStr(sheets []string) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func StyleTags(config config) string {
-	tagSlice := frontMatterStrSlice("StyleTags", config)
+func StyleTags(c *config) string {
+	tagSlice := frontMatterStrSlice("StyleTags", c)
 	if tagSlice == nil {
 		return ""
 	}
@@ -390,7 +447,7 @@ func StyleTags(config config) string {
 // the front matter.
 // Those listed in the front matter are appended, so they take
 // priority.
-func stylesheets(sheets string, config config) string {
+func stylesheets(sheets string, c *config) string {
 	var globalSlice []string
 	var globals string
 	if sheets != "" {
@@ -405,7 +462,7 @@ func stylesheets(sheets string, config config) string {
 	// xxx
 	// Build a string from stylesheets named in the
 	// StyleFiles: front matter for this page
-	localSlice := frontMatterStrSlice("StyleFiles", config)
+	localSlice := frontMatterStrSlice("StyleFiles", c)
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -413,8 +470,8 @@ func stylesheets(sheets string, config config) string {
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return globals + config.styleFileTemplates + locals
-	//return globals + config.styleFileTemplates + locals
+	return globals + c.styleFileTemplates + locals
+	//return globals + c.styleFileTemplates + locals
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -451,11 +508,16 @@ type theme struct {
 	// Contents of footer.md
 	footer string
 
-	// Contents of stylesheets, each one in a string
-	StyleFiles []string
+	// Names of stylesheets 
+	styleFiles []string
 
-	// Contents of template stylesheets, each one in a string
-	StyleFileTemplates []string
+	// Names of template stylesheets 
+	styleFileTemplates []string
+
+  // The stylesheets for each theme are concantenated, then read
+  // into this string. It's injected straight into the HTML for
+  // each file using this theme.
+  styleFilesEmbedded string
 }
 
 // there are no configuration files (yet) but this holds
@@ -509,7 +571,7 @@ func (c *config) findHomePage() {
 	// return "" if neither found.
 	c.homePage = indexFile(c.root)
 	if c.homePage == "" {
-		quit(1, nil, *c, "Can't find README.md or index.md in root TODO: FINISH THIS")
+		quit(1, nil, c, "Can't find README.md or index.md in root TODO: FINISH THIS")
 	}
 }
 
@@ -521,24 +583,24 @@ func (c *config) setup() {
 
 	// TODO: Improve error message at the very least
 	if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
-		quit(1, nil, *c, "Can't get home page TODO: FINISH THIS MSG")
+		quit(1, nil, c, "Can't get home page TODO: FINISH THIS MSG")
 	}
-	templateSlice := frontMatterStrSlice("StyleFileTemplates", *c)
+	templateSlice := frontMatterStrSlice("StyleFileTemplates", c)
 	c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
 
 }
 
 // initConfig reads the home page and gets
 // sitewide configuration info.
-func initConfig() config {
+func initConfig() *config {
 	config := config{}
-	return config
+	return &config
 }
 
 // xxx initConfig()
 
 func main() {
-	config := initConfig()
+	c := initConfig()
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	var cleanup bool
@@ -557,7 +619,7 @@ func main() {
 	flag.StringVar(&language, "language", "en", "HTML language designation, such as en or fr")
 
 	//var root string
-	flag.StringVar(&config.root, "root", ".", "Starting directory of the project")
+	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
 	// List of stylesheets to include on each page.
 	var stylesheets string
@@ -571,7 +633,7 @@ func main() {
 	flag.BoolVar(&gVerbose, "verbose", false, "Display information about project as it's generated")
 
 	// webroot is the directory used to house the final generated website.
-	flag.StringVar(&config.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
+	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
 
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
@@ -580,24 +642,24 @@ func main() {
 
 	// See if a source file was specified. Otherwise the whole directory
 	// and nested subdirectories are processed.
-	config.currentFilename = flag.Arg(0)
+	c.currentFilename = flag.Arg(0)
 
 	var err error
-	if config.root, err = filepath.Abs(config.root); err != nil {
-		quit(1, err, config, "Unable to absolute path of %s", config.root)
+	if c.root, err = filepath.Abs(c.root); err != nil {
+		quit(1, err, c, "Unable to absolute path of %s", c.root)
 	}
-	if config.currentFilename != "" {
+	if c.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a filename.
-		if !fileExists(config.currentFilename) {
-			quit(1, nil, config, "Can't find the file %v", config.currentFilename)
+		if !fileExists(c.currentFilename) {
+			quit(1, nil, c, "Can't find the file %v", c.currentFilename)
 		} else {
 			// Special case: if you name a file on the command line, it will
 			// generate an HTML document from that file and pass you the new filename.
 			// The output file isn't published to webroot. It's published to the
 			// current directory.
-			htmlFilename := buildFileToFile(config, config.currentFilename, stylesheets, language, debugFrontMatter)
-			quit(0, nil, config, "Built file %s", htmlFilename)
+			htmlFilename := buildFileToFile(c, c.currentFilename, stylesheets, language, debugFrontMatter)
+			quit(0, nil, c, "Built file %s", htmlFilename)
 		}
 	}
 	// No file was given on the command line.
@@ -606,7 +668,7 @@ func main() {
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
-	config.setup()
+	c.setup()
 
 	// markdownExtensions are how PocoCMS figures out whether
 	// a file is Markdown. If it ends in any one of these then
@@ -614,8 +676,8 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	webrootPath := buildSite(config, config.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
-	quit(0, nil, config, "Site published to %s", webrootPath)
+	webrootPath := buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
+	quit(0, nil, c, "Site published to %s", webrootPath)
 
 }
 
@@ -626,17 +688,17 @@ func main() {
 // against the source.
 // Returns a string containing the HTML with the
 // template values embedded.
-func doTemplate(templateName string, source string, config config) (string, error) {
+func doTemplate(templateName string, source string, c *config) (string, error) {
 	if templateName == "" {
 		templateName = "PocoCMS"
 	}
-	//debug("\tdoTemplate() config is: \n%+v\nfm is: \n%+v", config, config.fm)
+	//debug("\tdoTemplate() c is: \n%+v\nfm is: \n%+v", c, c.fm)
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
 		return "", err
 	}
 	buf := new(bytes.Buffer)
-	err = tmpl.Execute(buf, config.fm)
+	err = tmpl.Execute(buf, c.fm)
 	if err != nil {
 		return "", err
 	}
@@ -645,12 +707,12 @@ func doTemplate(templateName string, source string, config config) (string, erro
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
-func buildFileToFile(config config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
+func buildFileToFile(c *config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
-	html, htmlFilename := buildFileToTemplatedString(config, filename, stylesheets, language)
+	html, htmlFilename := buildFileToTemplatedString(c, filename, stylesheets, language)
 	// Write the contents of the completed HTML document to a file.
-	writeStringToFile(config, htmlFilename, html)
+	writeStringToFile(c, htmlFilename, html)
 	// Return the name of the converted file
 	return htmlFilename
 }
@@ -663,7 +725,7 @@ func buildFileToFile(config config, filename string, stylesheets string, languag
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
 // Reeturns the string and the filenlame
-func buildFileToTemplatedString(config config, filename string, stylesheets string, language string) (string, string) {
+func buildFileToTemplatedString(c *config, filename string, stylesheets string, language string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -671,44 +733,43 @@ func buildFileToTemplatedString(config config, filename string, stylesheets stri
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
-	if rawHTML, err := mdYAMLFileToHTMLString(&config, filename); err != nil {
-		quit(1, err, config, "Error converting Markdown file %v to HTML", filename)
+	if rawHTML, err := mdYAMLFileToHTMLString(c, filename); err != nil {
+		quit(1, err, c, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
 		// Strip original file's Markdown extension and make
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(config, config.currentFilename, rawHTML, language, stylesheets)
+		finishedDocument := assemble(c, c.currentFilename, rawHTML, language, stylesheets)
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
 }
 
-// buildSite takes config.root as the root directory,
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 // Return name of the root directory files are published to
-func buildSite(config config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
+func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(config.root) {
-		homePage := writeDefaultHomePage(config, config.root)
+	if !isProject(c.root) {
+		homePage := writeDefaultHomePage(c, c.root)
 		warn("No index.md or README.md found. Created home page %v", homePage)
 	}
 
 	// Change to requested directory
-	if err = os.Chdir(config.root); err != nil {
-		quit(1, err, config, "Unable to change to directory %s", config.root)
+	if err = os.Chdir(c.root); err != nil {
+		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
 	// Cache project's root directory
 	var homeDir string
 	if homeDir, err = os.Getwd(); err != nil {
-		quit(1, err, config, "Unable to get name of current directory")
+		quit(1, err, c, "Unable to get name of current directory")
 	}
 
 	// Delete web root directory unless otherwise requested
@@ -716,7 +777,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		delDir := filepath.Join(homeDir, webroot)
 		Verbose("Deleting directory %v", delDir)
 		if err := os.RemoveAll(delDir); err != nil {
-			quit(1, err, config, "Unable to delete publish directory %v", delDir)
+			quit(1, err, c, "Unable to delete publish directory %v", delDir)
 		}
 	}
 
@@ -726,9 +787,9 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	skipPublish.list = strings.Split(skip, " ")
 
 	// Collect all the files required for this project.
-	config.files, err = getProjectTree(".", skipPublish)
+	c.files, err = getProjectTree(".", skipPublish)
 	if err != nil {
-		quit(1, err, config, "Unable to get directory tree")
+		quit(1, err, c, "Unable to get directory tree")
 	}
 
 	// Full pathname of file to copy to target directory
@@ -758,23 +819,23 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
-	for _, filename := range config.files {
+	for _, filename := range c.files {
 
 		// true if it's  Markdown file converted to HTML
 		converted = false
 
 		// Get the fully qualified pathname for this file.
-		config.currentFilename = filepath.Join(homeDir, filename)
+		c.currentFilename = filepath.Join(homeDir, filename)
 
-		Verbose("%s", config.currentFilename)
+		Verbose("%s", c.currentFilename)
 		// Separate out the file's origin directory
-		sourceDir := filepath.Dir(config.currentFilename)
+		sourceDir := filepath.Dir(c.currentFilename)
 
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
 		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
-			quit(1, err, config, "Unable to get relative paths of %s and %s", filename, webroot)
+			quit(1, err, c, "Unable to get relative paths of %s and %s", filename, webroot)
 		}
 
 		// Determine the destination directory.
@@ -785,15 +846,15 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		// Only convert to HTML if it has a Markdown extension.
 		if markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
-			if HTML, err = mdYAMLFileToHTMLString(&config, filename); err != nil {
-				quit(1, err, config, "Error converting Markdown file to HTML")
+			if HTML, err = mdYAMLFileToHTMLString(c, filename); err != nil {
+				quit(1, err, c, "Error converting Markdown file to HTML")
 			}
-			//debug("fm after mdYAMLFileToHTMLString: %+v", config.fm)
+			//debug("fm after mdYAMLFileToHTMLString: %+v", c.fm)
 			// xxx in buildSite
 			// If asked, display the front matter
 			if debugFrontMatter {
 				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
-				debug(dumpFrontMatter(config))
+				debug(dumpFrontMatter(c))
 			}
 			source = filename[0:len(filename)-len(ext)] + ".html"
 			converted = true
@@ -810,7 +871,7 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 		if !dirExists(webrootPath) {
 			err := os.MkdirAll(webrootPath, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
-				quit(1, err, config, "Unable to create directory %s", webrootPath)
+				quit(1, err, c, "Unable to create directory %s", webrootPath)
 			}
 		}
 
@@ -820,16 +881,16 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(config, config.currentFilename, HTML, language, stylesheets)
-			writeStringToFile(config, target, h)
+			h := assemble(c, c.currentFilename, HTML, language, stylesheets)
+			writeStringToFile(c, target, h)
 		} else {
-			copyFile(config, source, target)
+			copyFile(c, source, target)
 		}
 	}
 	// This is where the files were published
-	ensureIndexHTML(webrootPath, config)
+	ensureIndexHTML(webrootPath, c)
 	// Display all files, Markdown or not, that were processed
-	//debug("\n%v\n", config.files)
+	//debug("\n%v\n", c.files)
 	return webrootPath
 }
 
@@ -839,14 +900,14 @@ func buildSite(config config, webroot string, skip string, markdownExtensions se
 // Even if a project directory had both
 // an index.md and a README.md, the output README.html
 // would be renamed to index.html
-func ensureIndexHTML(path string, config config) {
+func ensureIndexHTML(path string, c *config) {
 	readmeHTML := filepath.Join(path, "README.html")
 	newIndexHTML := filepath.Join(path, "index.html")
 
 	// if neither index.html nor README.html, then they
 	// were missing source files to begin with.
 	if !fileExists(readmeHTML) && !fileExists(newIndexHTML) {
-		quit(1, nil, config, "No README.html or index.html could be found in %v", path)
+		quit(1, nil, c, "No README.html or index.html could be found in %v", path)
 	}
 
 	// Both README.html and index.html exist.  Or
@@ -855,7 +916,7 @@ func ensureIndexHTML(path string, config config) {
 	if fileExists(readmeHTML) && (fileExists(newIndexHTML) || !fileExists(newIndexHTML)) {
 		err := os.Rename(readmeHTML, newIndexHTML)
 		if err != nil {
-			quit(1, err, config, "Unable to rename %v ", readmeHTML)
+			quit(1, err, c, "Unable to rename %v ", readmeHTML)
 		}
 		return
 	}
@@ -914,28 +975,28 @@ func currDir() string {
 
 // FILE UTILITIES
 // copyFile, well, does just that. Doesnt' return errors.
-func copyFile(config config, source string, target string) {
+func copyFile(c *config, source string, target string) {
 	if source == target {
-		quit(1, nil, config, "copyFile: %s and %s are the same", source, target)
+		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
 	if source == "" {
-		quit(1, nil, config, "copyFile: no source file specified")
+		quit(1, nil, c, "copyFile: no source file specified")
 	}
 	if target == "" {
-		quit(1, nil, config, "copyFile: no destination file specified for file %s", source)
+		quit(1, nil, c, "copyFile: no destination file specified for file %s", source)
 	}
 	var src, trgt *os.File
 	var err error
 	if src, err = os.Open(source); err != nil {
-		quit(1, err, config, "copyFile: Unable to open file %s", source)
+		quit(1, err, c, "copyFile: Unable to open file %s", source)
 	}
 	defer src.Close()
 
 	if trgt, err = os.Create(target); err != nil {
-		quit(1, err, config, "copyFile: Unable to create file %s", target)
+		quit(1, err, c, "copyFile: Unable to create file %s", target)
 	}
 	if _, err := trgt.ReadFrom(src); err != nil {
-		quit(1, err, config, "Error copying file %s to %s", source, target)
+		quit(1, err, c, "Error copying file %s to %s", source, target)
 	}
 }
 
@@ -968,10 +1029,10 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 // and writes it to index.md in dir. Uses the file
 // segment of dir as the the H1 title.
 // Returns the full pathname of the file.
-func writeDefaultHomePage(config config, dir string) string {
+func writeDefaultHomePage(c *config, dir string) string {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
-	writeStringToFile(config, pathname, html)
+	writeStringToFile(c, pathname, html)
 	return pathname
 }
 
@@ -1034,15 +1095,15 @@ func replaceExtension(filename string, newExtension string) string {
 // exists, then writes contents to it.
 // filename is afully qualified pathname.
 // contents is the string to write
-func writeStringToFile(config config, filename, contents string) {
+func writeStringToFile(c *config, filename, contents string) {
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
-		quit(1, err, config, "writeStringToFile: Unable to create file %s", filename)
+		quit(1, err, c, "writeStringToFile: Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		// TODO: Renumber error code?
-		quit(1, err, config, "Error writing to file %s", filename)
+		quit(1, err, c, "Error writing to file %s", filename)
 	}
 }
 
@@ -1124,12 +1185,12 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 // with YAML front matter to HTML.
 // The HTML file has not yet had templates executed,
 // Returns a byte slice containing the HTML source.
-func mdYAMLFileToHTMLString(config *config, filename string) (string, error) {
+func mdYAMLFileToHTMLString(c *config, filename string) (string, error) {
 	source := fileToBuf(filename)
 	//if HTML, fm, err := mdYAMLToHTML(source); err != nil {
 	var err error
 	var HTML []byte
-	if HTML, config.fm, err = mdYAMLToHTML(source); err != nil {
+	if HTML, c.fm, err = mdYAMLToHTML(source); err != nil {
 		return "", err
 	} else {
 		return string(HTML), nil
@@ -1200,8 +1261,8 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 //
 // It would render like this in the HTML:
 // I like yo mama
-func frontMatterStr(key string, config config) string {
-	v := config.fm[key]
+func frontMatterStr(key string, c *config) string {
+	v := c.fm[key]
 	value, ok := v.(string)
 	if !ok {
 		return ""
@@ -1219,12 +1280,12 @@ func frontMatterStr(key string, config config) string {
 // ---
 //
 // I like yo mama
-func frontMatterStrSlice(key string, config config) []string {
+func frontMatterStrSlice(key string, c *config) []string {
 	if key == "" {
 		return []string{}
 	}
-	v, ok := config.fm[key].([]interface{})
-	//debug("frontMatterStrSlice[%s], key: %v, config.fm %+v", key, v, config.fm)
+	v, ok := c.fm[key].([]interface{})
+	//debug("frontMatterStrSlice[%s], key: %v, c.fm %+v", key, v, c.fm)
 	if !ok {
 		return []string{}
 	}
@@ -1240,7 +1301,7 @@ func frontMatterStrSlice(key string, config config) []string {
 // key, which is presumed to be a string array/slice.
 // Returns these values concatenated into a string
 // (each string gets a newline appended for clarity)
-func frontMatterStrSliceStr(key string, config config) string {
+func frontMatterStrSliceStr(key string, c *config) string {
 
 	// Return empty string if no key provided.
 	if key == "" {
@@ -1249,7 +1310,7 @@ func frontMatterStrSliceStr(key string, config config) string {
 
 	// Return empty string if requested key has no value
 	// associated with it.
-	v, ok := config.fm[key].([]interface{})
+	v, ok := c.fm[key].([]interface{})
 	if !ok {
 		return ""
 	}
@@ -1265,8 +1326,8 @@ func frontMatterStrSliceStr(key string, config config) string {
 
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
-func linktags(config config) string {
-	linkTags := frontMatterStrSlice("LinkTags", config)
+func linktags(c *config) string {
+	linkTags := frontMatterStrSlice("LinkTags", c)
 	if len(linkTags) < 1 {
 		return ""
 	}
@@ -1277,8 +1338,8 @@ func linktags(config config) string {
 	return tags
 }
 
-func titleTag(config config) string {
-	title := frontMatterStr("Title", config)
+func titleTag(c *config) string {
+	title := frontMatterStr("Title", c)
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
 	} else {
@@ -1287,10 +1348,10 @@ func titleTag(config config) string {
 }
 
 // Generate common metatags
-func metatags(config config) string {
-	return metatag("description", frontMatterStr("Description", config)) +
-		metatag("keywords", frontMatterStr("Keywords", config)) +
-		metatag("author", frontMatterStr("Author", config))
+func metatags(c *config) string {
+	return metatag("description", frontMatterStr("Description", c)) +
+		metatag("keywords", frontMatterStr("Keywords", c)) +
+		metatag("author", frontMatterStr("Author", c))
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
@@ -1315,15 +1376,15 @@ func Verbose(format string, ss ...interface{}) {
 // quit displays a message fmt.Printf style and exits to the OS.
 // That format string must be preceded by an exit code and an
 // error object (nil if an error didn't occur).
-func quit(exitCode int, err error, config config, format string, ss ...interface{}) {
+func quit(exitCode int, err error, c *config, format string, ss ...interface{}) {
 	msg := fmt.Sprint(fmtMsg(format, ss...))
 	errmsg := ""
 	if err != nil {
 		errmsg = " " + err.Error()
 	}
 	// fmt.Println(msg + errmsg)
-	if config.currentFilename != "" {
-		fmt.Printf("PocoCMS %s:\n \t%s%s\n", config.currentFilename, msg, errmsg)
+	if c.currentFilename != "" {
+		fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 	} else {
 		fmt.Printf("%s%s\n", msg, errmsg)
 	}
@@ -1350,8 +1411,8 @@ func fmtMsg(format string, ss ...interface{}) string {
 // DEBUG UTILITIES
 
 // dumpFrontMatter Displays the contents of the page's front matter in JSON format
-func dumpFrontMatter(config config) string {
-	b, err := json.MarshalIndent(config.fm, "", "  ")
+func dumpFrontMatter(c *config) string {
+	b, err := json.MarshalIndent(c.fm, "", "  ")
 	s := string(b)
 	s = strings.ReplaceAll(s, "{", "")
 	s = strings.ReplaceAll(s, "}", "")

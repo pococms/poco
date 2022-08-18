@@ -1,31 +1,18 @@
 ---
 Title: README
-Header: pages/home/header.md
-#Nav: ./pages/diagnostics/layout/nav.md
-Aside: ./pages/diagnostics/layout/aside.md
-Footer: ./pages/diagnostics/layout/footer.md
+Theme: pages/themes/latest
+Header: pages/themes/latest/header.md
+Nav: pages/themes/latest/nav.md
+Aside: pages/themes/latest/aside.md
+Footer: pages/themes/latest/footer.md
 LinkTags:
 - "<link rel='icon' type='image/png' sizes='32x32' href='/favicon-32x32.png'>"
 
 
-Setup: [                             
-  StyleFileTemplates: [    
-    "/pages/assets/css/poquito.css",
-    "/pages/assets/css/pococms.css"
-  ],
-  StyleListTemplates: ["/pages/assets/css/poquito.css", "/pages/assets/css/pococms.css"],
-  UnquotedListTemplates: [
-    /pages/assets/css/poquito.css, 
-    pages/assets/css/pococms.css
-  ],
-  arr: [ 1, 2, 3, "four" ],
-  dict: [ foo: bar]
-]
-
 
 StyleFileTemplates:
-  - /pages/assets/css/poquito.css
-  - /pages/assets/css/pococms.css
+  - pages/assets/css/poquito.css
+  - pages/assets/css/pococms.css
 
 StyleTags:
   - "article{margin-left:12em;margin-right:5em;background-color:white;}"
@@ -62,6 +49,7 @@ StyleTags:
 
 ## Themes
 
+* [Latest](pages/themes/latest/index.html) theme lets you build a news site fast
 * [Probot theme](pages/themes/probot.html) and [Left sidebar version](pages/themes/probot-left.html)
 * [Simplicity](pages/themes/simplicity.html) is 
 HTML minimalism at its purest, 
