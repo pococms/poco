@@ -52,15 +52,15 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"text/template"
-  "net/http"
-  "io"
 	//"reflect"
 )
 
@@ -153,9 +153,6 @@ func assemble(c *config, filename string, article string, language string, style
 		article = parsedArticle
 	}
 
-	// If a theme directory was named in FrontMatter's Theme:,
-	// read it in.
-	c.loadTheme()
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
@@ -172,7 +169,7 @@ func assemble(c *config, filename string, article string, language string, style
 		"\t" + layoutEl(c, "Header", filename) +
 		"\t" + layoutEl(c, "Nav", filename) +
 		"\t" + layoutEl(c, "Aside", filename) +
-		"\t" + "<article id=\"article\">" + article + "</article>" + "\n" +
+		"\t" + "<article id=\"article\">" + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + layoutEl(c, "Footer", filename) +
 		"</div><!-- page-container -->\n" +
@@ -206,32 +203,28 @@ func getFrontMatter(filename string) (newConfig *config) {
 	return nc
 }
 
-
 // downloadFile() tries to read in the named URL as text and return
 // its contents as a string.
 func (c *config) downloadTextFile(url string) string {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-    quit(1, err, c, "Unable setting up to GET file %s", url)
+		quit(1, err, c, "Unable setting up to GET file %s", url)
 	}
 	req.Header.Set("Accept", "application/text")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-    quit(1, err, c, "Unable to download file %s", url)
+		quit(1, err, c, "Unable to download file %s", url)
 	}
 	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-    quit(1, err, c, "Unable to read reponse body for %s", url)
+		quit(1, err, c, "Unable to read reponse body for %s", url)
 	}
 
 	return string(b)
 
-
 }
-
-
 
 // loadTheme tries to find the named theme directory
 // and load its files into c.theme
@@ -240,16 +233,12 @@ func (c *config) downloadTextFile(url string) string {
 // - Missing StyleFiles, StyleFileTemplates
 // - Missing LICENSE file
 func (c *config) loadTheme() {
-
-	// Prboably not required
-	c.theme.dir = ""
-	themeDir := frontMatterStr("Theme", c)
-	if themeDir == "" {
-	} else {
-		debug("loadTheme() Theme %s specified for %v", themeDir, c.currentFilename)
-	}
-	file := filepath.Join(themeDir, "README.md")
-	if !fileExists(file) {
+	nc := getFrontMatter(c.homePage)
+  themeDir := frontMatterStr("Theme", nc)
+  if themeDir == "" {
+    return
+  }
+	if !fileExists(c.homePage) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
 	}
 	// Make sure there's a LICENSE file
@@ -258,7 +247,7 @@ func (c *config) loadTheme() {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	c.theme.dir = themeDir
-
+  //debug("Loading theme %s", c.theme.dir)
 	header := filepath.Join(themeDir, "header.md")
 	c.theme.header = fileToString(header)
 
@@ -273,9 +262,12 @@ func (c *config) loadTheme() {
 
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
-	nc := getFrontMatter(file)
+	//nc = getFrontMatter(c)
 
-	debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
+  themeReadMe := filepath.Join(themeDir, "README.md")
+	nc = getFrontMatter(themeReadMe)
+
+	//debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
 
 	// Get the list of style sheets required for this theme.
 	// Remember that stylesheets not in this list won't
@@ -289,35 +281,43 @@ func (c *config) loadTheme() {
 	// HTML file directly, in order requested.
 	styleFiles := frontMatterStrSlice("StyleFiles", nc)
 	for _, filename := range styleFiles {
-    debug("stylesheet: %s", filename)
+    // Contents of a
+    debug("Stylesheet: %s", filename)
+		// Handle case of URLs as opposed to local file
 		if strings.HasPrefix(filename, "http") {
-			// xxxx loadTheme()
-			// https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css
-      // Check redirect
-      // https://golangdocs.com/golang-download-files
-      s := c.downloadTextFile(filename)
-      debug("** DOWNLOAD %s\n%v", filename, s)
+			// TODO: Check for redirect
+			// https://golangdocs.com/golang-download-files
+      //debug("\tDownload %s", filename)
+			s := c.downloadTextFile(filename)
+      //
+			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+			// Handle case of local file
+		} else if !filepath.IsAbs(filename) {
+			// Insert stylesheet in current directory
+			fullPath := filepath.Join(themeDir, filename)
+			// TODO: Handle filepaths outside this directory,
+			// or with http addresses.
+			s := fileToString(fullPath)
+			// TODO: Easy optimization here
+			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+			// A complete file path was specified.
+		} else {
+			s := fileToString(filename)
+			// TODO: Easy optimization here
+			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 		}
-		fullPath := filepath.Join(themeDir, filename)
-		// TODO: Handle filepaths outside this directory,
-		// or with http addresses.
-		s := fileToString(fullPath)
-		// TODO: Easy optimization here
-		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
-	// c.theme.styleFiles = nc.fm["StyleFiles"]
-	//StyleFileTemplates []string
-
 	//debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
 	//debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
-	/*
-		debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
+  /*
+  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
 			themeDir,
 			c.theme.header,
 			c.theme.nav,
 			c.theme.aside,
-			c.theme.footer)
-	*/
+			c.theme.footer,
+      c.theme.styleFilesEmbedded)
+    */
 }
 
 /*
@@ -491,11 +491,13 @@ func stylesheets(sheets string, c *config) string {
 	var globals string
 
 	// Handle case of theme specified
-	if c.theme.dir != "" {
+	if c.theme.dir == "" {
+ 	} else {
+   // xxxx
 		// TODO: minify these mofos
 		// TODO: Support for global
 		return "<style>" + c.theme.styleFilesEmbedded + "</style>\n"
-	}
+  }
 
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
@@ -528,7 +530,6 @@ var gVerbose bool
 // theme contains all the (lightweight) files needed for a theme:
 // header.md, style sheets, etc.
 type theme struct {
-	// xxx
 
 	// READ ONLY: Full pathname to theme directory
 	dir string
@@ -631,14 +632,18 @@ func (c *config) findHomePage() {
 // Sets values accordingly.
 func (c *config) setup() {
 	c.findHomePage()
+	// If a theme directory was named in FrontMatter's Theme:,
+	// read it in.
+	c.loadTheme()
 
+  /*
 	// TODO: Improve error message at the very least
 	if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
 		quit(1, nil, c, "Can't get home page TODO: FINISH THIS MSG")
 	}
 	templateSlice := frontMatterStrSlice("StyleFileTemplates", c)
 	c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
-
+  */
 }
 
 // initConfig reads the home page and gets
@@ -648,7 +653,7 @@ func initConfig() *config {
 	return &config
 }
 
-// xxx initConfig()
+// initConfig()
 
 func main() {
 	c := initConfig()
