@@ -59,6 +59,8 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+  "net/http"
+  "io"
 	//"reflect"
 )
 
@@ -204,6 +206,33 @@ func getFrontMatter(filename string) (newConfig *config) {
 	return nc
 }
 
+
+// downloadFile() tries to read in the named URL as text and return
+// its contents as a string.
+func (c *config) downloadTextFile(url string) string {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+    quit(1, err, c, "Unable setting up to GET file %s", url)
+	}
+	req.Header.Set("Accept", "application/text")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+    quit(1, err, c, "Unable to download file %s", url)
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+    quit(1, err, c, "Unable to read reponse body for %s", url)
+	}
+
+	return string(b)
+
+
+}
+
+
+
 // loadTheme tries to find the named theme directory
 // and load its files into c.theme
 // Tests:
@@ -212,13 +241,13 @@ func getFrontMatter(filename string) (newConfig *config) {
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 
-  // Prboably not required
-  c.theme.dir = ""
+	// Prboably not required
+	c.theme.dir = ""
 	themeDir := frontMatterStr("Theme", c)
 	if themeDir == "" {
 	} else {
 		debug("loadTheme() Theme %s specified for %v", themeDir, c.currentFilename)
-  }
+	}
 	file := filepath.Join(themeDir, "README.md")
 	if !fileExists(file) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
@@ -228,7 +257,7 @@ func (c *config) loadTheme() {
 	if fileToString(license) == "" {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
-  c.theme.dir = themeDir
+	c.theme.dir = themeDir
 
 	header := filepath.Join(themeDir, "header.md")
 	c.theme.header = fileToString(header)
@@ -260,6 +289,15 @@ func (c *config) loadTheme() {
 	// HTML file directly, in order requested.
 	styleFiles := frontMatterStrSlice("StyleFiles", nc)
 	for _, filename := range styleFiles {
+    debug("stylesheet: %s", filename)
+		if strings.HasPrefix(filename, "http") {
+			// xxxx loadTheme()
+			// https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css
+      // Check redirect
+      // https://golangdocs.com/golang-download-files
+      s := c.downloadTextFile(filename)
+      debug("** DOWNLOAD %s\n%v", filename, s)
+		}
 		fullPath := filepath.Join(themeDir, filename)
 		// TODO: Handle filepaths outside this directory,
 		// or with http addresses.
@@ -272,7 +310,6 @@ func (c *config) loadTheme() {
 
 	//debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
 	//debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
-	// xxxx loadTheme()
 	/*
 		debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
 			themeDir,
@@ -453,12 +490,12 @@ func stylesheets(sheets string, c *config) string {
 	var globalSlice []string
 	var globals string
 
-  // Handle case of theme specified
-  if c.theme.dir != "" {
-    // TODO: minify these mofos
-    // TODO: Support for global
-    return "<style>" + c.theme.styleFilesEmbedded + "</style>\n"
-  }
+	// Handle case of theme specified
+	if c.theme.dir != "" {
+		// TODO: minify these mofos
+		// TODO: Support for global
+		return "<style>" + c.theme.styleFilesEmbedded + "</style>\n"
+	}
 
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
@@ -493,8 +530,8 @@ var gVerbose bool
 type theme struct {
 	// xxx
 
-  // READ ONLY: Full pathname to theme directory
-  dir string
+	// READ ONLY: Full pathname to theme directory
+	dir string
 
 	// Contents of LICENSE file. Can't be empty
 	license string
