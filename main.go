@@ -181,26 +181,26 @@ func assemble(c *config, filename string, article string, language string, style
 // THEME
 
 // getFrontMatter() takes a file, typically the README.md
-// for a theme, and extracts its front matter. It does all 
-// the usual template execution, etc. It discards the 
+// for a theme, and extracts its front matter. It does all
+// the usual template execution, etc. It discards the
 // generated HTML and returns a dummy config object with
 // the front matter from the file in nc.fm.
 func getFrontMatter(filename string) (newConfig *config) {
 	nc := initConfig()
-  var rawHTML string
-  var err error
+	var rawHTML string
+	var err error
 
-  // Convert a Markdown file, possibly with front matter, to HTML
+	// Convert a Markdown file, possibly with front matter, to HTML
 	if rawHTML, err = mdYAMLFileToHTMLString(nc, filename); err != nil {
 		quit(1, err, nc, "%v: convert %s to HTML", filename)
 	}
 
-  // Execute its templates.
+	// Execute its templates.
 	if _, err = doTemplate("", rawHTML, nc); err != nil {
 		quit(1, err, nc, "%v: Unable to execute ", filename)
 	}
 
-  // And return a new config object with the front matter ready to go.
+	// And return a new config object with the front matter ready to go.
 	return nc
 }
 
@@ -212,11 +212,13 @@ func getFrontMatter(filename string) (newConfig *config) {
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 
-
+  // Prboably not required
+  c.theme.dir = ""
 	themeDir := frontMatterStr("Theme", c)
 	if themeDir == "" {
-		debug("loadTheme() no theme specified for %v", c.currentFilename)
-	}
+	} else {
+		debug("loadTheme() Theme %s specified for %v", themeDir, c.currentFilename)
+  }
 	file := filepath.Join(themeDir, "README.md")
 	if !fileExists(file) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
@@ -226,6 +228,8 @@ func (c *config) loadTheme() {
 	if fileToString(license) == "" {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
+  c.theme.dir = themeDir
+
 	header := filepath.Join(themeDir, "header.md")
 	c.theme.header = fileToString(header)
 
@@ -238,37 +242,36 @@ func (c *config) loadTheme() {
 	footer := filepath.Join(themeDir, "footer.md")
 	c.theme.footer = fileToString(footer)
 
-  // Obtain the front matter from the README.md
-  // (inside a dummy config object)
-  nc := getFrontMatter(file)
+	// Obtain the front matter from the README.md
+	// (inside a dummy config object)
+	nc := getFrontMatter(file)
 
-  debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
+	debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
 
-  // Get the list of style sheets required for this theme.
-  // Remember that stylesheets not in this list won't
-  // be copid in. This is different from the non-theme
-  // behavior of just copying all stylesheets 
-  // to the webroot.
+	// Get the list of style sheets required for this theme.
+	// Remember that stylesheets not in this list won't
+	// be copid in. This is different from the non-theme
+	// behavior of just copying all stylesheets
+	// to the webroot.
 
-  // Read each stylesheet into a string, then appened
-  // it into the theme file's styleFilesEmbedded
-  // member. It will then be injected into the
-  // HTML file directly, in order requested.
+	// Read each stylesheet into a string, then appened
+	// it into the theme file's styleFilesEmbedded
+	// member. It will then be injected into the
+	// HTML file directly, in order requested.
 	styleFiles := frontMatterStrSlice("StyleFiles", nc)
-  for _, filename := range styleFiles{
-	  fullPath := filepath.Join(themeDir, filename)
-    // TODO: Handle filepaths outside this directory,
-    // or with http addresses.
-    s := fileToString(fullPath)
-    // TODO: Easy optimization here
-    c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
-  }
-  // c.theme.styleFiles = nc.fm["StyleFiles"]
-  //StyleFileTemplates []string
-  
+	for _, filename := range styleFiles {
+		fullPath := filepath.Join(themeDir, filename)
+		// TODO: Handle filepaths outside this directory,
+		// or with http addresses.
+		s := fileToString(fullPath)
+		// TODO: Easy optimization here
+		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+	}
+	// c.theme.styleFiles = nc.fm["StyleFiles"]
+	//StyleFileTemplates []string
 
-  debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
-  debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
+	//debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
+	//debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
 	// xxxx loadTheme()
 	/*
 		debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v\n\n",
@@ -278,7 +281,6 @@ func (c *config) loadTheme() {
 			c.theme.aside,
 			c.theme.footer)
 	*/
-	// First try
 }
 
 /*
@@ -450,6 +452,14 @@ func StyleTags(c *config) string {
 func stylesheets(sheets string, c *config) string {
 	var globalSlice []string
 	var globals string
+
+  // Handle case of theme specified
+  if c.theme.dir != "" {
+    // TODO: minify these mofos
+    // TODO: Support for global
+    return "<style>" + c.theme.styleFilesEmbedded + "</style>\n"
+  }
+
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
 		globalSlice = strings.Split(sheets, " ")
@@ -482,6 +492,10 @@ var gVerbose bool
 // header.md, style sheets, etc.
 type theme struct {
 	// xxx
+
+  // READ ONLY: Full pathname to theme directory
+  dir string
+
 	// Contents of LICENSE file. Can't be empty
 	license string
 
@@ -508,16 +522,16 @@ type theme struct {
 	// Contents of footer.md
 	footer string
 
-	// Names of stylesheets 
+	// Names of stylesheets
 	styleFiles []string
 
-	// Names of template stylesheets 
+	// Names of template stylesheets
 	styleFileTemplates []string
 
-  // The stylesheets for each theme are concantenated, then read
-  // into this string. It's injected straight into the HTML for
-  // each file using this theme.
-  styleFilesEmbedded string
+	// The stylesheets for each theme are concantenated, then read
+	// into this string. It's injected straight into the HTML for
+	// each file using this theme.
+	styleFilesEmbedded string
 }
 
 // there are no configuration files (yet) but this holds
