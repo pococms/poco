@@ -157,7 +157,7 @@ func assemble(c *config, filename string, article string, language string, style
 	// leave it empty.
 	styleTags := StyleTags(c)
 	if styleTags != "" {
-		styleTags = "\t" + tagSurround(styleTags, "style", "\n")
+		styleTags = "\t" + tagSurround("style", styleTags, "\n")
 	}
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
@@ -185,50 +185,139 @@ func assemble(c *config, filename string, article string, language string, style
 
 // THEME
 
-// getFrontMatter() takes a file, typically the README.md
-// for a theme, and extracts its front matter. It does all
-// the usual template execution, etc. It discards the
-// generated HTML and returns a dummy config object with
-// the front matter from the file in nc.fm.
-func getFrontMatter(filename string) (newConfig *config) {
-	nc := initConfig()
-	var rawHTML string
+// TODO: Create layoutEl() tests for
+// - Nothing specified so theme header/footer/etc. are added
+// - "SUPPRESS" specified when a theme is available but that element should not be displayed
+// - Local file specified
+
+// layoutEl() takes a layout element file named in the front matter
+// and generates HTML, but it executes templates also.
+//
+// The layout element may also be a theme file.
+//
+// So, the priority order is:
+// - If the front matter says "SUPRESS" in all caps then return empty string.
+// - If there is a file named in the front matter, process and return its contents.
+// - Otherwise, use a theme file.
+//
+// It can be a Markdown file, in which case no tags are needed,
+// or an HTML file, in which the tags must be explicit.
+// A layout element is one of the HTML tags such
+// as header, nav, aside, article, and a few others
+// For more info on layout elements see:
+// https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
+// The easiest way is to use markdown.
+// Fore example, suppose you have a header file named mdhead.md and
+// it contains only the following:
+//
+// hello, world.
+//
+// The genereated HTML would be "<p><header>hello, world.</header></p>"
+
+// For example, suppose you have a header file named head.html. It
+// would be named in the front matter like this:
+// ---
+// Header: head.html
+// ---
+//
+// The layout element file is expected to be a complete tag. For example,
+// the header file could be as simple as this:
+//
+//	<header>hello, world.</header>
+//
+// This function would read in the head.html file (or whatever
+// the file was named in the front matter) and insert it before the
+// body of the document.
+//
+// fm contains the YAML front matter.
+// element is the file containing the layout element, for example, head.html.
+// If element  ends in ".html" it must be a complete header tag, with
+// both tags included. If element doesn't end in ".html" it is considered
+// to be a Markdown file and is processed that way.
+// sourcefile is the fully qualified pathname of the .md file being processed
+// TODO: Code smell
+func layoutEl(c *config, element string, sourcefile string) string {
+	// element looks like "Header", "Footer", etc. because front matter key is capitalized.
+	// Force to lowercase for use as an HTML tag.
+	tag := strings.ToLower(element)
+
+	// Get the filename for this layout element. For example,
+	// if the front matter said Header: "foo.md" this would
+	// return "foo.md".
+
+	// Special case: if there's a theme using this element
+	// you can suppress its output by using the special value
+	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
+	// the front matter, e.g. Header: "SUPPRESS"
+	filename := frontMatterStr(element, c)
+  //debug("\tlayoutEl %s: %s", element, filename)
+  //debug("\t%s %s:  %+v", filepath.Base(sourcefile),element,c.fm)
+
+	if filename == "SUPPRESS" {
+		return ""
+	}
+
+	// If no filename, then use the theme layout element, if any.
+	if filename == "" {
+		// No layout element specified in front matter.
+		// See if there's a theme and if it has that layout element.
+		// Convert to HTML and executetemplate.
+		// so just return it.
+		s := c.themeEl(tag)
+		return s
+	}
+	// A filename was specified
+	// Takes priority over theme.
+
+	isMarkdown := false
+
+	// Full path to layout element file. So the file 'layout/myheader.md'
+	// woud be transformed into /Users/tom/mysite/layout/myheader.md'
+	// or something similar.
+	fullPath := ""
+
+	// Get the name of the file. For example, the front
+	// matter my say Header: myheader.md so
+	// layoutElSource is 'myheader.md'
+
+	layoutElSource := frontMatterStr(element, c)
+  //debug("\t%s layoutEl %s", c.currentFilename, layoutElSource)
+	if filepath.IsAbs(layoutElSource) {
+		fullPath = layoutElSource
+	} else {
+		var err error
+		var rel string
+		// TODO: Cache current directory
+		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
+			quit(1, nil, c, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
+		}
+		rel = filepath.Dir(rel)
+		fullPath = filepath.Join(currDir(), rel, layoutElSource)
+	}
+	if filepath.Ext(fullPath) != ".html" {
+		isMarkdown = true
+	}
+
+	parsedArticle := ""
+	raw := ""
 	var err error
-
-	// Convert a Markdown file, possibly with front matter, to HTML
-	if rawHTML, err = mdYAMLFileToHTMLString(nc, filename); err != nil {
-		quit(1, err, nc, "%v: convert %s to HTML", filename)
+	if isMarkdown {
+		if !fileExists(fullPath) {
+			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
+		}
+    // TODO: This feels wasteful
+    raw = convertMdYAMLFileToHTMLStr(fullPath, c)
+		if parsedArticle, err = doTemplate("", raw, c); err != nil {
+			quit(1, err, c, "%v: Unable to execute ", filename)
+		}
+		if parsedArticle != "" {
+      //debug("\t\tFront matter is now: %+v", c.fm)
+			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
+			return wholeTag
+		}
+		return ""
 	}
-
-	// Execute its templates.
-	if _, err = doTemplate("", rawHTML, nc); err != nil {
-		quit(1, err, nc, "%v: Unable to execute ", filename)
-	}
-
-	// And return a new config object with the front matter ready to go.
-	return nc
-}
-
-// downloadFile() tries to read in the named URL as text and return
-// its contents as a string.
-func (c *config) downloadTextFile(url string) string {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		quit(1, err, c, "Unable setting up to GET file %s", url)
-	}
-	req.Header.Set("Accept", "application/text")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		quit(1, err, c, "Unable to download file %s", url)
-	}
-	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		quit(1, err, c, "Unable to read reponse body for %s", url)
-	}
-
-	return string(b)
+	return c.fileToString(fullPath)
 
 }
 
@@ -307,8 +396,6 @@ func (c *config) loadTheme() {
 			s = c.fileToString(filename)
 			// TODO: Easy optimization here
 		}
-    // xxxx
-    //s := mdYAMLStringToTemplatedHTMLString(c, s)
 		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
 	/*
@@ -322,64 +409,6 @@ func (c *config) loadTheme() {
 	*/
 }
 
-/*
-type theme struct {
-  // Contents of LICENSE file. Can't be empty
-  license string
-  // Who created it, natch
-  author string
-  // Name for the theme with spaces and other characters allowed.
-  // If the directory name is my-great-theme you might
-  // want this to be "My Great! Theme"
-  branding string
-  // One or more sentences selling the theme.
-  description string
-  // Contents of header.md
-  header string
-  // Contents of nav.md
-  nav string
-  // Contents of aside.md
-  aside string
-  // Contents of footer.md
-  footer string
-  // Contents of stylesheets, each one in a string
-  StyleFiles []string
-  // Contents of template stylesheets, each one in a string
-  StyleFileTemplates []string
-*/
-
-// localLayoutElementSpecified() returns converted and parsed contents
-// if the named element
-//
-
-// mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
-// and executes templates. Returns a string of the result.
-func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
-	var parsedHTML string
-	var err error
-	var b []byte
-	if b, c.fm, err = mdYAMLToHTML([]byte(markdown)); err != nil {
-		quit(1, err, c, "Unable to convert markdown to raw HTML")
-	}
-	// xxxx
-	if parsedHTML, err = doTemplate(filepath.Base(c.currentFilename), string(b), c); err != nil {
-		quit(1, err, c, "%v: Problem executing template code", c.currentFilename)
-	}
-	return parsedHTML
-}
-
-// tagSurround takes text and surrounds it with
-// opening and closing tags, so
-// tagSurround("header","WELCOME","\n") returns "<header>WELCOME</header>\n"
-// You can optionally include text after, because sometimes it
-// makes sense to include a newline after the closing tag.
-func tagSurround(tag string, txt string, extra ...string) string {
-	// TODO: Bit of a kludge. Point is I'm getting a newline at the
-	// end of txt and that's what I should be focusing on.
-	// It was creating tags like <header>hello\n<header>
-	txt = strings.TrimSpace(txt)
-	return "<" + tag + ">" + txt + "</" + tag + ">" + extra[0]
-}
 
 // themeEl() returns the theme layout element (header,nav
 // aside, footer). Remember: this is in the case where
@@ -413,139 +442,20 @@ func (c *config) themeEl(tag string) string {
 }
 
 // HTML UTILITIES
-// TODO: Create layoutEl() tests for
-// - Nothing specified so theme header/footer/etc. are added
-// - "SUPPRESS" specified when a theme is available but that element should not be displayed
-// - Local file specified
 
-// layoutEl() takes a layout element file named in the front matter
-// and generates HTML, but it executes templates also.
-//
-// The layout element may also be a theme file.
-//
-// So, the priority order is:
-// - If the front matter says "SUPRESS" in all caps then return empty string.
-// - If there is a file named in the front matter, process and return its contents.
-// - Otherwise, use a theme file.
-//
-// It can be a Markdown file, in which case no tags are needed,
-// or an HTML file, in which the tags must be explicit.
-// A layout element is one of the HTML tags such
-// as header, nav, aside, article, and a few others
-// For more info on layout elements see:
-// https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
-// The easiest way is to use markdown.
-// Fore example, suppose you have a header file named mdhead.md and
-// it contains only the following:
-//
-// hello, world.
-//
-// The genereated HTML would be "<p><header>hello, world.</header></p>"
-
-// For example, suppose you have a header file named head.html. It
-// would be named in the front matter like this:
-// ---
-// Header: head.html
-// ---
-//
-// The layout element file is expected to be a complete tag. For example,
-// the header file could be as simple as this:
-//
-//	<header>hello, world.</header>
-//
-// This function would read in the head.html file (or whatever
-// the file was named in the front matter) and insert it before the
-// body of the document.
-//
-// fm contains the YAML front matter.
-// element is the file containing the layout element, for example, head.html.
-// If element  ends in ".html" it must be a complete header tag, with
-// both tags included. If element doesn't end in ".html" it is considered
-// to be a Markdown file and is processed that way.
-// sourcefile is the fully qualified pathname of the .md file being processed
-// TODO: Code smell
-func layoutEl(c *config, element string, sourcefile string) string {
-	// element looks like "Header", "Footer", etc. because front matter key is capitalized.
-	// Force to lowercase for use as an HTML tag.
-	tag := strings.ToLower(element)
-
-	// Get the filename for this layout element. For example,
-	// if the front matter said Header: "foo.md" this would
-	// return "foo.md".
-
-	// Special case: if there's a theme using this element
-	// you can suppress its output by using the special value
-	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
-	// the front matter, e.g. Header: "SUPPRESS"
-	filename := frontMatterStr(element, c)
-	if filename == "SUPPRESS" {
-		return ""
-	}
-
-	// If no filename, then use the theme layout element, if any.
-	if filename == "" {
-		// No layout element specified in front matter.
-		// See if there's a theme and if it has that layout element.
-		// Convert to HTML and executetemplate.
-		// so just return it.
-		s := c.themeEl(tag)
-		return s
-	}
-	// A filename was specified
-	// Takes priority over theme.
-
-	isMarkdown := false
-
-	// Full path to layout element file. So the file 'layout/myheader.md'
-	// woud be transformed into /Users/tom/mysite/layout/myheader.md'
-	// or something similar.
-	fullPath := ""
-
-	// Get the name of the file. For example, the front
-	// matter my say Header: myheader.md so
-	// layoutElSource is 'myheader.md'
-
-	layoutElSource := frontMatterStr(element, c)
-	if filepath.IsAbs(layoutElSource) {
-		fullPath = layoutElSource
-	} else {
-		var err error
-		var rel string
-		// TODO: Cache current directory
-		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
-			quit(1, nil, c, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
-		}
-		rel = filepath.Dir(rel)
-		fullPath = filepath.Join(currDir(), rel, layoutElSource)
-	}
-	if filepath.Ext(fullPath) != ".html" {
-		isMarkdown = true
-	}
-
-	parsedArticle := ""
-	raw := ""
-	var err error
-	if isMarkdown {
-		if !fileExists(fullPath) {
-			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
-		}
-		// xxx Replace with mdYAMLFileToTemplatedHTMLString
-		if raw, err = mdYAMLFileToHTMLString(c, fullPath); err != nil {
-			quit(1, err, c, "Error converting Markdown file %v to HTML", fullPath)
-			return ""
-		}
-		if parsedArticle, err = doTemplate("", raw, c); err != nil {
-			quit(1, err, c, "%v: Unable to execute ", filename)
-		}
-		if parsedArticle != "" {
-			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
-			return wholeTag
-		}
-		return ""
-	}
-	return c.fileToString(fullPath)
-
+// tagSurround takes text and surrounds it with
+// opening and closing tags, so
+// tagSurround("header","WELCOME","\n") returns "<header>WELCOME</header>\n"
+// You can optionally include text after, because sometimes it
+// makes sense to include a newline after the closing tag.
+func tagSurround(tag string, txt string, extra ...string) string {
+	// TODO: Bit of a kludge. Point is I'm getting a newline at the
+	// end of txt and that's what I should be focusing on.
+	// It was creating tags like <header>hello\n<header>
+	txt = strings.TrimSpace(txt)
+	return "<" + tag + ">" + txt + "</" + tag + ">" + extra[0]
 }
+
 
 // sliceToStylesheetStr takes a slice of simple stylesheet names, such as
 // [ "foo.css", "bar.css" ] and converts it into a string
@@ -585,7 +495,8 @@ func StyleTags(c *config) string {
 	// Return value
 	tags := ""
 	for _, value := range tagSlice {
-		tags = tags + fmt.Sprintf("\t\t%s\n", value)
+    s := fmt.Sprintf("\t\t%s\n", value)
+		tags = tags + s
 	}
 	return tags
 }
@@ -740,15 +651,6 @@ func (c *config) setup() {
 	// If a theme directory was named in FrontMatter's Theme:,
 	// read it in.
 	c.loadTheme()
-
-	/*
-		// TODO: Improve error message at the very least
-		if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
-			quit(1, nil, c, "Can't get home page TODO: FINISH THIS MSG")
-		}
-		templateSlice := frontMatterStrSlice("StyleFileTemplates", c)
-		c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
-	*/
 }
 
 // initConfig reads the home page and gets
@@ -1182,6 +1084,29 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 	return page
 }
 
+// downloadFile() tries to read in the named URL as text and return
+// its contents as a string.
+func (c *config) downloadTextFile(url string) string {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		quit(1, err, c, "Unable setting up to GET file %s", url)
+	}
+	req.Header.Set("Accept", "application/text")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		quit(1, err, c, "Unable to download file %s", url)
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		quit(1, err, c, "Unable to read reponse body for %s", url)
+	}
+
+	return string(b)
+
+}
+
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
 // segment of dir as the the H1 title.
@@ -1334,73 +1259,6 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 		return []string{}, err
 	}
 	return files, nil
-}
-
-// mdYAMLFiletoHTML converts a Markdown document
-// with YAML front matter to HTML.
-// The HTML file has not yet had templates executed,
-// Returns a byte slice containing the HTML source.
-func mdYAMLFileToHTMLString(c *config, filename string) (string, error) {
-	source := fileToBuf(filename)
-	//if HTML, fm, err := mdYAMLToHTML(source); err != nil {
-	var err error
-	var HTML []byte
-	if HTML, c.fm, err = mdYAMLToHTML(source); err != nil {
-		return "", err
-	} else {
-		return string(HTML), nil
-	}
-}
-
-func newGoldmark() goldmark.Markdown {
-	exts := []goldmark.Extender{
-		meta.New(
-			meta.WithStoresInDocument(),
-		),
-		// Support GitHub tables & other extensions
-		extension.Table,
-		extension.GFM,
-		extension.DefinitionList,
-		extension.Footnote,
-		highlighting.NewHighlighting(
-			highlighting.WithStyle("github"),
-			highlighting.WithFormatOptions()),
-	}
-
-	parserOpts := []parser.Option{
-		parser.WithAttribute(),
-		parser.WithAutoHeadingID()}
-
-	renderOpts := []renderer.Option{
-		// WithUnsafe is required for HTML templates to work properly
-		html.WithUnsafe(),
-		html.WithXHTML(),
-	}
-	return goldmark.New(
-		goldmark.WithExtensions(exts...),
-		goldmark.WithParserOptions(parserOpts...),
-		goldmark.WithRendererOptions(renderOpts...),
-	)
-}
-
-// mdYAMLtoHTML converts the Markdown file, which may
-// have front matter, to HTML. The  front matter
-// is deposited in frontMatter.
-func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
-
-	// TODO: Does this obviate the need of some of the othe routines?
-	mdParser := newGoldmark()
-	mdParserCtx := parser.NewContext()
-
-	document := mdParser.Parser().Parse(text.NewReader([]byte(source)))
-	metaData := document.OwnerDocument().Meta()
-	var buf bytes.Buffer
-	// Convert Markdown source to HTML and deposit in buf.Bytes().
-	if err := mdParser.Convert(source, &buf, parser.WithContext(mdParserCtx)); err != nil {
-		return []byte{}, nil, err
-	}
-	// Obtain YAML front matter from document.
-	return buf.Bytes(), metaData, nil
 }
 
 // Generate HTML
@@ -1577,3 +1435,136 @@ func dumpFrontMatter(c *config) string {
 	}
 	return err.Error()
 }
+
+// PARSING UTILITIES
+
+// convertMdYAMLToHTML converts the Markdown file, which may
+// have front matter, to HTML. The front matter is passed in
+// is used but not written to
+func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
+  // xxxx
+  source := c.fileToString(filename)
+	// TODO: Does this obviate the need of some of the othe routines?
+	mdParser := newGoldmark()
+	mdParserCtx := parser.NewContext()
+
+	_ = mdParser.Parser().Parse(text.NewReader([]byte(source)))
+	//metaData := document.OwnerDocument().Meta()
+	var buf bytes.Buffer
+	// Convert Markdown source to HTML and deposit in buf.Bytes().
+	if err := mdParser.Convert([]byte(source), &buf, parser.WithContext(mdParserCtx)); err != nil {
+    quit(1, err, c, "Unable to convert Markdown to HTML")
+	}
+	// Obtain YAML front matter from document.
+	return string(buf.Bytes())
+}
+
+
+// getFrontMatter() takes a file, typically the README.md
+// for a theme, and extracts its front matter. It does all
+// the usual template execution, etc. It discards the
+// generated HTML and returns a dummy config object with
+// the front matter from the file in nc.fm.
+func getFrontMatter(filename string) (newConfig *config) {
+	nc := initConfig()
+	var rawHTML string
+	var err error
+
+	// Convert a Markdown file, possibly with front matter, to HTML
+	if rawHTML, err = mdYAMLFileToHTMLString(nc, filename); err != nil {
+		quit(1, err, nc, "%v: convert %s to HTML", filename)
+	}
+
+	// Execute its templates.
+	if _, err = doTemplate("", rawHTML, nc); err != nil {
+		quit(1, err, nc, "%v: Unable to execute ", filename)
+	}
+
+	// And return a new config object with the front matter ready to go.
+	return nc
+}
+
+// mdYAMLFiletoHTML converts a Markdown document
+// with YAML front matter to HTML.
+// The HTML file has not yet had templates executed,
+// Destructive: replaces c.fm
+// Returns a byte slice containing the HTML source.
+func mdYAMLFileToHTMLString(c *config, filename string) (string, error) {
+	source := fileToBuf(filename)
+	var err error
+	var HTML []byte
+	if HTML, c.fm, err = mdYAMLToHTML(source); err != nil {
+		return "", err
+	} else {
+		return string(HTML), nil
+	}
+}
+
+func newGoldmark() goldmark.Markdown {
+	exts := []goldmark.Extender{
+		meta.New(
+			meta.WithStoresInDocument(),
+		),
+		// Support GitHub tables & other extensions
+		extension.Table,
+		extension.GFM,
+		extension.DefinitionList,
+		extension.Footnote,
+		highlighting.NewHighlighting(
+			highlighting.WithStyle("github"),
+			highlighting.WithFormatOptions()),
+	}
+
+	parserOpts := []parser.Option{
+		parser.WithAttribute(),
+		parser.WithAutoHeadingID()}
+
+	renderOpts := []renderer.Option{
+		// WithUnsafe is required for HTML templates to work properly
+		html.WithUnsafe(),
+		html.WithXHTML(),
+	}
+	return goldmark.New(
+		goldmark.WithExtensions(exts...),
+		goldmark.WithParserOptions(parserOpts...),
+		goldmark.WithRendererOptions(renderOpts...),
+	)
+}
+
+// mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
+// and executes templates. Returns a string of the result.
+// Replaces c.fm
+func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
+	var parsedHTML string
+	var err error
+	var b []byte
+	if b, c.fm, err = mdYAMLToHTML([]byte(markdown)); err != nil {
+		quit(1, err, c, "Unable to convert markdown to raw HTML")
+	}
+	if parsedHTML, err = doTemplate(filepath.Base(c.currentFilename), string(b), c); err != nil {
+		quit(1, err, c, "%v: Problem executing template code", c.currentFilename)
+	}
+	return parsedHTML
+}
+
+// mdYAMLtoHTML converts the Markdown file, which may
+// have front matter, to HTML. The  front matter
+// is deposited in frontMatter.
+func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
+
+	// TODO: Does this obviate the need of some of the othe routines?
+	mdParser := newGoldmark()
+	mdParserCtx := parser.NewContext()
+
+	document := mdParser.Parser().Parse(text.NewReader([]byte(source)))
+	metaData := document.OwnerDocument().Meta()
+	var buf bytes.Buffer
+	// Convert Markdown source to HTML and deposit in buf.Bytes().
+	if err := mdParser.Convert(source, &buf, parser.WithContext(mdParserCtx)); err != nil {
+		return []byte{}, nil, err
+	}
+	// Obtain YAML front matter from document.
+	return buf.Bytes(), metaData, nil
+}
+
+
