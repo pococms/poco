@@ -153,6 +153,12 @@ func assemble(c *config, filename string, article string, language string, style
 		article = parsedArticle
 	}
 
+	// If there are style tags, put in a <style> tag. Otherwise
+	// leave it empty.
+	styleTags := StyleTags(c)
+	if styleTags != "" {
+		styleTags = "\t" + tagSurround(styleTags, "style", "\n")
+	}
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
@@ -162,7 +168,7 @@ func assemble(c *config, filename string, article string, language string, style
 		metatags(c) +
 		linktags(c) +
 		stylesheets(stylesheetList, c) +
-		"\t<style>\n" + StyleTags(c) + "\t</style>\n" +
+		styleTags +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
@@ -234,40 +240,38 @@ func (c *config) downloadTextFile(url string) string {
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
-  themeDir := frontMatterStr("Theme", nc)
-  if themeDir == "" {
-    return
-  }
+	themeDir := frontMatterStr("Theme", nc)
+	if themeDir == "" {
+		return
+	}
 	if !fileExists(c.homePage) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
 	}
 	// Make sure there's a LICENSE file
 	license := filepath.Join(themeDir, "LICENSE")
-	if fileToString(license) == "" {
+	if c.fileToString(license) == "" {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	c.theme.dir = themeDir
-  //debug("Loading theme %s", c.theme.dir)
 	header := filepath.Join(themeDir, "header.md")
-	c.theme.header = fileToString(header)
+	c.theme.header = c.fileToString(header)
 
 	nav := filepath.Join(themeDir, "nav.md")
-	c.theme.nav = fileToString(nav)
+	c.theme.nav = c.fileToString(nav)
 
 	aside := filepath.Join(themeDir, "aside.md")
-	c.theme.aside = fileToString(aside)
+	c.theme.aside = c.fileToString(aside)
 
 	footer := filepath.Join(themeDir, "footer.md")
-	c.theme.footer = fileToString(footer)
+	c.theme.footer = c.fileToString(footer)
 
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
 	//nc = getFrontMatter(c)
 
-  themeReadMe := filepath.Join(themeDir, "README.md")
+	themeReadMe := filepath.Join(themeDir, "README.md")
 	nc = getFrontMatter(themeReadMe)
 
-	//debug("nc.fm[StyleFiles]: %+v", nc.fm["StyleFiles"])
 
 	// Get the list of style sheets required for this theme.
 	// Remember that stylesheets not in this list won't
@@ -280,44 +284,42 @@ func (c *config) loadTheme() {
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
 	styleFiles := frontMatterStrSlice("StyleFiles", nc)
+	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
+	var s string
 	for _, filename := range styleFiles {
-    // Contents of a
-    debug("Stylesheet: %s", filename)
+		// Contents of a
 		// Handle case of URLs as opposed to local file
 		if strings.HasPrefix(filename, "http") {
-			// TODO: Check for redirect
+			// TODO: Check for redirect?
 			// https://golangdocs.com/golang-download-files
-      //debug("\tDownload %s", filename)
-			s := c.downloadTextFile(filename)
-      //
-			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+			s = c.downloadTextFile(filename)
+			//
 			// Handle case of local file
 		} else if !filepath.IsAbs(filename) {
 			// Insert stylesheet in current directory
 			fullPath := filepath.Join(themeDir, filename)
 			// TODO: Handle filepaths outside this directory,
 			// or with http addresses.
-			s := fileToString(fullPath)
+			s = c.fileToString(fullPath)
 			// TODO: Easy optimization here
-			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 			// A complete file path was specified.
 		} else {
-			s := fileToString(filename)
+			s = c.fileToString(filename)
 			// TODO: Easy optimization here
-			c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 		}
+    // xxxx
+    //s := mdYAMLStringToTemplatedHTMLString(c, s)
+		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
-	//debug("loadTheme %s:\nnc.fm = %+v\n\nc.fm == %+v\n", file, nc.fm, c.fm)
-	//debug("loadTheme %s:\nnc.theme = %+v\n\nc.theme == %+v\n", file, nc.theme, c.theme)
-  /*
-  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
-			themeDir,
-			c.theme.header,
-			c.theme.nav,
-			c.theme.aside,
-			c.theme.footer,
-      c.theme.styleFilesEmbedded)
-    */
+	/*
+	  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
+	      themeDir,
+	      c.theme.header,
+	      c.theme.nav,
+	      c.theme.aside,
+	      c.theme.footer,
+	      c.theme.styleFilesEmbedded)
+	*/
 }
 
 /*
@@ -346,15 +348,100 @@ type theme struct {
   StyleFileTemplates []string
 */
 
+// localLayoutElementSpecified() returns converted and parsed contents
+// if the named element
+//
+
+// mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
+// and executes templates. Returns a string of the result.
+func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
+	var parsedHTML string
+	var err error
+	var b []byte
+	if b, c.fm, err = mdYAMLToHTML([]byte(markdown)); err != nil {
+		quit(1, err, c, "Unable to convert markdown to raw HTML")
+	}
+	// xxxx
+	if parsedHTML, err = doTemplate(filepath.Base(c.currentFilename), string(b), c); err != nil {
+		quit(1, err, c, "%v: Problem executing template code", c.currentFilename)
+	}
+	return parsedHTML
+}
+
+// tagSurround takes text and surrounds it with
+// opening and closing tags, so
+// tagSurround("header","WELCOME","\n") returns "<header>WELCOME</header>\n"
+// You can optionally include text after, because sometimes it
+// makes sense to include a newline after the closing tag.
+func tagSurround(tag string, txt string, extra ...string) string {
+	// TODO: Bit of a kludge. Point is I'm getting a newline at the
+	// end of txt and that's what I should be focusing on.
+	// It was creating tags like <header>hello\n<header>
+	txt = strings.TrimSpace(txt)
+	return "<" + tag + ">" + txt + "</" + tag + ">" + extra[0]
+}
+
+// themeEl() returns the theme layout element (header,nav
+// aside, footer). Remember: this is in the case where
+// no header/nav/aside/footer was specified in the Markdown
+// source file's front matter. This extracts any
+// such element.
+func (c *config) themeEl(tag string) string {
+	switch tag {
+	case "header":
+		if c.theme.header != "" {
+			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.header)
+			return tagSurround(tag, s, "\n")
+		}
+	case "nav":
+		if c.theme.nav != "" {
+			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.nav)
+			return tagSurround(tag, s, "\n")
+		}
+	case "aside":
+		if c.theme.aside != "" {
+			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.aside)
+			return tagSurround(tag, s, "\n")
+		}
+	case "footer":
+		if c.theme.footer != "" {
+			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.footer)
+			return tagSurround(tag, s, "\n")
+		}
+	}
+	return ""
+}
+
 // HTML UTILITIES
+// TODO: Create layoutEl() tests for
+// - Nothing specified so theme header/footer/etc. are added
+// - "SUPPRESS" specified when a theme is available but that element should not be displayed
+// - Local file specified
 
 // layoutEl() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
-// A layout element one of the HTML tags such
-// as header, nav,
-// aside, article, and a few others
+//
+// The layout element may also be a theme file.
+//
+// So, the priority order is:
+// - If the front matter says "SUPRESS" in all caps then return empty string.
+// - If there is a file named in the front matter, process and return its contents.
+// - Otherwise, use a theme file.
+//
+// It can be a Markdown file, in which case no tags are needed,
+// or an HTML file, in which the tags must be explicit.
+// A layout element is one of the HTML tags such
+// as header, nav, aside, article, and a few others
 // For more info on layout elements see:
 // https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
+// The easiest way is to use markdown.
+// Fore example, suppose you have a header file named mdhead.md and
+// it contains only the following:
+//
+// hello, world.
+//
+// The genereated HTML would be "<p><header>hello, world.</header></p>"
+
 // For example, suppose you have a header file named head.html. It
 // would be named in the front matter like this:
 // ---
@@ -378,17 +465,41 @@ type theme struct {
 // sourcefile is the fully qualified pathname of the .md file being processed
 // TODO: Code smell
 func layoutEl(c *config, element string, sourcefile string) string {
+	// element looks like "Header", "Footer", etc. because front matter key is capitalized.
+	// Force to lowercase for use as an HTML tag.
+	tag := strings.ToLower(element)
+
+	// Get the filename for this layout element. For example,
+	// if the front matter said Header: "foo.md" this would
+	// return "foo.md".
+
+	// Special case: if there's a theme using this element
+	// you can suppress its output by using the special value
+	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
+	// the front matter, e.g. Header: "SUPPRESS"
 	filename := frontMatterStr(element, c)
-	if filename == "" {
+	if filename == "SUPPRESS" {
 		return ""
 	}
+
+	// If no filename, then use the theme layout element, if any.
+	if filename == "" {
+		// No layout element specified in front matter.
+		// See if there's a theme and if it has that layout element.
+		// Convert to HTML and executetemplate.
+		// so just return it.
+		s := c.themeEl(tag)
+		return s
+	}
+	// A filename was specified
+	// Takes priority over theme.
+
 	isMarkdown := false
 
 	// Full path to layout element file. So the file 'layout/myheader.md'
 	// woud be transformed into /Users/tom/mysite/layout/myheader.md'
 	// or something similar.
 	fullPath := ""
-	tag := ""
 
 	// Get the name of the file. For example, the front
 	// matter my say Header: myheader.md so
@@ -396,7 +507,6 @@ func layoutEl(c *config, element string, sourcefile string) string {
 
 	layoutElSource := frontMatterStr(element, c)
 	if filepath.IsAbs(layoutElSource) {
-		// debug("\t%s isAbs", layoutElSource)
 		fullPath = layoutElSource
 	} else {
 		var err error
@@ -413,13 +523,13 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	}
 
 	parsedArticle := ""
-	tag = strings.ToLower(element)
 	raw := ""
 	var err error
 	if isMarkdown {
 		if !fileExists(fullPath) {
 			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
+		// xxx Replace with mdYAMLFileToTemplatedHTMLString
 		if raw, err = mdYAMLFileToHTMLString(c, fullPath); err != nil {
 			quit(1, err, c, "Error converting Markdown file %v to HTML", fullPath)
 			return ""
@@ -433,7 +543,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 		}
 		return ""
 	}
-	return fileToString(fullPath)
+	return c.fileToString(fullPath)
 
 }
 
@@ -491,13 +601,11 @@ func stylesheets(sheets string, c *config) string {
 	var globals string
 
 	// Handle case of theme specified
-	if c.theme.dir == "" {
- 	} else {
-   // xxxx
+	// This is how you tell if a theme is present
+	if c.theme.dir != "" {
 		// TODO: minify these mofos
-		// TODO: Support for global
-		return "<style>" + c.theme.styleFilesEmbedded + "</style>\n"
-  }
+		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
+	}
 
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
@@ -505,10 +613,8 @@ func stylesheets(sheets string, c *config) string {
 		globals = sliceToStylesheetStr(globalSlice)
 	}
 	// Build a string from stylesheets named in the
-	// StyleFileTemplates: front matter for this page
-	// Only applicable for home page
+	// StyleFileTemplates: front matter for the home page
 	//templates := ""
-	// xxx
 	// Build a string from stylesheets named in the
 	// StyleFiles: front matter for this page
 	localSlice := frontMatterStrSlice("StyleFiles", c)
@@ -520,7 +626,6 @@ func stylesheets(sheets string, c *config) string {
 	// you can override using stylesheets named in
 	// the front matter.
 	return globals + c.styleFileTemplates + locals
-	//return globals + c.styleFileTemplates + locals
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -636,14 +741,14 @@ func (c *config) setup() {
 	// read it in.
 	c.loadTheme()
 
-  /*
-	// TODO: Improve error message at the very least
-	if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
-		quit(1, nil, c, "Can't get home page TODO: FINISH THIS MSG")
-	}
-	templateSlice := frontMatterStrSlice("StyleFileTemplates", c)
-	c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
-  */
+	/*
+		// TODO: Improve error message at the very least
+		if _, err := mdYAMLFileToHTMLString(c, c.homePage); err != nil {
+			quit(1, nil, c, "Can't get home page TODO: FINISH THIS MSG")
+		}
+		templateSlice := frontMatterStrSlice("StyleFileTemplates", c)
+		c.styleFileTemplates = sliceToStylesheetStr(templateSlice)
+	*/
 }
 
 // initConfig reads the home page and gets
@@ -748,7 +853,6 @@ func doTemplate(templateName string, source string, c *config) (string, error) {
 	if templateName == "" {
 		templateName = "PocoCMS"
 	}
-	//debug("\tdoTemplate() c is: \n%+v\nfm is: \n%+v", c, c.fm)
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
 		return "", err
@@ -905,8 +1009,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			if HTML, err = mdYAMLFileToHTMLString(c, filename); err != nil {
 				quit(1, err, c, "Error converting Markdown file to HTML")
 			}
-			//debug("fm after mdYAMLFileToHTMLString: %+v", c.fm)
-			// xxx in buildSite
 			// If asked, display the front matter
 			if debugFrontMatter {
 				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
@@ -946,7 +1048,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// This is where the files were published
 	ensureIndexHTML(webrootPath, c)
 	// Display all files, Markdown or not, that were processed
-	//debug("\n%v\n", c.files)
 	return webrootPath
 }
 
@@ -1131,12 +1232,10 @@ func fileToBuf(filename string) []byte {
 }
 
 // fileToString() sucks up a file and returns its contents as a string.
-// Fails quietly  if unable to open the file, since
-// we're just generating HTML.
-func fileToString(filename string) string {
+func (c *config) fileToString(filename string) string {
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return ""
+    quit(1, err, c, "Unable to convert file %s into a string", filename)
 	}
 	return string(input)
 }
@@ -1341,7 +1440,6 @@ func frontMatterStrSlice(key string, c *config) []string {
 		return []string{}
 	}
 	v, ok := c.fm[key].([]interface{})
-	//debug("frontMatterStrSlice[%s], key: %v, c.fm %+v", key, v, c.fm)
 	if !ok {
 		return []string{}
 	}
@@ -1372,7 +1470,6 @@ func frontMatterStrSliceStr(key string, c *config) string {
 	}
 	//s := make([]string, len(v))
 	var tags string
-	//debug("frontMatterStrSliceStr: Key %s WAS found", key)
 	for _, value := range v {
 		tag := fmt.Sprintf("%s\n", value)
 		tags = tags + tag
