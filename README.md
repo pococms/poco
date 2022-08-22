@@ -1,40 +1,57 @@
 ---
-Title: README
+Title:  PocoCMS
+
+Theme: pages/themes/probot
+#Theme: pages/themes/newpoquito
+#Theme: pages/themes/tufte
+#BAD Theme: pages/themes/poco
 #Theme: pages/themes/simplicity
-Theme: pages/themes/latest
-# Header: pages/themes/poco/header.md
-# Nav: pages/themes/poco/nav.md
-# Aside: pages/themes/poco/aside.md
-# Footer: pages/themes/poco/footer.md
+#Theme: pages/themes/latest
+Nav: SUPPRESS
+Footer: SUPPRESS
 #StyleFiles:
 #- pages/themes/newpoquito/dark.css
 # - poquito.css1
 # - pages/assets/css/pococms.css
-
 ---
 
-### NATURE
-![](pages/assets/demo/img-sample-night-sky-1280x853.jpg)
+## To build from source:
 
-## **OUTDOORS** Tonight's sky will be spectacular
-If you're ready for a hike in low-light areas outside of
-town, you'll be in for a treat. *[More](#)*
+Currently PocoCMS must be built from source using Go.
+It's easy to install Go and even to build, because
+PocoCMS is a single file.
 
-## Themes
+    $ # Create a directory. It doesn't have to be here.
+    $ mkdir ~/pococms
+    # Navigate to that directory.
+    $ cd ~/pococms
+    $ # Clone the repo.
+    $ git clone https://github.com/pococms/poco
+    $ # The repo is now in ~/pococms/poco, so navigate there.
+    $ cd poco
+    $ # And compile: 
+    $ go build 
+    $ ### OR....
+    $ # There's only one file, so you can also use go run.
+    $ # That runs the go compiler, then executes the program 
+    $ # if there are no compilation errors.
+    $ go run main.go
+    $ # This will generate an example file
+    $ ./poco
+    # (Then make sure poco is on your path)
 
-* [New Poquito](pages/themes/newpoquito/index.html)
-  - Dark version: [dark](pages/themes/newpoquito/dark.html)
-* [Tufte](pages/themes/tufte/index.html)
-* [Poco](pages/themes/poco/index.html)
-* [Latest](pages/themes/latest/index.html) theme lets you build a news site fast
-* [Probot theme](pages/themes/probot.html) and [Left sidebar version](pages/themes/probot-left.html)
-* [Simplicity](pages/themes/simplicity/simplicity.html) is  HTML minimalism at its purest, 
-with no header, footer, nav, or aside.
+## To create a website using PocoCMS
+    $ mkdir ~/mysite
+    $ cd ~/mysite
+    $ # Create the home page
+    $ poco
+
+Poco will create a home page for you. It's `index.md`.
 
 
 ## Diagnostics
 * Page showing all [FrontMatter settings](pages/diagnostics/allfeatures.html)
-* [mdemo.html](mdemo.html) Shows most Markup capabilities
+* [mdemo.html](pages/demo/mdemo.html) Shows most Markup capabilities
 * [CSS validator](https://jigsaw.w3.org/css-validator/#validate_by_input)
 
 ## Creating pages
