@@ -250,8 +250,8 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
 	// the front matter, e.g. Header: "SUPPRESS"
 	filename := frontMatterStr(element, c)
-  //debug("\tlayoutEl %s: %s", element, filename)
-  //debug("\t%s %s:  %+v", filepath.Base(sourcefile),element,c.fm)
+	//debug("\tlayoutEl %s: %s", element, filename)
+	//debug("\t%s %s:  %+v", filepath.Base(sourcefile),element,c.fm)
 
 	if filename == "SUPPRESS" {
 		return ""
@@ -281,7 +281,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// layoutElSource is 'myheader.md'
 
 	layoutElSource := frontMatterStr(element, c)
-  //debug("\t%s layoutEl %s", c.currentFilename, layoutElSource)
+	//debug("\t%s layoutEl %s", c.currentFilename, layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
 	} else {
@@ -305,13 +305,13 @@ func layoutEl(c *config, element string, sourcefile string) string {
 		if !fileExists(fullPath) {
 			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
 		}
-    // TODO: This feels wasteful
-    raw = convertMdYAMLFileToHTMLStr(fullPath, c)
+		// TODO: This feels wasteful
+		raw = convertMdYAMLFileToHTMLStr(fullPath, c)
 		if parsedArticle, err = doTemplate("", raw, c); err != nil {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
 		if parsedArticle != "" {
-      //debug("\t\tFront matter is now: %+v", c.fm)
+			//debug("\t\tFront matter is now: %+v", c.fm)
 			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
 			return wholeTag
 		}
@@ -330,6 +330,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
 	themeDir := frontMatterStr("Theme", nc)
+	debug("Loading theme %s", themeDir)
 	if themeDir == "" {
 		return
 	}
@@ -343,24 +344,30 @@ func (c *config) loadTheme() {
 	}
 	c.theme.dir = themeDir
 	header := filepath.Join(themeDir, "header.md")
-	c.theme.header = c.fileToString(header)
+	if fileExists(header) {
+		c.theme.header = c.fileToString(header)
+	}
 
 	nav := filepath.Join(themeDir, "nav.md")
-	c.theme.nav = c.fileToString(nav)
+	if fileExists(nav) {
+		c.theme.nav = c.fileToString(nav)
+	}
 
 	aside := filepath.Join(themeDir, "aside.md")
-	c.theme.aside = c.fileToString(aside)
+	if fileExists(aside) {
+		c.theme.aside = c.fileToString(aside)
+	}
 
 	footer := filepath.Join(themeDir, "footer.md")
-	c.theme.footer = c.fileToString(footer)
-
+	if fileExists(footer) {
+		c.theme.footer = c.fileToString(footer)
+	}
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
 	//nc = getFrontMatter(c)
 
 	themeReadMe := filepath.Join(themeDir, "README.md")
 	nc = getFrontMatter(themeReadMe)
-
 
 	// Get the list of style sheets required for this theme.
 	// Remember that stylesheets not in this list won't
@@ -376,25 +383,23 @@ func (c *config) loadTheme() {
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
 	for _, filename := range styleFiles {
-		// Contents of a
+		debug("StyleFiles: %s", filename)
+
 		// Handle case of URLs as opposed to local file
 		if strings.HasPrefix(filename, "http") {
 			// TODO: Check for redirect?
 			// https://golangdocs.com/golang-download-files
 			s = c.downloadTextFile(filename)
 			//
-			// Handle case of local file
+
 		} else if !filepath.IsAbs(filename) {
-			// Insert stylesheet in current directory
+			// Handle case of local file with relative path
 			fullPath := filepath.Join(themeDir, filename)
-			// TODO: Handle filepaths outside this directory,
-			// or with http addresses.
 			s = c.fileToString(fullPath)
-			// TODO: Easy optimization here
-			// A complete file path was specified.
+
 		} else {
+			// Handle case of local file with absolute path
 			s = c.fileToString(filename)
-			// TODO: Easy optimization here
 		}
 		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
@@ -408,7 +413,6 @@ func (c *config) loadTheme() {
 	      c.theme.styleFilesEmbedded)
 	*/
 }
-
 
 // themeEl() returns the theme layout element (header,nav
 // aside, footer). Remember: this is in the case where
@@ -456,7 +460,6 @@ func tagSurround(tag string, txt string, extra ...string) string {
 	return "<" + tag + ">" + txt + "</" + tag + ">" + extra[0]
 }
 
-
 // sliceToStylesheetStr takes a slice of simple stylesheet names, such as
 // [ "foo.css", "bar.css" ] and converts it into a string
 // consisting of stylesheet link tags separated by newlines:
@@ -495,7 +498,7 @@ func StyleTags(c *config) string {
 	// Return value
 	tags := ""
 	for _, value := range tagSlice {
-    s := fmt.Sprintf("\t\t%s\n", value)
+		s := fmt.Sprintf("\t\t%s\n", value)
 		tags = tags + s
 	}
 	return tags
@@ -1160,7 +1163,7 @@ func fileToBuf(filename string) []byte {
 func (c *config) fileToString(filename string) string {
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
-    quit(1, err, c, "Unable to convert file %s into a string", filename)
+		quit(1, err, c, "Unable to convert file %s into a string", filename)
 	}
 	return string(input)
 }
@@ -1395,7 +1398,11 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	}
 	// fmt.Println(msg + errmsg)
 	if c.currentFilename != "" {
-		fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
+		if exitCode != 0 {
+			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
+		} else {
+			fmt.Printf("PocoCMS %s:\n \t%s\n", c.currentFilename, msg)
+		}
 	} else {
 		fmt.Printf("%s%s\n", msg, errmsg)
 	}
@@ -1442,8 +1449,8 @@ func dumpFrontMatter(c *config) string {
 // have front matter, to HTML. The front matter is passed in
 // is used but not written to
 func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
-  // xxxx
-  source := c.fileToString(filename)
+	// xxxx
+	source := c.fileToString(filename)
 	// TODO: Does this obviate the need of some of the othe routines?
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
@@ -1453,12 +1460,11 @@ func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 	var buf bytes.Buffer
 	// Convert Markdown source to HTML and deposit in buf.Bytes().
 	if err := mdParser.Convert([]byte(source), &buf, parser.WithContext(mdParserCtx)); err != nil {
-    quit(1, err, c, "Unable to convert Markdown to HTML")
+		quit(1, err, c, "Unable to convert Markdown to HTML")
 	}
 	// Obtain YAML front matter from document.
 	return string(buf.Bytes())
 }
-
 
 // getFrontMatter() takes a file, typically the README.md
 // for a theme, and extracts its front matter. It does all
@@ -1566,5 +1572,3 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 	// Obtain YAML front matter from document.
 	return buf.Bytes(), metaData, nil
 }
-
-
