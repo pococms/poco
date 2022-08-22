@@ -1,16 +1,17 @@
 ---
 Author: Tom Campbell
 Branding: Latest
+Header: header.md
+Nav: nav.md
+Aside: aside.md
+Footer: footer.md
 
 
 StyleFiles:
+  - reset.css
   - poquito.css
-  - pococms.css
-
-StyleTags:
-  - header {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-
+  - latest.css
+#  - dark.css
 ---
-<header>Late-Breaking News</header>
 Latest helps you create news sites fast
 

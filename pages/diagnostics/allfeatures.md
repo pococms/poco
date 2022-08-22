@@ -3,7 +3,6 @@ Title: "pocoCMS: Display all known information about this document"
 Description: "PocoCMS: Markdown-based CMS in 1 file, written in Go"
 Author: "Tom Campbell"
 Keywords: "static site generator, CMS, wordpress replacement, Markdown"
-Footer: footer.html
 LinkTags:
     - <link rel="icon" href="favicon.ico">
     - <link rel="preconnect" href="https://fonts.googleapis.com">
