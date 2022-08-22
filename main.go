@@ -272,7 +272,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
 	themeDir := frontMatterStr("Theme", nc)
-	if themeDir == "" {
+	if themeDir == ""{
 		return
 	}
 	if !fileExists(c.homePage) {
@@ -464,7 +464,7 @@ func stylesheets(sheets string, c *config) string {
 
 	// Handle case of theme specified
 	// This is how you tell if a theme is present
-	if c.theme.dir != "" {
+	if c.theme.dir != "" && frontMatterStr("Theme", c) != "SUPPRESS" {
 		// TODO: minify these mofos
 		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
