@@ -1,6 +1,7 @@
 ---
 Title: "pocoCMS: Display all known information about this document"
 Description: "PocoCMS: Markdown-based CMS in 1 file, written in Go"
+Theme: SUPPRESS
 Author: "Tom Campbell"
 Keywords: "static site generator, CMS, wordpress replacement, Markdown"
 LinkTags:
@@ -8,8 +9,8 @@ LinkTags:
     - <link rel="preconnect" href="https://fonts.googleapis.com">
     - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     - <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-StyleFiles: 
-    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
+#StyleFiles: 
+#    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
 #    - 'https://cdn.jsdelivr.net/npm/holiday.css'
 SkipPublish:
     - node_modules
