@@ -64,73 +64,6 @@ import (
 	//"reflect"
 )
 
-// TODO: No longer true
-// If you invoke poco without a filename, it creates an index file from this
-// and publishes it. It also works as an informal test harness.
-
-var OLDindexSample = `---
-Title: 'inserttitle'
-Description: PocoCMS: Markdown-based CMS in 1 file, written in Go
-Author: 'Tom Campbell'
-Header: header.html
-Nav: nav.html
-Footer: footer.html
-LinkTags:
-    - <link rel="icon" href="favicon.ico">
-    - <link rel="preconnect" href="https://fonts.googleapis.com">
-    - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    - <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-StyleFiles: 
-    - 'https://cdn.jsdelivr.net/npm/holiday.css'
-SkipPublish:
-    - node_modules
-    - htdocs
-    - public_html
-    - WWW
-    - .git
-    - .DS_Store
-    - .gitignore
----
-# Welcome to PocoCMS
-
-## To build from source:
-    $ # Create a directory. It doesn't have to be here.
-    $ mkdir ~/pococms
-    # Navigate to that directory.
-    $ cd ~/pococms
-    $ # Clone the repo.
-    $ git clone https://github.com/pococms/poco
-    $ # The repo is now in ~/pococms/poco, so navigate there.
-    $ cd poco
-    $ # And compile: 
-    $ go build 
-    $ ### OR....
-    $ # There's only one file, so you can also use go run.
-    $ # That runs the go compiler, then executes the program 
-    $ # if there are no compilation errors.
-    $ go run main.go
-    $ # This will generate an example file
-    $ ./poco
-    # (Then make sure poco is on your path)
-
-## To create a website using PocoCMS
-    $ mkdir ~/mysite
-    $ cd ~/mysite
-    $ # Create the home page
-    $ nvim index.md # Replace nvim with your favorite editor
-    $ poco
-
-## Other command-line examples
-
-Include the two css files shown:
-
-    go run main.go -styles "theme.css light-mode.cs"
-
-Use the docs subdirectory as the root of the site:
-
-    ./poco -root "./docs"
-`
-
 // Required begininng for a valid HTML document
 var docType = `<!DOCTYPE html>
 <html lang=`
@@ -153,11 +86,19 @@ func assemble(c *config, filename string, article string, language string, style
 		article = parsedArticle
 	}
 
-	// If there are style tags, put in a <style> tag. Otherwise
+	// If there are style tags in the theme's README, 
+  // add and enclose in a <style> tag. Otherwise
 	// leave it empty.
-	styleTags := StyleTags(c)
-	if styleTags != "" {
-		styleTags = "\t" + tagSurround("style", styleTags, "\n")
+  themeExtraTemplateTags := c.theme.styleFileTemplateTags
+  if themeExtraTemplateTags  != "" {
+    themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
+  }
+	// If there are style tags in the current file, 
+  // add and enclose in a <style> tag. Otherwise
+	// leave it empty.
+	extraStyleTags := c.styleTags()
+	if extraStyleTags != "" {
+		extraStyleTags = "\t" + tagSurround("style", extraStyleTags, "\n")
 	}
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
@@ -168,7 +109,8 @@ func assemble(c *config, filename string, article string, language string, style
 		metatags(c) +
 		linktags(c) +
 		stylesheets(stylesheetList, c) +
-		styleTags +
+    themeExtraTemplateTags +
+		extraStyleTags +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
@@ -330,7 +272,6 @@ func layoutEl(c *config, element string, sourcefile string) string {
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
 	themeDir := frontMatterStr("Theme", nc)
-	debug("Loading theme %s", themeDir)
 	if themeDir == "" {
 		return
 	}
@@ -364,8 +305,6 @@ func (c *config) loadTheme() {
 	}
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
-	//nc = getFrontMatter(c)
-
 	themeReadMe := filepath.Join(themeDir, "README.md")
 	nc = getFrontMatter(themeReadMe)
 
@@ -379,11 +318,29 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	styleFiles := frontMatterStrSlice("StyleFiles", nc)
+	styleFileList := frontMatterStrSlice("StyleFiles", nc)
+  // nc.theme.dir = themeDir
+	c.styleFiles(styleFileList)
+	// Theme loaded. Now get additional style tags.
+	c.styleTags()
+	/*
+	  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
+	      themeDir,
+	      c.theme.header,
+	      c.theme.nav,
+	      c.theme.aside,
+	      c.theme.footer,
+	      c.theme.styleFilesEmbedded)
+	*/
+
+}
+
+// Pre: c.theme.dir must know theme directory.
+func (c *config) styleFiles(styleFileList []string) {
+	//styleFileList := frontMatterStrSlice("StyleFiles", c)
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
-	for _, filename := range styleFiles {
-		debug("StyleFiles: %s", filename)
+	for _, filename := range styleFileList {
 
 		// Handle case of URLs as opposed to local file
 		if strings.HasPrefix(filename, "http") {
@@ -394,7 +351,7 @@ func (c *config) loadTheme() {
 
 		} else if !filepath.IsAbs(filename) {
 			// Handle case of local file with relative path
-			fullPath := filepath.Join(themeDir, filename)
+			fullPath := filepath.Join(c.theme.dir, filename)
 			s = c.fileToString(fullPath)
 
 		} else {
@@ -403,15 +360,6 @@ func (c *config) loadTheme() {
 		}
 		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
-	/*
-	  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
-	      themeDir,
-	      c.theme.header,
-	      c.theme.nav,
-	      c.theme.aside,
-	      c.theme.footer,
-	      c.theme.styleFilesEmbedded)
-	*/
 }
 
 // themeEl() returns the theme layout element (header,nav
@@ -490,7 +438,7 @@ func sliceToStylesheetStr(sheets []string) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func StyleTags(c *config) string {
+func (c *config) styleTags() string {
 	tagSlice := frontMatterStrSlice("StyleTags", c)
 	if tagSlice == nil {
 		return ""
@@ -583,7 +531,16 @@ type theme struct {
 	styleFiles []string
 
 	// Names of template stylesheets
-	styleFileTemplates []string
+	styleFileTemplates string
+
+  // Names of style tags FROM THE CURRENT MARKDOWN FILE,
+  // not the theme's README.md. 
+  // Scenario: You've developed a light theme.
+  // You want to experiment with a dark theme. 
+  // So you add IN THE CURRENT MARKDOWN FILE
+  // StyleTags:
+  // - "article{background-color:black;color:black}"
+  styleFileTemplateTags string
 
 	// The stylesheets for each theme are concantenated, then read
 	// into this string. It's injected straight into the HTML for
@@ -1449,9 +1406,7 @@ func dumpFrontMatter(c *config) string {
 // have front matter, to HTML. The front matter is passed in
 // is used but not written to
 func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
-	// xxxx
 	source := c.fileToString(filename)
-	// TODO: Does this obviate the need of some of the othe routines?
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
 
