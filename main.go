@@ -267,7 +267,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 // and load its files into c.theme
 // Tests:
 // - Missing README.md
-// - Missing StyleFiles, StyleFileTemplates
+// - Missing Stylesheets, StyleFileTemplates
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
@@ -318,7 +318,7 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	styleFileList := frontMatterStrSlice("StyleFiles", nc)
+	styleFileList := frontMatterStrSlice("Stylesheets", nc)
   // nc.theme.dir = themeDir
 	c.styleFiles(styleFileList)
 	// Theme loaded. Now get additional style tags.
@@ -337,7 +337,6 @@ func (c *config) loadTheme() {
 
 // Pre: c.theme.dir must know theme directory.
 func (c *config) styleFiles(styleFileList []string) {
-	//styleFileList := frontMatterStrSlice("StyleFiles", c)
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
 	for _, filename := range styleFileList {
@@ -478,8 +477,8 @@ func stylesheets(sheets string, c *config) string {
 	// StyleFileTemplates: front matter for the home page
 	//templates := ""
 	// Build a string from stylesheets named in the
-	// StyleFiles: front matter for this page
-	localSlice := frontMatterStrSlice("StyleFiles", c)
+	// Stylesheets: front matter for this page
+	localSlice := frontMatterStrSlice("Stylesheets", c)
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -1025,7 +1024,7 @@ func copyFile(c *config, source string, target string) {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-StyleFiles:
+Stylesheets:
     - https://unpkg.com/simpledotcss/simple.min.css
 ---
 `
@@ -1246,7 +1245,7 @@ func frontMatterStr(key string, c *config) string {
 // frontMatterStrSlice obtains a list of string values from the front matter.
 // For example, if you had this code in your Markdown file:
 // ---
-// StyleFiles:
+// Stylesheets
 //   - 'https://cdn.jsdelivr.net/npm/holiday.css'
 //   - 'fonts.css'
 //
