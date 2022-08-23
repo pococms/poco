@@ -225,7 +225,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// layoutElSource is 'myheader.md'
 
 	layoutElSource := frontMatterStr(element, c)
-	//debug("\t%s layoutEl %s", c.currentFilename, layoutElSource)
+	//debug("\t%s ***layoutEl specified file %s", c.currentFilename, layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
 	} else {
@@ -282,7 +282,9 @@ func (c *config) loadTheme() {
 	}
 	// Make sure there's a LICENSE file
 	license := filepath.Join(themeDir, "LICENSE")
-	if c.fileToString(license) == "" {
+
+  if c.getWebOrLocalFileStr(license) == "" {
+	//if c.fileToString(license) == "" {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	c.theme.dir = themeDir
@@ -342,23 +344,12 @@ func (c *config) styleFiles(styleFileList []string) {
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
 	for _, filename := range styleFileList {
-
-		// Handle case of URLs as opposed to local file
-		if strings.HasPrefix(filename, "http") {
-			// TODO: Check for redirect?
-			// https://golangdocs.com/golang-download-files
-			s = c.downloadTextFile(filename)
-			//
-
-		} else if !filepath.IsAbs(filename) {
-			// Handle case of local file with relative path
-			fullPath := filepath.Join(c.theme.dir, filename)
-			s = c.fileToString(fullPath)
-
-		} else {
-			// Handle case of local file with absolute path
-			s = c.fileToString(filename)
-		}
+    // Filename could be in one of these forms:
+    // Stylesheets:
+    // - "tufte.min.css"
+    // - "~/Users/tom/tufte.min.css"
+    // - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
+		s = c.getWebOrLocalFileStr(filename)
 		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
 }
@@ -689,16 +680,16 @@ func main() {
 	}
 	if c.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
-		// be a filename.
-		if !fileExists(c.currentFilename) {
-			quit(1, nil, c, "Can't find the file %v", c.currentFilename)
+		// be a directory. Exit if that dir doesn't exit.
+		if !dirExists(c.currentFilename) {
+			quit(1, nil, c, "Can't find the directory %v", c.currentFilename)
 		} else {
-			// Special case: if you name a file on the command line, it will
-			// generate an HTML document from that file and pass you the new filename.
-			// The output file isn't published to webroot. It's published to the
-			// current directory.
-			htmlFilename := buildFileToFile(c, c.currentFilename, stylesheets, language, debugFrontMatter)
-			quit(0, nil, c, "Built file %s", htmlFilename)
+      c.root = c.currentFilename
+      c.currentFilename = ""
+      if err = os.Chdir(c.root); err != nil {
+        quit(1, err, c, "Unable to change to new root directory %s", c.root)
+      }
+		  c.root = currDir()
 		}
 	}
 	// No file was given on the command line.
@@ -716,6 +707,7 @@ func main() {
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
 	webrootPath := buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
+	//debug("%v", c.files)
 	quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
 
 }
@@ -869,10 +861,11 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
 		// the relative directory is 2023/may.
 		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
-			quit(1, err, c, "Unable to get relative paths of %s and %s", filename, webroot)
+			quit(1, err, c, "Unable to get relative paths of %s and %s", homeDir, sourceDir)
 		}
-
+		//debug("filepath.Rel(%s,%s) == %s", homeDir, sourceDir, rel)
 		// Determine the destination directory.
+		// xxx
 		webrootPath = filepath.Join(homeDir, webroot, rel)
 		// Obtain file extension.
 		ext := path.Ext(filename)
@@ -922,6 +915,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
+	//debug("returning webrootPath: %s. c.webroot: %s", webrootPath, c.webroot)
 	return webrootPath
 }
 
@@ -1030,7 +1024,7 @@ func copyFile(c *config, source string, target string) {
 	}
 }
 
-// Generates a simple home page as an HTML string
+// defaultHomePage() Generates a simple home page as an HTML string
 // Uses the file segment of dir as the the H1 title.
 // Uses current directory if "." or "" are passed
 func defaultHomePage(dir string) string {
@@ -1075,14 +1069,18 @@ func dirEmpty(name string) bool {
 // downloadFile() tries to read in the named URL as text and return
 // its contents as a string.
 func (c *config) downloadTextFile(url string) string {
+  //debug("\t\tdownloadTextFile(%s)", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		quit(1, err, c, "Unable setting up to GET file %s", url)
 	}
+  //debug("\t\tdownloadTextFile(%s) NewRequest(GET) succeeded ", url)
 	req.Header.Set("Accept", "application/text")
 	client := &http.Client{}
 	resp, err := client.Do(req)
+  //debug("\t\tdownloadTextFile(%s) client.Do() ", url)
 	if err != nil {
+    //debug("\t\t\tdownloadTextFile(%s) client.Do(%v) FAIL***", url, req)
 		quit(1, err, c, "Unable to download file %s", url)
 	}
 	defer resp.Body.Close()
@@ -1093,6 +1091,35 @@ func (c *config) downloadTextFile(url string) string {
 
 	return string(b)
 
+}
+
+// getWebOrLocalFileStr reads filename and returns it as a string.
+// If string starts with http or https fetches it from the web.
+func (c *config) getWebOrLocalFileStr(filename string) string {
+	// Return value: contents of file are stored here
+	s := ""
+  ////debug("***getWebOrLocalFileStr(%s)", filename)
+
+	// Handle case of URLs as opposed to local file
+	if strings.HasPrefix(filename, "http") {
+    //debug("***\tDownloading getWebOrLocalFileStr(%s)", filename)
+		// TODO: Check for redirect?
+		// https://golangdocs.com/golang-download-files
+		s = c.downloadTextFile(filename)
+		return s
+		//
+	}
+
+	// Handle case of local file with relative path
+	if !filepath.IsAbs(filename) {
+		fullPath := filepath.Join(c.theme.dir, filename)
+		s = c.fileToString(fullPath)
+		return s
+	}
+
+	// Handle case of local file with absolute path
+	s = c.fileToString(filename)
+	return s
 }
 
 // Generates a simple home page
@@ -1499,7 +1526,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.GFM,
 		extension.DefinitionList,
 		extension.Footnote,
-    extension.Linkify,
+		extension.Linkify,
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
@@ -1511,7 +1538,7 @@ func newGoldmark() goldmark.Markdown {
 
 	renderOpts := []renderer.Option{
 		// html.WithUnsafe(),
-    // html.WithHardWraps(),
+		// html.WithHardWraps(),
 		html.WithXHTML(),
 	}
 	return goldmark.New(
