@@ -40,6 +40,7 @@ package main
 // poco --styles "//writ.cmcenroe.me/1.0.4/writ.min.css" foo.md
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"flag"
@@ -100,6 +101,7 @@ func assemble(c *config, filename string, article string, language string, style
 	if extraStyleTags != "" {
 		extraStyleTags = "\t" + tagSurround("style", extraStyleTags, "\n")
 	}
+	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
 		"<head>\n" +
@@ -193,7 +195,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// the front matter, e.g. Header: "SUPPRESS"
 	filename := frontMatterStr(element, c)
 	// debug("\tlayoutEl %s: %s", element, filename)
-	//debug("\t%s %s:  %+v", filepath.Base(sourcefile),element,c.fm)
+	//debug("\t%s %s (%s):  %+v", filepath.Base(sourcefile),element,filename,c.fm)
 
 	if filename == "SUPPRESS" {
 		return ""
@@ -597,8 +599,23 @@ func (c *config) findHomePage() {
 	// Look for "README.md" or "index.md" in that order.
 	// return "" if neither found.
 	c.homePage = indexFile(c.root)
-	if c.homePage == "" {
-		quit(1, nil, c, "Can't find README.md or index.md in root TODO: FINISH THIS")
+
+	if c.homePage != "" {
+		return
+	}
+
+	if !dirEmpty(c.root) {
+		// No home page.
+		// Directory has files.
+		// User may not wish to create a new project.
+		if promptYes("Create a home page?") {
+			writeDefaultHomePage(c, c.root)
+		} else {
+			quit(1, nil, c, "Can't build a project with an index.md or README.md")
+		}
+	} else {
+		// Empty dir, so create home page
+		writeDefaultHomePage(c, c.root)
 	}
 }
 
@@ -607,7 +624,7 @@ func (c *config) findHomePage() {
 // Sets values accordingly.
 func (c *config) setup() {
 	c.findHomePage()
-	// If a theme directory was named in FrontMatter's Theme:,
+	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
 }
@@ -699,7 +716,7 @@ func main() {
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
 	webrootPath := buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
-	quit(0, nil, c, "Site published to %s", webrootPath)
+	quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
 
 }
 
@@ -777,10 +794,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(c.root) {
-		homePage := writeDefaultHomePage(c, c.root)
-		warn("No index.md or README.md found. Created home page %v", homePage)
-	}
 
 	// Change to requested directory
 	if err = os.Chdir(c.root); err != nil {
@@ -907,36 +920,35 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		}
 	}
 	// This is where the files were published
-	ensureIndexHTML(webrootPath, c)
+	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
 	return webrootPath
 }
 
 // ensureIndexHTML makes sure there's an index.html file
-// in the directory. It's required because some existing
+// in the webroot directory. It's required because some existing
 // projects use README.md instead of index.md.
-// Even if a project directory had both
-// an index.md and a README.md, the output README.html
-// would be renamed to index.html
+// Web servers don't recognize README.html as
+// the home page, so an existing README.html gets renamed index.html.
+// If both exist, README.md takes priority over index.md.
 func ensureIndexHTML(path string, c *config) {
 	readmeHTML := filepath.Join(path, "README.html")
-	newIndexHTML := filepath.Join(path, "index.html")
+	indexHTML := filepath.Join(path, "index.html")
 
 	// if neither index.html nor README.html, then they
 	// were missing source files to begin with.
-	if !fileExists(readmeHTML) && !fileExists(newIndexHTML) {
+	if !fileExists(readmeHTML) && !fileExists(indexHTML) {
 		quit(1, nil, c, "No README.html or index.html could be found in %v", path)
 	}
 
 	// Both README.html and index.html exist.  Or
 	// README.html exists but no index.html exists.
 	// Rename README.html
-	if fileExists(readmeHTML) && (fileExists(newIndexHTML) || !fileExists(newIndexHTML)) {
-		err := os.Rename(readmeHTML, newIndexHTML)
+	if fileExists(readmeHTML) && (fileExists(indexHTML) || !fileExists(indexHTML)) {
+		err := os.Rename(readmeHTML, indexHTML)
 		if err != nil {
 			quit(1, err, c, "Unable to rename %v ", readmeHTML)
 		}
-		return
 	}
 }
 
@@ -1043,6 +1055,23 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 	return page
 }
 
+// dirEmpty() returns true if the specified directory is empty.
+// Gratefully stolen from:
+// https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
+func dirEmpty(name string) bool {
+	f, err := os.Open(name)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true
+	}
+	return false // Either not empty or error, suits both cases
+}
+
 // downloadFile() tries to read in the named URL as text and return
 // its contents as a string.
 func (c *config) downloadTextFile(url string) string {
@@ -1074,6 +1103,7 @@ func writeDefaultHomePage(c *config, dir string) string {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
 	writeStringToFile(c, pathname, html)
+	c.homePage = pathname
 	return pathname
 }
 
@@ -1354,13 +1384,12 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	}
 	// fmt.Println(msg + errmsg)
 	if c.currentFilename != "" {
+		// Error exit
 		if exitCode != 0 {
 			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 		} else {
-			fmt.Printf("PocoCMS %s:\n \t%s\n", c.currentFilename, msg)
+			fmt.Printf("%s%s\n", msg, errmsg)
 		}
-	} else {
-		fmt.Printf("%s%s\n", msg, errmsg)
 	}
 	os.Exit(exitCode)
 }
@@ -1525,4 +1554,60 @@ func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 	}
 	// Obtain YAML front matter from document.
 	return buf.Bytes(), metaData, nil
+}
+
+// PROMPT UTILITIES
+
+// inputString() gets a string from the keyboard and returns it
+// See also promptString()
+func inputString() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	return scanner.Text()
+}
+
+// promptString() displays a prompt, then awaits for keyboard
+// input and returns it on completion.
+// See also inputString(), promptYes()
+func promptString(format string, ss ...interface{}) string {
+	fmt.Print(fmtMsg(format, ss...))
+	fmt.Print(" ")
+	return inputString()
+}
+
+// promptStringDefault() displays a prompt, then awaits for keyboard
+// input and returns it on completion. It precedes the end of the
+// prompt with a default value in brackets.
+// See also inputString(), promptYes()
+func promptStringDefault(prompt string, defaultValue string) string {
+	answer := promptString(prompt + " [" + defaultValue + "] ")
+	if answer == "" {
+		return defaultValue
+	} else {
+		return answer
+	}
+	// TODO Remove if not used
+	fmt.Print(prompt + " [" + defaultValue + "] ")
+	answer = inputString()
+	if answer == "" {
+		return defaultValue
+	} else {
+		return answer
+	}
+}
+
+// promptYes() displays a prompt, then awaits
+// keyboard input. If the answer starts with Y,
+// returns true. Otherwise, returns false.
+// See also inputString(), promptString()
+func promptYes(prompt string) bool {
+	// See also inputString(), promptYes()
+	for {
+		answer := promptString(prompt)
+		if strings.HasPrefix(strings.ToLower(answer), "y") ||
+			strings.HasPrefix(strings.ToLower(answer), "n") {
+			return strings.HasPrefix(strings.ToLower(answer), "y")
+		}
+	}
+	///return strings.HasPrefix(strings.ToLower(answer), "y")
 }
