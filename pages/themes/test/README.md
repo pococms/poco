@@ -3,7 +3,7 @@ Author: Tom Campbell
 Branding: Latest
 
 
-StyleFiles:
+Stylesheets:
   - /Users/tom/foo/bahunya.css
 ---
 # Test 

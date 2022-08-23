@@ -7,7 +7,7 @@ Aside: aside.md
 Footer: footer.md
 
 
-StyleFiles:
+Stylesheets:
   - reset.css
   - poquito.css
   - latest.css

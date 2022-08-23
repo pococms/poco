@@ -4,8 +4,8 @@ Nav: nav.md
 Aside: aside.md
 Footer: footer.md
 
-StyleFiles:
-- poquito.css
+Stylesheets:
+- ../../assets/css/poquito.css
 - pococms.css
 ---
 

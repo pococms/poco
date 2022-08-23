@@ -1,5 +1,5 @@
 ---
-StyleFiles:
+Stylesheets:
 - simplicity.css
 ---
 

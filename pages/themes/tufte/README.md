@@ -2,10 +2,12 @@
 Author: Tom Campbell
 Branding: The Tufte Theme
 
-StyleFiles:
+Stylesheets:
   - https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css
   - layout-only.css
 ---
 # Tufte
 
-Example of a classles theme, drawing solely from an online source.
+Example of a classless theme, drawing the CSS from an online source,
+then adding a minimal layout file to support layout elements:
+header, nav, aside, and footer.
