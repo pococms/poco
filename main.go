@@ -86,15 +86,15 @@ func assemble(c *config, filename string, article string, language string, style
 		article = parsedArticle
 	}
 
-	// If there are style tags in the theme's README, 
-  // add and enclose in a <style> tag. Otherwise
+	// If there are style tags in the theme's README,
+	// add and enclose in a <style> tag. Otherwise
 	// leave it empty.
-  themeExtraTemplateTags := c.theme.styleFileTemplateTags
-  if themeExtraTemplateTags  != "" {
-    themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
-  }
-	// If there are style tags in the current file, 
-  // add and enclose in a <style> tag. Otherwise
+	themeExtraTemplateTags := c.theme.styleFileTemplateTags
+	if themeExtraTemplateTags != "" {
+		themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
+	}
+	// If there are style tags in the current file,
+	// add and enclose in a <style> tag. Otherwise
 	// leave it empty.
 	extraStyleTags := c.styleTags()
 	if extraStyleTags != "" {
@@ -109,7 +109,7 @@ func assemble(c *config, filename string, article string, language string, style
 		metatags(c) +
 		linktags(c) +
 		stylesheets(stylesheetList, c) +
-    themeExtraTemplateTags +
+		themeExtraTemplateTags +
 		extraStyleTags +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
@@ -192,7 +192,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
 	// the front matter, e.g. Header: "SUPPRESS"
 	filename := frontMatterStr(element, c)
-	//debug("\tlayoutEl %s: %s", element, filename)
+	// debug("\tlayoutEl %s: %s", element, filename)
 	//debug("\t%s %s:  %+v", filepath.Base(sourcefile),element,c.fm)
 
 	if filename == "SUPPRESS" {
@@ -272,7 +272,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
 	themeDir := frontMatterStr("Theme", nc)
-	if themeDir == ""{
+	if themeDir == "" {
 		return
 	}
 	if !fileExists(c.homePage) {
@@ -319,7 +319,7 @@ func (c *config) loadTheme() {
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
 	styleFileList := frontMatterStrSlice("Stylesheets", nc)
-  // nc.theme.dir = themeDir
+	// nc.theme.dir = themeDir
 	c.styleFiles(styleFileList)
 	// Theme loaded. Now get additional style tags.
 	c.styleTags()
@@ -532,14 +532,14 @@ type theme struct {
 	// Names of template stylesheets
 	styleFileTemplates string
 
-  // Names of style tags FROM THE CURRENT MARKDOWN FILE,
-  // not the theme's README.md. 
-  // Scenario: You've developed a light theme.
-  // You want to experiment with a dark theme. 
-  // So you add IN THE CURRENT MARKDOWN FILE
-  // StyleTags:
-  // - "article{background-color:black;color:black}"
-  styleFileTemplateTags string
+	// Names of style tags FROM THE CURRENT MARKDOWN FILE,
+	// not the theme's README.md.
+	// Scenario: You've developed a light theme.
+	// You want to experiment with a dark theme.
+	// So you add IN THE CURRENT MARKDOWN FILE
+	// StyleTags:
+	// - "article{background-color:black;color:black}"
+	styleFileTemplateTags string
 
 	// The stylesheets for each theme are concantenated, then read
 	// into this string. It's injected straight into the HTML for
