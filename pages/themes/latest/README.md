@@ -9,6 +9,7 @@ Footer: footer.md
 
 Stylesheets:
   - reset.css
+#  - ../../assets/css/poquito.css
   - poquito.css
   - latest.css
 #  - dark.css

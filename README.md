@@ -1,8 +1,6 @@
 ---
 Title:  PocoCMS
 Theme: pages/themes/pocodocs
-StyleTags:
-  - "article{margin:0 8em 0 8em}"
 #Theme: pages/themes/latest
 #Aside: aside.md
 #Theme: pages/themes/test
@@ -21,65 +19,40 @@ StyleTags:
 # - pages/assets/css/pococms.css
 ---
 
-## To build from source:
+Paragraph.  
 
-Until 1 September 2022 PocoCMS must be built from source using Go.
-It's easy to install Go and even to build, because
-PocoCMS is a single file.
+Paragraph.
 
+Not another.
 
-### One time: install Go and git
+* visit https://pococms.com
+* visit http://pococms.com
+* visit www.pococms.com
 
-* Install the [Go language](https://go.dev/dl/) if necessary.
-* Install [git](https://git-scm.com/downloads) if necessary.
-* Create a directory or change to a directory to install PocoCMS.
+# PocoCMS: the fastest way to turn Markdown into documentation
 
-```
-mkdir ~/pococms
-```
-
-* Navigate to that directory.
-
-```
-cd ~/pococms
-```
-
-* Clone the PocoCMS repo
-
-```
-git clone https://github.com/pococms/poco
-```
-
-* The repo is now in ~/pococms/poco, (in this example) so navigate there.
-
-```
-cd poco
-```
-
-### One time: compile PocoCMS
-
-* And compile: 
-
-```
-go build 
-```
-
-**OR...**
+PocoCMS is a command-line JamStack utility to let you build
+documentation websites instantly. It has anywhere from zero
+to a short learning curve, and will start you off by
+building a website for you the first time you run it.
 
 
-* There's only one file, so you can also use go run.
-That runs the go compiler on the single `main.go` 
-containing PocoCMS, then executes PocoCMS.
+PocoCMS is meant to give you the same feeling you had if
+you created websites in the early days of the Web, because
+it requires very little tooling and gives you strict control
+over the output. It speeds things up by using Markdown for
+text and lets you build or use themes easily.
 
-```
-go run main.go
-```
+If you don't want strict control over the output and just want
+to get some documentation onto the Web, PocoCMS is even more
+suited to you. Just start writing files in Markup, and PocoCMS
+will instantly produce something attractive and functional.
 
+## Building from source
 
-Add the `poco` executable to your system path 
-so you can run it from any directory.
-
-### PocoCMS creates a starting project automatically.
+For the moment, you need to build PocoCMS yourself as a 
+Go program. Don't worry. There are explicit instructions at
+[Build from source](build-from-source.html)
 
 ## To create a website using PocoCMS
 
