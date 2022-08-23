@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
+table {
+  /* Cells in a table share borders */
+	border-collapse: collapse;
+}
+ 
+#page-container { 
+  position: relative;
+  min-height: 100vh;
+}
+/* This is nested just inside article, and closes right before footer */
+#content-wrap {
+  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
+}
+body{
+  height:100vh;
+  font-family:sans-serif;
+}
+header{height:10vh;}
+nav{height:10vh;}
+article{padding-left:10vh}
+aside{ 
+  float:right; /* Change to float:left for right sidebar */
+  height:100vh;
+  width:20rem;
+  padding:1rem 10rem 1rem 1rem;
+}
+/* NOTE: Footer height must be same as #content-wrap padding-bottom */
+footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid;
+}
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+pre{
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
+}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid LightGray;
+}
+@media (max-width:1080px){
+  aside{display:none}
+ article{padding:1rem;}
+}
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
+}
+ 
+/* pococms.css */
+html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
+header > ul {list-style-type:none;display:inline;}
+header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
+header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
+article > h1 {color:red;}
+header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {padding-bottom:1rem;}
+article{margin:0 8em 0 8em}
+
+</style>
+</head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+	<header><ul>
+<li><a href="https://pococms.com">poco<del>CMS</del></a></li>
+<li><a href="../../../build-from-source.html">Download</a></li>
+<li><a href="../../pages/reference.html">Documentation</a></li>
+<li><a href="../../pages/tutorials.html">Tutorials</a></li>
+<li><a href="pages/technical-overview.html">Technical Overview</a></li>
+</ul></header>
+			<article id="article"><h1 id="demo">demo</h1>
+<p>try <a href="probot.html">probot</a></p>
+<p>hello, world.</p>
+<p>Learn more at <a href="https://pococms.com/docs/tutorials.html">PocoCMS tutorials</a></p>
+	</article>
+</div><!-- content-wrap -->
+	</div><!-- page-container -->
+</body>
+</html>

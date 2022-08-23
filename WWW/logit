@@ -1,0 +1,11 @@
+#!/bin/zsh
+log_file=~/log.txt
+
+# %T means full date
+# %r means 12 hour clock time
+now=$(date +"%T %r")
+cmdline="${@:1}"
+echo $cmdline
+echo "${now} \"${@:1}\"" >>  $log_file
+cat $log_file
+

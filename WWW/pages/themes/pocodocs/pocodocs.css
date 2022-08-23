@@ -1,0 +1,5 @@
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {padding-bottom:1rem;}
+article{margin:0 8em 0 8em}
+

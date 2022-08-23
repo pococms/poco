@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
+table {
+  /* Cells in a table share borders */
+	border-collapse: collapse;
+}
+ 
+#page-container { 
+  position: relative;
+  min-height: 100vh;
+}
+/* This is nested just inside article, and closes right before footer */
+#content-wrap {
+  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
+}
+body{
+  height:100vh;
+  font-family:sans-serif;
+}
+header{height:10vh;}
+nav{height:10vh;}
+article{padding-left:10vh}
+aside{ 
+  float:right; /* Change to float:left for right sidebar */
+  height:100vh;
+  width:20rem;
+  padding:1rem 10rem 1rem 1rem;
+}
+/* NOTE: Footer height must be same as #content-wrap padding-bottom */
+footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid;
+}
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+pre{
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
+}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid LightGray;
+}
+@media (max-width:1080px){
+  aside{display:none}
+ article{padding:1rem;}
+}
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
+}
+ 
+/* pococms.css */
+html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
+header > ul {list-style-type:none;display:inline;}
+header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
+header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
+article > h1 {color:red;}
+header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {padding-bottom:1rem;}
+article{margin:0 8em 0 8em}
+
+</style>
+</head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+	<header><ul>
+<li><a href="https://pococms.com">poco<del>CMS</del></a></li>
+<li><a href="../../../build-from-source.html">Download</a></li>
+<li><a href="../../pages/reference.html">Documentation</a></li>
+<li><a href="../../pages/tutorials.html">Tutorials</a></li>
+<li><a href="pages/technical-overview.html">Technical Overview</a></li>
+</ul></header>
+			<article id="article"><h1 id="pococms-frequently-asked-questions">PocoCMS Frequently Asked Questions</h1>
+<dl>
+<dt>How do I get blank lines after paragraphs?</dt>
+<dd>To get end a line and start a new one, you need
+to end the first line with two spaces. Imagine the
+little dot characters ·· are actually you pressing
+the space key twice:</dd>
+</dl>
+<pre><code>Line 1.··   ← Pretend those are 2 space characters
+Line 2.
+</code></pre>
+<p><strong>What? Why? This is terrible!</strong></p>
+<p>It's actually the way HTML behaves, and remember that
+Markdown was made to be easy to read by itself, but
+to <a href="https://daringfireball.net/projects/markdown/">translate directly to HTML</a> when you did a conversion.</p>
+<p><em>Some background on HTML and how it works with Markdown</em></p>
+<p>And in HTML, any number of spaces and/or paragraphs (called <code>newlines</code> in the programming world) between words are automatically
+replaced by a single space. So, if you write any of these
+in Markdown:</p>
+<pre><code>Line 1.
+Line 2.
+</code></pre>
+<p>Or this:</p>
+<pre><code>Line 1.
+
+
+Line 2.
+</code></pre>
+<p>Or even this:</p>
+<pre><code>Line 1.
+
+
+
+Line 2.
+</code></pre>
+<p>The result will always be this:</p>
+<pre><code>Line 1. Line 2.
+</code></pre>
+<p>In HTML, if you write this:</p>
+<pre><code>&lt;p&gt;Line 1.&lt;br/ &gt;Line 1.&lt;/p&gt;
+</code></pre>
+<p>you will get the result you're looking for:</p>
+<pre><code>Line 1. 
+Line 2.
+</code></pre>
+<p>There may or may not be a space between paragraphs
+depending on how the style sheet was written.</p>
+<p>You will get that same result if your code looks like this:</p>
+<pre><code>&lt;p&gt;Line 1.&lt;/p&gt;
+
+
+
+&lt;p&gt;Line 1.&lt;/p&gt;
+</code></pre>
+<p>It will still appear this way on the web page:</p>
+<pre><code>Line 1. 
+
+Line 2.
+</code></pre>
+<p>Adding 2 spaces to the end of a line is how to get Markdown
+to enclose each line in paragraph tags, but to use a line break between them. Again, if
+you type 2 spaces at the end of the first line,
+both will be rendered in HTML as paragraphs.
+This Markdown:</p>
+<pre><code>Line 1.··   ← Pretend those are 2 space characters
+Line 2.
+</code></pre>
+<p>Becomes this HTML:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">p</span>&gt;Line 1.&lt;<span style="color:#000080">br</span>/ &gt;Line 2.&lt;/<span style="color:#000080">p</span>&gt;
+</span></span></code></pre><p>And will render something like this:</p>
+<pre><code>Line 1. 
+Line 2.
+</code></pre>
+	</article>
+</div><!-- content-wrap -->
+	</div><!-- page-container -->
+</body>
+</html>

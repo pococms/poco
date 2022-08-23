@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
+table {
+  /* Cells in a table share borders */
+	border-collapse: collapse;
+}
+ 
+#page-container { 
+  position: relative;
+  min-height: 100vh;
+}
+/* This is nested just inside article, and closes right before footer */
+#content-wrap {
+  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
+}
+body{
+  height:100vh;
+  font-family:sans-serif;
+}
+header{height:10vh;}
+nav{height:10vh;}
+article{padding-left:10vh}
+aside{ 
+  float:right; /* Change to float:left for right sidebar */
+  height:100vh;
+  width:20rem;
+  padding:1rem 10rem 1rem 1rem;
+}
+/* NOTE: Footer height must be same as #content-wrap padding-bottom */
+footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid;
+}
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+pre{
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
+}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid LightGray;
+}
+@media (max-width:1080px){
+  aside{display:none}
+ article{padding:1rem;}
+}
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
+}
+ 
+/* pococms.css */
+html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
+header > ul {list-style-type:none;display:inline;}
+header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
+header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
+article > h1 {color:red;}
+header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {padding-bottom:1rem;}
+article{margin:0 8em 0 8em}
+
+</style>
+</head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+	<header><ul>
+<li><a href="https://pococms.com">poco<del>CMS</del></a></li>
+<li><a href="../../../build-from-source.html">Download</a></li>
+<li><a href="../../pages/reference.html">Documentation</a></li>
+<li><a href="../../pages/tutorials.html">Tutorials</a></li>
+<li><a href="pages/technical-overview.html">Technical Overview</a></li>
+</ul></header>
+			<article id="article"><h1 id="metabuzz-markdown-quick-reference">Metabuzz Markdown quick reference</h1>
+<p>When in the course of human events, it becomes necessary for one people to dissolve the political bands that connect one another</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li><a href="#common-text-formatting">Common text formatting</a></li>
+<li><a href="#links">Links</a></li>
+<li><a href="#bookmarks">Bookmarks</a>
+<ul>
+<li><a href="#linking-inside-a-document">Linking inside a document</a></li>
+<li><a href="#automatic-bookmarks">All headers are automatically bookmarks</a></li>
+<li><a href="#bookmarks-unique">Bookmarks must be unique in an HTML document</a></li>
+<li><a href="#how-to-create-bookmarks-manually">How to create bookmarks manually</a></li>
+<li><a href="#linking-other-websites">Linking to bookmarks on other webstes</a></li>
+</ul>
+</li>
+<li><a href="#header-styles">Header styles</a></li>
+<li><a href="#coding-styles">Coding styles</a>
+<ul>
+<li><a href="#choose-pl">Choosing the programming language</a></li>
+</ul>
+</li>
+<li><a href="#ordered-lists-37">Ordered lists</a></li>
+<li><a href="#unordered-lists">Unordered, or bullet lists</a></li>
+<li><a href="#def-lists">The &quot;third&quot; list type: definition lists</a></li>
+<li><a href="#clickable-images">Creating clickable image links in Markdown</a></li>
+<li><a href="#tables">Tables</a></li>
+<li><a href="#block-quote">Block quote</a></li>
+<li>[Footer]#foote-43)</li>
+<li><a href="#html-forms">HTML Forms</a></li>
+</ul>
+<h2 id="markdown-syntax">Markdown syntax</h2>
+<p>Here's how markdown appears in the <strong><no value></strong> theme</p>
+<h2 id="common-text-formatting">Common text formatting</h2>
+<h4 id="you-type">You type:</h4>
+<pre><code>Normal body text, **strong**, ~~strikethrough~~, and with *emphasis*.
+</code></pre>
+<h4 id="it-shows-as">It shows as:</h4>
+<p>Normal body text, <strong>strong</strong>, <del>strikethrough</del>, and with <em>emphasis</em>.</p>
+<p>Horizontal rule:</p>
+<h4 id="you-type-1">You type:</h4>
+<pre><code>---
+</code></pre>
+<h4 id="it-shows-as-1">It shows as:</h4>
+<hr />
+<h2 id="links">Links</h2>
+<h4 id="you-type-2">You type:</h4>
+<pre><code>[HTML color names](https://htmlcolorcodes.com/color-names/)
+</code></pre>
+<h4 id="it-shows-as-2">It shows as:</h4>
+<p><a href="https://htmlcolorcodes.com/color-names/">HTML color names</a></p>
+<h2 id="bookmarks">Bookmarks</h2>
+<p>Suppose you want to link to a particular location inside a page. As long as there's an <code>id</code> attribute in the document's HTML you can cause a link to jump directly to that part of the page by specifing the link following a <code>#</code> character.</p>
+<h3 id="linking-inside-a-document">Linking inside a document</h3>
+<p>We'll loosely call them anchors or bookmarks,
+although the HTML specification simply calls it the <a href="https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute">id attribute</a>.</p>
+<p>Here's a demonstration. If you type:</p>
+<pre><code>Jump to the [tables](#tables) section.
+</code></pre>
+<p>The result will be this (click the link, then use your browser's Back button to return here):</p>
+<p>Jump to the <a href="#tables">tables</a> section.</p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="all-headers-are-automatically-bookmarks-too">All headers are automatically bookmarks too</h3>
+<p>Metabuzz automatically generates an <code>id</code> attribute for each header from h1 to h6 by taking the text of the link itself, reducing it to lowercase, and either replacing spaces and other non-letter characters with hyphens, or removing them altogether. If you look at the HTML for this page you'll see the <code>Tables</code> header looks like this:</p>
+<pre><code>&lt;h2 id=&quot;tables&quot;&gt;Tables&lt;/h2&gt;
+</code></pre>
+<p>The <code>Coding styles</code> header uses a hyphen to replace the space:</p>
+<pre><code>&lt;h2 id=&quot;coding-styles&quot;&gt;Coding styles&lt;/h2&gt;
+</code></pre>
+<p>And the more complicated example of the header named &quot;The 'third' list type: definition lists&quot;:</p>
+<pre><code>&lt;h3 id=&quot;the-third-list-type-definition-lists&quot;&gt;The &quot;third&quot; list type: definition lists&lt;/h3&gt;
+</code></pre>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="bookmarks-must-be-unique-in-an-html-document">Bookmarks must be unique in an HTML document</h3>
+<p>The <code>id</code> attribute must be unique within a document. Notice how on this page there are many headers simply called <code>You type:</code>? Metabuzz keeps track of them and turns each of them into unique IDs by naming them <code>you-type-1</code>, <code>you-type-2</code>, and so forth.</p>
+<h3 id="how-to-create-bookmarks-manually">How to create bookmarks manually</h3>
+<p>Suppose you want a bookmark that's not a header? You can insert one anywhere by starting a Markdown line with the pure HTML code for anchors. (HTML is <a href="https://spec.commonmark.org/0.29/#html-blocks">allowed in Markdown with a few restrictions</a>).</p>
+<p>You type:</p>
+<pre><code>&lt;a name=&quot;jump-here&quot;&gt;&lt;/a&gt;
+</code></pre>
+<p>Then you create a link to it by adding the <code>#jump-here</code> portion to a link, which is noted by the web browser but not displayed:</p>
+<pre><code>[Learn about blockquotes](#jump-here)
+</code></pre>
+<p>Try it now: <a href="#jump-here">Learn about blockquotes</a></p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="linking-to-bookmarks-on-other-websites">Linking to bookmarks on other websites</h3>
+<p>You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:</p>
+<h4 id="you-type-3">You type:</h4>
+<pre><code>[History of futbol](https://en.wikipedia.org/wiki/Association_football#History)
+</code></pre>
+<h4 id="it-takes-you-right-there">It takes you right there:</h4>
+<p><a href="https://en.wikipedia.org/wiki/Association_football#History">History of futbol</a></p>
+<h2 id="header-styles">Header styles</h2>
+<h4 id="you-type-4">You type:</h4>
+<pre><code># h1
+## h2
+### h3
+#### h4
+##### h5
+###### h6
+</code></pre>
+<h4 id="it-shows-as-3">It shows as:</h4>
+<h1 id="h1">h1</h1>
+<h2 id="h2">h2</h2>
+<h3 id="h3">h3</h3>
+<h4 id="h4">h4</h4>
+<h5 id="h5">h5</h5>
+<h6 id="h6">h6</h6>
+<h2 id="coding-styles">Coding styles</h2>
+<p>You can format text inline as <code>code</code> by surrounding text with <code>`</code>tick marks<code>`</code>, or go block style by enclosing the lines of code in a &quot;fenced code block&quot;, which begin and end with 3 tickmarks:</p>
+<pre><code>You can format text inline as `code`, or go block style:
+</code></pre>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="choosing-the-programming-language">Choosing the programming language</h3>
+<p>You can specify a color scheme for a particular programming language by including its name after the first 3 tick marks of the code block.</p>
+<h4 id="you-type-5">You type:</h4>
+<pre><code>```python
+print (&quot;This is a code block&quot;)
+```
+</code></pre>
+<h4 id="it-shows-as-4">It shows as:</h4>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0086b3">print</span> (<span style="color:#d14">&#34;This is a code block&#34;</span>)
+</span></span></code></pre><h4 id="if-youre-a-go-programmer-you-type">If you're a Go programmer, you type:</h4>
+<pre><code>```go
+fmt.Println(&quot;This is a code block&quot;)
+```
+</code></pre>
+<h4 id="it-shows-as-5">It shows as:</h4>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>fmt.<span style="color:#900;font-weight:bold">Println</span>(<span style="color:#d14">&#34;This is a code block&#34;</span>)
+</span></span></code></pre><h2 id="there-are-2-or-3-kinds-of-list-types">There are 2 or 3 kinds of list types</h2>
+<h4 id="you-type-6">You type:</h4>
+<pre><code>### Ordered lists
+
+1. Ordered lists have numeric sequences
+1. Even though you write `1` in Markdown,
+1. The numbers display properly on output
+</code></pre>
+<h4 id="it-shows-as-6">It shows as:</h4>
+<h3 id="ordered-lists">Ordered lists</h3>
+<ol>
+<li>Ordered lists have numeric sequences</li>
+<li>Even though you write <code>1</code> in Markdown,</li>
+<li>The numbers display properly on output</li>
+</ol>
+<h3 id="unordered-lists">Unordered lists</h3>
+<p>Unordered lists are normally represented as bullets They're always
+the same, whereas ordered lists show as automatically generated sequences of letters or number</p>
+<h4 id="you-type-7">You type:</h4>
+<pre><code>Reasons people hate bullet lists
+
+* They were traumatized by bad PowerPoint
+* Some peple actually like bullet lists
+  + You can indent bullet lists
+    - Just use tab, then one of the characters `*`, `+`, `-`
+  + The `+` isn't required. It's just for clarity
+    - Most Metabuzz themes go up to 3 visible levels
+    - Any more levels than 3 makes it hard for the reader
+      + Therefore the Metabuzz theme framework seldom covers indentation levels as deep as this bullet point
+</code></pre>
+<h4 id="it-shows-as-7">It shows as:</h4>
+<p>Reasons people hate bullet lists</p>
+<ul>
+<li>They were traumatized by bad PowerPoint</li>
+<li>Some peple actually like bullet lists
+<ul>
+<li>You can indent bullet lists
+<ul>
+<li>Just use tab, then one of the characters <code>*</code>, <code>+</code>, <code>-</code></li>
+</ul>
+</li>
+<li>The <code>+</code> isn't required. It's just for clarity
+<ul>
+<li>Most Metabuzz themes go up to 3 visible levels</li>
+<li>Any more levels than 3 makes it hard for the reader
+<ul>
+<li>Therefore the Metabuzz theme framework seldom covers indentation levels as deep as this bullet point</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="the-third-list-type-definition-lists">The &quot;third&quot; list type: definition lists</h3>
+<p>A definition list lets you display things like an item
+and its meaning in a distinct way:</p>
+<h4 id="you-type-8">You type:</h4>
+<pre><code>Definition list
+: A way to show a visual relationship between a word or phrase
+and an explanation for it
+
+Markdown
+: A convention for generating HTML from a more human-readable 
+source format.
+</code></pre>
+<h4 id="it-shows-as-8">It shows as:</h4>
+<dl>
+<dt>Definition list</dt>
+<dd>A way to show a visual relationship between a word or phrase
+and an explanation for it</dd>
+<dt>Markdown</dt>
+<dd>A convention for generating HTML from a more human-readable
+source format.</dd>
+</dl>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="creating-clickable-image-links-in-markdown">Creating clickable image links in Markdown</h3>
+<p>Remember that a Markdown link looks like this:</p>
+<pre><code>[Twitter](https://twitter.com)
+</code></pre>
+<p>And that an image link looks like this:</p>
+<pre><code>![Twitter logo](twitter-32x32-black.png)
+</code></pre>
+<p>You can combine them to make a clickable image, like this:</p>
+<pre><code>[![Twitter logo](twitter-32x32-black.png)](https://twitter.com)
+</code></pre>
+<h2 id="tables">Tables</h2>
+<p>Use this method of creating tables. Columns are normally left-aligned,
+but <code>:|</code> on the row of dashes right-aligns a column, and  <code>|:-</code> and  <code>-:|</code> center-aligns a column.
+Headers are always centered.</p>
+<h4 id="you-type-9">You type:</h4>
+<pre><code>
+| Left-justified Contents |  Centered Contents   | Right-justified Contents   |
+| ------------------------ |:--------------------:| --------------------------:|
+| Row 1, Col 1             | Row 1, Col 2         | Row 1, Col 3               |
+| Row 2, Col 1             | Row 2, Col 2         | Row 2, Col 3               |
+
+</code></pre>
+<p>And here's what results from the table markdown shown above:</p>
+<h4 id="it-shows-as-9">It shows as:</h4>
+<table>
+<thead>
+<tr>
+<th>Left-justified Contents</th>
+<th align="center">Centered Contents</th>
+<th align="right">Right-justified Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Row 1, Col 1</td>
+<td align="center">Row 1, Col 2</td>
+<td align="right">Row 1, Col 3</td>
+</tr>
+<tr>
+<td>Row 2, Col 1</td>
+<td align="center">Row 2, Col 2</td>
+<td align="right">Row 2, Col 3</td>
+</tr>
+</tbody>
+</table>
+<h2 id="block-quote">Block quote</h2>
+<h4 id="you-type-10">You type:</h4>
+<pre><code>&gt;Hypocrisy waits silently for us all. 
+</code></pre>
+<h4 id="it-shows-as-10">It shows as:</h4>
+<blockquote>
+<p>Hypocrisy waits silently for us all.</p>
+</blockquote>
+<p><a href="#bookmarks">Return to the bookmarks section</a></p>
+<h2 id="html-forms">HTML forms</h2>
+<p><strong>HTML form test: Search reddit.com</strong></p>
+<!-- raw HTML omitted -->
+<h2 id="footer">Footer</h2>
+	</article>
+</div><!-- content-wrap -->
+	</div><!-- page-container -->
+</body>
+</html>
