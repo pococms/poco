@@ -1499,6 +1499,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.GFM,
 		extension.DefinitionList,
 		extension.Footnote,
+    extension.Linkify,
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
@@ -1509,8 +1510,8 @@ func newGoldmark() goldmark.Markdown {
 		parser.WithAutoHeadingID()}
 
 	renderOpts := []renderer.Option{
-		// WithUnsafe is required for HTML templates to work properly
-		html.WithUnsafe(),
+		// html.WithUnsafe(),
+    // html.WithHardWraps(),
 		html.WithXHTML(),
 	}
 	return goldmark.New(
