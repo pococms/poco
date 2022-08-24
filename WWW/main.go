@@ -549,17 +549,14 @@ type config struct {
 	// Front matter
 	fm map[string]interface{}
 
+  // # of files copied to webroot
+  copied int
+
 	// Name of Markdown file being processed
 	currentFilename string
 
 	// List of all files being processed
 	files []string
-
-	// This is true only when a home page
-	// (root of the directoryh tree) README.md
-	// or index.md is being processed
-	// TODO: Probably unnecessary
-	hitHomePage bool
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -911,11 +908,14 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		} else {
 			copyFile(c, source, target)
 		}
+    c.copied += 1
+
 	}
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
 	//debug("returning webrootPath: %s. c.webroot: %s", webrootPath, c.webroot)
+  Verbose("%v file(s) copied", c.copied)
 	return webrootPath
 }
 
@@ -1031,7 +1031,7 @@ func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
 Stylesheets:
-    - https://unpkg.com/simpledotcss/simple.min.css
+    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
 ---
 `
 	var indexMdBody = `
@@ -1042,7 +1042,7 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 	if dir == "" || dir == "." {
 		dir, _ = os.Getwd()
 	}
-	h1 := filepath.Base(dir)
+  h1 := "Welcome to " + filepath.Base(dir)
 	page := indexMdFront +
 		"# " + h1 + "\n" +
 		indexMdBody
@@ -1243,7 +1243,6 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 			return err
 		}
 		isDir := info.IsDir()
-
 		// Obtain just the filename.
 		name := filepath.Base(info.Name())
 
@@ -1378,6 +1377,7 @@ func titleTag(c *config) string {
 func metatags(c *config) string {
 	return metatag("description", frontMatterStr("Description", c)) +
 		metatag("keywords", frontMatterStr("Keywords", c)) +
+		metatag("robots", frontMatterStr("Robots", c)) +
 		metatag("author", frontMatterStr("Author", c))
 }
 
