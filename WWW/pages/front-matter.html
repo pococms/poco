@@ -98,12 +98,12 @@ article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
 article > ul > li {font-size:larger;line-height:1.75rem;}
 article{margin:0 8rem 0 8rem}
 header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
-article>p>code,article>p>pre,article>p>kbd{background-color:ghostwhite;font-size:smaller;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0}
+article>p>code,article>p>pre,article>p>kbd{background-color:ghostwhite;font-size:smaller;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
 article{width:50rem;}
 article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem}
 article>h2{padding-top:2.5rem;}
-pre{padding-top:.5rem;margin:0 !important}
-
+pre{border:1px solid gray;padding:1rem;background-color:ghostwhite;margin:1rem 0 1rem 0 !important} /* block, not inline */
+article>p{font-familiy:serif; !important}
 
 /* FAILED
  *
@@ -136,13 +136,15 @@ of front matter, then explains all the
 front matter options PocoCMS provides.</p>
 <p><a href="#formatting-rules">Formatting rules</a><br />
 <a href="#front-matter-basics">Front matter basics</a></p>
-<h2 id="alphabetical">Alphabetical</h2>
+<h2 id="alphabetical-list-of-front-matter-options">Alphabetical list of front matter options</h2>
 <p><a href="#author">Author</a><br />
 <a href="#description">Description</a><br />
 <a href="#keywords">Keywords</a><br />
 <a href="#keyvalue-pairs">Key/value pairs</a><br />
 <a href="#robots">Robots</a><br />
 <a href="#skippublish">Skippublish</a><br />
+<a href="#stylesheets">Stylesheets</a><br />
+<a href="#styletags">Styletags</a><br />
 <a href="#title">Title</a></p>
 <h2 id="front-matter-basics">Front Matter basics</h2>
 <p>The simplest PocoCMS Markdown document looks something
@@ -387,6 +389,25 @@ for each file in the list.</p>
 </span></span></span></code></pre><p>Causes this HTML to be generated:</p>
 <pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">link</span> <span style="color:#008080">rel</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;stylesheet&#34;</span> <span style="color:#008080">href</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;poquito.css&#34;</span>&gt;
 </span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">link</span> <span style="color:#008080">rel</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;stylesheet&#34;</span> <span style="color:#008080">href</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css&#34;</span>&gt;
+</span></span></code></pre><p>xxxx</p>
+<h1 id="styletags">Styletags</h1>
+<p>Causes a <code>&lt;style&gt;</code> tag to be inserted into the file
+for each line in the list. Because they
+are inserted after <a href="#stylesheets">Stylesheets</a> they
+override whatever appears in the stylesheets for
+the current page.
+It's a good way to develop stylesheets slowly, or
+to override colors for a light them to make it
+dark, and vice versa.</p>
+<h3 id="example-6">Example</h3>
+<p>Using this <code>Styletags</code> entry in the front matter:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Styletags</span>:<span style="color:#bbb"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#d14">&#34;article&gt;p{color:blue;}&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+</span></span></span></code></pre><p>Will cause the text on this page to be blue.</p>
+<p>Causes this HTML to be generated:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">style</span>&gt;<span style="color:#000080">article</span><span style="color:#000;font-weight:bold">&gt;</span><span style="color:#000080">p</span>{<span style="color:#000;font-weight:bold">color</span>:<span style="color:#000;font-weight:bold">blue</span>;}&lt;/<span style="color:#000080">style</span>&gt;
 </span></span></code></pre>	</article>
 </div><!-- content-wrap -->
 	</div><!-- page-container -->

@@ -283,8 +283,8 @@ func (c *config) loadTheme() {
 	// Make sure there's a LICENSE file
 	license := filepath.Join(themeDir, "LICENSE")
 
-  if c.getWebOrLocalFileStr(license) == "" {
-	//if c.fileToString(license) == "" {
+	if c.getWebOrLocalFileStr(license) == "" {
+		//if c.fileToString(license) == "" {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	c.theme.dir = themeDir
@@ -344,11 +344,11 @@ func (c *config) styleFiles(styleFileList []string) {
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
 	for _, filename := range styleFileList {
-    // Filename could be in one of these forms:
-    // Stylesheets:
-    // - "tufte.min.css"
-    // - "~/Users/tom/tufte.min.css"
-    // - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
+		// Filename could be in one of these forms:
+		// Stylesheets:
+		// - "tufte.min.css"
+		// - "~/Users/tom/tufte.min.css"
+		// - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 		s = c.getWebOrLocalFileStr(filename)
 		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
 	}
@@ -549,8 +549,8 @@ type config struct {
 	// Front matter
 	fm map[string]interface{}
 
-  // # of files copied to webroot
-  copied int
+	// # of files copied to webroot
+	copied int
 
 	// Name of Markdown file being processed
 	currentFilename string
@@ -673,7 +673,7 @@ func main() {
 
 	var err error
 	if c.root, err = filepath.Abs(c.root); err != nil {
-		quit(1, err, c, "Unable to absolute path of %s", c.root)
+		quit(1, err, c, "Unable to determine absolute path of %s", c.root)
 	}
 	if c.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
@@ -681,12 +681,12 @@ func main() {
 		if !dirExists(c.currentFilename) {
 			quit(1, nil, c, "Can't find the directory %v", c.currentFilename)
 		} else {
-      c.root = c.currentFilename
-      c.currentFilename = ""
-      if err = os.Chdir(c.root); err != nil {
-        quit(1, err, c, "Unable to change to new root directory %s", c.root)
-      }
-		  c.root = currDir()
+			c.root = c.currentFilename
+			c.currentFilename = ""
+			if err = os.Chdir(c.root); err != nil {
+				quit(1, err, c, "Unable to change to new root directory %s", c.root)
+			}
+			c.root = currDir()
 		}
 	}
 	// No file was given on the command line.
@@ -878,6 +878,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
 				debug(dumpFrontMatter(c))
 			}
+			// TODO: Use replaceExtension
 			source = filename[0:len(filename)-len(ext)] + ".html"
 			converted = true
 		} else {
@@ -908,14 +909,16 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		} else {
 			copyFile(c, source, target)
 		}
-    c.copied += 1
+		c.copied += 1
 
 	}
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
 	//debug("returning webrootPath: %s. c.webroot: %s", webrootPath, c.webroot)
-  Verbose("%v file(s) copied", c.copied)
+	Verbose("%v file(s) copied", c.copied)
+	// xxxxtarget = c.webroot
+	//return target
 	return webrootPath
 }
 
@@ -953,7 +956,7 @@ func getSkipPublish() []string {
 	// skipPublish.list = strings.Split(skip, " ")
 	// skipPublish = getSkipPublish()
 	return []string{}
-
+	// xxxx
 }
 
 // isProject() looks at the structure of the specified directory
@@ -1042,7 +1045,7 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 	if dir == "" || dir == "." {
 		dir, _ = os.Getwd()
 	}
-  h1 := "Welcome to " + filepath.Base(dir)
+	h1 := "Welcome to " + filepath.Base(dir)
 	page := indexMdFront +
 		"# " + h1 + "\n" +
 		indexMdBody
@@ -1069,18 +1072,18 @@ func dirEmpty(name string) bool {
 // downloadFile() tries to read in the named URL as text and return
 // its contents as a string.
 func (c *config) downloadTextFile(url string) string {
-  //debug("\t\tdownloadTextFile(%s)", url)
+	//debug("\t\tdownloadTextFile(%s)", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		quit(1, err, c, "Unable setting up to GET file %s", url)
 	}
-  //debug("\t\tdownloadTextFile(%s) NewRequest(GET) succeeded ", url)
+	//debug("\t\tdownloadTextFile(%s) NewRequest(GET) succeeded ", url)
 	req.Header.Set("Accept", "application/text")
 	client := &http.Client{}
 	resp, err := client.Do(req)
-  //debug("\t\tdownloadTextFile(%s) client.Do() ", url)
+	//debug("\t\tdownloadTextFile(%s) client.Do() ", url)
 	if err != nil {
-    //debug("\t\t\tdownloadTextFile(%s) client.Do(%v) FAIL***", url, req)
+		//debug("\t\t\tdownloadTextFile(%s) client.Do(%v) FAIL***", url, req)
 		quit(1, err, c, "Unable to download file %s", url)
 	}
 	defer resp.Body.Close()
@@ -1098,11 +1101,11 @@ func (c *config) downloadTextFile(url string) string {
 func (c *config) getWebOrLocalFileStr(filename string) string {
 	// Return value: contents of file are stored here
 	s := ""
-  ////debug("***getWebOrLocalFileStr(%s)", filename)
+	////debug("***getWebOrLocalFileStr(%s)", filename)
 
 	// Handle case of URLs as opposed to local file
 	if strings.HasPrefix(filename, "http") {
-    //debug("***\tDownloading getWebOrLocalFileStr(%s)", filename)
+		//debug("***\tDownloading getWebOrLocalFileStr(%s)", filename)
 		// TODO: Check for redirect?
 		// https://golangdocs.com/golang-download-files
 		s = c.downloadTextFile(filename)
