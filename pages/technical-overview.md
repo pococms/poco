@@ -1,6 +1,8 @@
-# PocoCMS Technical Overview
+---
+Keywords: "PocoCMS, PocoCMS summary, technical overview, how does PocoCMS work"
+---
 
-**Come back 1 September 2022 for something more substantial**
+# PocoCMS Technical Overview
 
 PocoCMS is a single executable file that reads a
 directory tree of files, converts Markdown files
@@ -10,7 +12,9 @@ The [webroot](glossary.html#webroot) is where
 HTML, stylesheets, and other file assets
 are sent to be published on the Web.
 
-PocoCMS meant above all to be unobtrusive. You don't
+PocoCMS is meant above all to be unobtrusive,
+easy to learn, and extremely easy to get
+started with. You don't
 have to create weird special files get started,
 or download a theme from some obscure
 location on the web. Just type some Markdown, making
@@ -66,19 +70,34 @@ no [home page](glossary.html#home-page), PocoCMS
 generates a simple `index.md` file. If you view its contents,
 you'll see this:
 
-```markdown
+```markdown {hl_lines=["1,2]"}
 ---
 Stylesheets:
-    - https://unpkg.com/simpledotcss/simple.min.css
+    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
 ---
 # Welcome to mysite
 
 hello, world.
 
 Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html) 
+
 ```
 
+{{- /* TODO: Add screenshot */ -}}
 
-## PocoCMS 
+When you load the web page you'll see it has minimal styling
+and that the first part of the file doesn't get displayed.
+That first part between the `---` lines
+is called the [front matter](front-matter.html),
+and it provides a set of instructions to format and display
+the generated HTML, which starts with **Welcome to mysite**.
+
+The front matter is considered a separate document.
+It is in [YAML](https://yaml.org) format. The only YAML
+in this document is `Stylesheets:`, which is used
+to generate a `<link>` tag that pulls in a minimal
+spreadsheet from a CDN. It could just as easily
+be a local file but this makes for a quick demo.
+
 ## PocoCMS themes
 

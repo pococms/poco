@@ -13,13 +13,16 @@ front matter options PocoCMS provides.
 [Formatting rules](#formatting-rules)  
 [Front matter basics](#front-matter-basics)   
 
-## Alphabetical
+## Alphabetical list of front matter options
+
 [Author](#author)  
 [Description](#description)  
 [Keywords](#keywords)  
 [Key/value pairs](#keyvalue-pairs)  
 [Robots](#robots)  
 [Skippublish](#skippublish)  
+[Stylesheets](#stylesheets)  
+[Styletags](#styletags)  
 [Title](#title)  
 
 ## Front Matter basics
@@ -388,6 +391,37 @@ Causes this HTML to be generated:
 ```html
 <link rel="stylesheet" href="poquito.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css">
+```
+
+xxxx
+
+# Styletags
+
+Causes a `<style>` tag to be inserted into the file
+for each line in the list. Because they
+are inserted after [Stylesheets](#stylesheets) they
+override whatever appears in the stylesheets for
+the current page.
+It's a good way to develop stylesheets slowly, or
+to override colors for a light them to make it 
+dark, and vice versa.
+
+### Example
+
+Using this `Styletags` entry in the front matter:
+```yaml
+---
+Styletags: 
+- "article>p{color:blue;}"
+---
+```
+
+Will cause the text on this page to be blue.
+
+Causes this HTML to be generated:
+
+```html
+<style>article>p{color:blue;}</style>
 ```
 
 
