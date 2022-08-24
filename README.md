@@ -14,7 +14,7 @@ Theme: "pages/themes/pocodocs"
 
 For the moment, you need to build PocoCMS yourself as a 
 Go program. Don't worry. There are explicit instructions at
-[Build from source](build-from-source.html)
+hey [Build from source](pages/build-from-source.html)
 
 ## To create a website using PocoCMS
 
