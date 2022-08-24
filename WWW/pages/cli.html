@@ -110,7 +110,19 @@ header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
 <li><a href="../../pages/tutorials.html">Tutorials</a></li>
 <li><a href="../../pages/technical-overview.html">Technical Overview</a></li>
 </ul></header>
-			<article id="article"><p>Footer for Latest theme</p>
+			<article id="article"><h1 id="poco-command-line-options">poco command-line options</h1>
+<h2 id="webroot">webroot</h2>
+<p>The <code>-webroot</code> command-line option lets you choose what directory
+Poco CMS uses for the finished HTML, CSS, images, and related assets
+to be published. By default it's <code>WWW</code>.</p>
+<p>To change it, just run <code>poco</code> <code>-webroot</code> followed by the
+directory you'd like to use. For example:</p>
+<pre><code>$ poco -webroot  public_html
+
+</code></pre>
+<p>You'll see results something like this:</p>
+<pre><code>PocoCMS: Site published to /Users/travis/mysite/public_html
+</code></pre>
 	</article>
 </div><!-- content-wrap -->
 	</div><!-- page-container -->

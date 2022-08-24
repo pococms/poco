@@ -88,14 +88,16 @@ header > ul > li:first-child > a > del, header > p > del {color:red;text-decorat
 header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
 header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
 header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
-article > h1 {color:red;}
 header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-
+article > h1 {color:red;}
+article > p,article > dl{line-height:1.75rem;font-size:large}
+article > {width:20rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
-article > p {padding-bottom:1rem;}
-article{margin:0 8em 0 8em}
-
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+article{margin:0 8rem 0 8rem}
+header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
 </style>
 </head>
 <body>
@@ -110,8 +112,133 @@ article{margin:0 8em 0 8em}
 </ul></header>
 			<article id="article"><h1 id="front-matter">Front Matter</h1>
 <h1 id="todo-skippublish-isnt-implemented-yet">TODO: SkipPublish isn't implemented yet</h1>
-<h2 id="skippublish">skippublish</h2>
-<p><code>SkipPublish</code> lists files and directories you don't want to be published.</p>
+<h2 id="front-matter-basics">Front Matter basics</h2>
+<p>The simplest PocoCMS Markdown document looks something
+like this:</p>
+<pre><code>hello, world.
+</code></pre>
+<p>It generates the following HTML document:</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+	&lt;meta charset=&quot;utf-8&quot;&gt;
+	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+	&lt;title&gt;Powered by PocoCMS&lt;/title&gt;
+&lt;/header&gt;
+	&lt;article id=&quot;article&quot;&gt;
+  &lt;p&gt;hello, world.&lt;/p&gt;
+	&lt;/article&gt;
+&lt;/div&gt;&lt;!-- content-wrap --&gt;
+	&lt;/div&gt;&lt;!-- page-container --&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+<p>You will normally see a more complex structure, with
+nonprinting commands that start the file:</p>
+<pre><code>---
+Title: &quot;Introducing PocoCMS&quot;
+Keywords: &quot;static site generator, jamstack, cms&quot;
+---
+hello, world. 
+</code></pre>
+<p>The text between the two <code>---</code> lines is considerd a separate
+document with no direct relation to the remainder of the
+file, which is the Markdown portion. It's called <em>front matter</em>
+by convention, but what lies between the bracketing <code>---</code>
+characters is essentially a database in <a href="https://yaml.org/">YAML</a>
+format.  This data is used to control the format and
+output of the HTML files PocoCMS produces.</p>
+<p>Here's what happens when PocoCMS generates HTML for the
+previous example:</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+	&lt;meta charset=&quot;utf-8&quot;&gt;
+	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+	&lt;title&gt;Introducing PocoCMS&lt;/title&gt;
+  &lt;meta name=&quot;keywords&quot; content=&quot;static site generator, jamstack, cms&quot;&gt;
+&lt;/header&gt;
+	&lt;article id=&quot;article&quot;&gt;
+  &lt;p&gt;hello, world.&lt;/p&gt;
+	&lt;/article&gt;
+&lt;/div&gt;&lt;!-- content-wrap --&gt;
+	&lt;/div&gt;&lt;!-- page-container --&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+<p>In the first example PocoCMS inserted this shamelessly
+self-promoting <code>&lt;title&gt;</code> tag:</p>
+<pre><code>&lt;title&gt;Powered by PocoCMS&lt;/title&gt;
+</code></pre>
+<p>That's because an HTML file is not considered valid without a title.
+As you've already surmised, this portion of the front matter</p>
+<pre><code>---
+Title: &quot;Introducing PocoCMS&quot;
+---
+</code></pre>
+<p>Is responsible for this line of HTML:</p>
+<pre><code>&lt;title&gt;Introducing PocoCMS&lt;/title&gt;
+</code></pre>
+<p>And obviously this line of front matter</p>
+<pre><code>---
+Keywords: static site generator, jamstack, cms
+---
+</code></pre>
+<p>Caused this metatag to be inserted into the file:</p>
+<pre><code>&lt;meta name=&quot;keywords&quot; content=&quot;static site generator, jamstack, cms&quot;&gt;
+</code></pre>
+<h2 id="formating-of-front-matter">Formating of front matter</h2>
+<ul>
+<li>The front matter always starts with a line consisting
+solely of 3 dashes: <code>---</code></li>
+<li>If you include front matter in a Markdown file, the
+first line must be <code>---</code> and cannot be blank.</li>
+<li>The front matter always ends with a line consisting
+solely of 3 dashes: <code>---</code></li>
+<li>The lines demarcate YAML front matter but do not include it.</li>
+<li>YAML documents usually can't be empty. Don't start a file
+with empty front matter like this:</li>
+</ul>
+<pre><code>    ---
+    ---
+</code></pre>
+<h3 id="keyvalue-pairs-in-front-matter">key/value pairs in front matter</h3>
+<ul>
+<li>The front matter contents always start with a key name,
+such as <code>Title</code> immediately followed by a colon.</li>
+<li>The value associated with it must follow. It's best to use
+quotes around the value because stylesheets use characters
+that confuse the YAML processing.</li>
+<li>In the YAML below, <code>Title</code> is the key, and <code>Welcome to PocoCMS</code>
+is the value:</li>
+</ul>
+<pre><code>---
+Title: &quot;Welcome to PocoCMS&quot;
+---
+</code></pre>
+<ul>
+<li>One enormously powerful feature of YAML is that while every key
+must have exactly one value, that value can consist of more than one item,
+a compound structure like a database record, or even an entire database
+consisting of multiple records.</li>
+</ul>
+<p>In the YAML below, <code>Stylesheets</code> is the key. The mutliple
+itmes below it are considered a YAML <a href="https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html#yaml-basics">list</a>. The list
+has one name (<code>Stylesheets</code>) but the value  has multiple items in it.
+The value in this case is the list consisting of <code>[&quot;poquito.css&quot;, &quot;pococms.css&quot;]</code>.</p>
+<pre><code>---
+Stylesheets: 
+- poquito.css
+- pococms.css
+---
+</code></pre>
+<p>This page details all front matter options.</p>
+<dl>
+<dt>SkipPublish</dt>
+<dd><code>SkipPublish</code> lists files and directories you don't want to be published.</dd>
+</dl>
 <p>Remember that if a directory contains the files <code>index.md</code>, <code>installation.md</code>,
 and <code>avatar.png</code>, and <code>401K-info.xls</code>, here's what will happen when you
 run PocoCMS:</p>
@@ -119,42 +246,52 @@ run PocoCMS:</p>
 <li><code>index.md</code> and <code>installation.md</code> will be converted to HTML document files
 named <code>index.html</code> and <code>installation.html</code>. The the HTML files will be published
 The Markdown files will not.</li>
-<li>By designed, all files other than than Markdown files get published. That's
+<li>By design, all files other than than Markdown files get published. That's
 because they're assumed to be required for the site. In this example,
 it makes sense that <code>avatar.png</code> gets published but you may not want
 the personal spreadsheet with your 401K details published.</li>
 <li>Likewise, you probably don't want directories like <code>node_modules</code>,
-<code>.DS_Store</code>, or <code>.git</code> published.</li>
-</ul>
-<p><code>.git</code> is included here for good form but
+<code>.DS_Store</code>, or <code>.git</code> published.
+<code>.git</code> is included here for good form but
 PocoCMS treats directories with that name starts with <code>.</code> as hidden and
-doesn't publish them.</p>
-<ul>
+doesn't publish them.</li>
 <li>The answer to these problems is to list what you don't want published in <code>SkipPublish</code>
 as shown below.</li>
 </ul>
 <h3 id="example">Example</h3>
-<pre><code>  ---
-  SkipPublish:
-    - 401k-info.xls
-    - node_modules
-    - www
-    - .git
-    - .DS_Store
-    - .gitignore
-  ---
+<pre><code>---
+SkipPublish:
+- 401k-info.xls
+- node_modules
+- www
+- .git
+- .DS_Store
+- .gitignore
+---
 </code></pre>
 <p>Here are some common items to skip:</p>
-<pre><code>  ---
-  SkipPublish:
-    - node_modules
-    - htdocs
-    - public_html
-    - www
-    - .git
-    - .DS_Store
-    - .gitignore
-  ---
+<pre><code>---
+SkipPublish:
+- node_modules
+- htdocs
+- public_html
+- www
+- .git
+- .DS_Store
+- .gitignore
+---
+</code></pre>
+<dl>
+<dt>key, value</dt>
+<dd>This a definition of how terms are used in front matter.
+The term <code>key</code> is
+the technical name for the first part of key/value pair,
+and all front matter entries are key/value.</dd>
+</dl>
+<pre><code>---
+Title: &quot;Introducing PocoCMS&quot;
+Keywords: &quot;static site generator, jamstack, cms&quot;
+---
 </code></pre>
 	</article>
 </div><!-- content-wrap -->

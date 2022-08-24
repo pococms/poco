@@ -88,14 +88,16 @@ header > ul > li:first-child > a > del, header > p > del {color:red;text-decorat
 header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
 header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
 header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
-article > h1 {color:red;}
 header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-
+article > h1 {color:red;}
+article > p,article > dl{line-height:1.75rem;font-size:large}
+article > {width:20rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
-article > p {padding-bottom:1rem;}
-article{margin:0 8em 0 8em}
-
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+article{margin:0 8rem 0 8rem}
+header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
 </style>
 </head>
 <body>
@@ -110,6 +112,53 @@ article{margin:0 8em 0 8em}
 </ul></header>
 			<article id="article"><h1 id="pococms-technical-overview">PocoCMS Technical Overview</h1>
 <p><strong>Come back 1 September 2022 for something more substantial</strong></p>
+<h2 id="todo-page-and-entry-here-on-how-to-configure-markdown-extensions">TODO: Page, and entry here, on how to configure Markdown extensions</h2>
+<p>PocoCMS is a single executable file that reads a
+directory tree of files, converts Markdown files
+to HTML, and passes the rest through. (The file's
+extension determines whether a file is treated as Markdown.)</p>
+<p>It's meant above all to be unobtrusive. You don't
+have to create some weird special files to get your
+website going, or download a theme from some obscure
+location on the web. Just type some Markdown, making
+sure the root of your site has a file named <code>index.md</code>
+or <code>README.md</code>, and you can get started immediately.
+Even if you don't know <a href="glossary.html#markdown">Markdown</a>,
+you can just type plain text. Even links get turned into
+live hyperlinks without any effort.</p>
+<h2 id="looking-good">Looking good</h2>
+<p>PocoCMS has theme support, so you can just mention a theme
+in the <a href="glossary.html#front-matter">front matter</a> and
+all other pages in the site will inherit that theme.
+A theme also</p>
+<h2 id="running-pococms">Running PocoCMS</h2>
+<p>Suppose you plan to create a new site, also known as a project.
+You'd create a subdirectory, in this example <code>mysite</code>, and
+make it the current directory:</p>
+<pre><code># Create a subdirectory named mysite. 
+# Replace with your own directory name here.
+mkdir ~/mysite
+# Make it the current directory.
+cd ~/mysite
+</code></pre>
+<ul>
+<li>Run poco:</li>
+</ul>
+<pre><code>poco
+</code></pre>
+<p>You're then informed:</p>
+<pre><code>Site published to /Users/tom/pococms/poco/ed/WWW/index.html
+</code></pre>
+<p>Here's what just happened:</p>
+<ul>
+<li>PocoCMS looked around and found an empty directory.</li>
+<li>Because that directory was empty, and because it had
+no <a href="glossary.html#home-page">home page</a>, PocoCMS
+generated a stub <code>index.md</code> file. If you view its contents,
+you'll see this:</li>
+</ul>
+<h2 id="pococms">PocoCMS</h2>
+<h2 id="pococms-themes">PocoCMS themes</h2>
 	</article>
 </div><!-- content-wrap -->
 	</div><!-- page-container -->

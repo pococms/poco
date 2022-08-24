@@ -3,7 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>yo mama</title>
+	<title>Powered by PocoCMS</title>
+	<meta name="keywords" content="static site generator, jamstack, cms">
 <!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 
@@ -88,29 +89,31 @@ header > ul > li:first-child > a > del, header > p > del {color:red;text-decorat
 header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
 header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
 header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
-article > h1 {color:red;}
 header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-
+article > h1 {color:red;}
+article > p,article > dl{line-height:1.75rem;font-size:large}
+article > {width:20rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
-article > p {padding-bottom:1rem;}
-article{margin:0 8em 0 8em}
-
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+article{margin:0 8rem 0 8rem}
+header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
 </style>
 </head>
 <body>
 <div id="page-container">
 <div id="content-wrap">
-			<aside><p>THIS IS HTE NEW ASIDE</p>
-</aside>
-	<article id="article"><h1 id="indexmd-in-foo">index.md in foo</h1>
-<p>Title should read 'yo mama': yo mama</p>
-<p>Try <a href="foobar.html">foobar</a></p>
-<p>hey foo</p>
+	<header><ul>
+<li><a href="https://pococms.com">poco<del>CMS</del></a></li>
+<li><a href="../../../build-from-source.html">Download</a></li>
+<li><a href="../../pages/reference.html">Documentation</a></li>
+<li><a href="../../pages/tutorials.html">Tutorials</a></li>
+<li><a href="../../pages/technical-overview.html">Technical Overview</a></li>
+</ul></header>
+			<article id="article"><p>hello, world.</p>
 	</article>
 </div><!-- content-wrap -->
-	<footer><p>yo mama SAYS THE FOOOOOOTER</p>
-</footer>
-</div><!-- page-container -->
+	</div><!-- page-container -->
 </body>
 </html>
