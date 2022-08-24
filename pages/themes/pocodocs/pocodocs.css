@@ -1,5 +1,6 @@
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
-article > p {padding-bottom:1rem;}
-article{margin:0 8em 0 8em}
-
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+article{margin:0 8rem 0 8rem}
+header{margin-left:10rem;text-align:left;padding-bottom:4rem;}

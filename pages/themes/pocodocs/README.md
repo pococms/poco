@@ -9,5 +9,5 @@ Stylesheets:
   - ../../assets/css/pococms.css
   - pocodocs.css
 ---
-Latest helps you create news sites fast
+Latest helps you create news sites fast.
 
