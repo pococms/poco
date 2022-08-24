@@ -1,21 +1,22 @@
 # PocoCMS Technical Overview
 
-
 **Come back 1 September 2022 for something more substantial**
-
-## TODO: Page, and entry here, on how to configure Markdown extensions
 
 PocoCMS is a single executable file that reads a
 directory tree of files, converts Markdown files
-to HTML, and passes the rest through. (The file's
-extension determines whether a file is treated as Markdown.)
+to HTML, and passes the rest through to
+the webroot directory unchanged. 
+The [webroot](glossary.html#webroot) is where
+HTML, stylesheets, and other file assets
+are sent to be published on the Web.
 
-It's meant above all to be unobtrusive. You don't
-have to create some weird special files to get your
-website going, or download a theme from some obscure
+PocoCMS meant above all to be unobtrusive. You don't
+have to create weird special files get started,
+or download a theme from some obscure
 location on the web. Just type some Markdown, making
 sure the root of your site has a file named `index.md`
 or `README.md`, and you can get started immediately.
+
 Even if you don't know [Markdown](glossary.html#markdown),
 you can just type plain text. Even links get turned into
 live hyperlinks without any effort.
@@ -23,9 +24,11 @@ live hyperlinks without any effort.
 ## Looking good
 
 PocoCMS has theme support, so you can just mention a theme
-in the [front matter](glossary.html#front-matter) and
+in the [front matter](glossary.html#front-matter) of
+the [home page](glossary.html#home-page) and
 all other pages in the site will inherit that theme.
-A theme also 
+A theme can also include template files for the
+header, nav bar, aside (a.k.a. sidebar), and footer.
 
 ## Running PocoCMS
 
@@ -53,16 +56,27 @@ You're then informed:
 Site published to /Users/tom/pococms/poco/ed/WWW/index.html
 ```
 
-Here's what just happened:
+Here's what happens when you run `poco` with no 
+[command-line options](cli.html) as shown previously:
 
-* PocoCMS looked around and found an empty directory.
-* Because that directory was empty, and because it had
+* PocoCMS looks around to see if the directory is empty (as is 
+the case in this example, because it was just created).
+* If that directory was empty, and if it has
 no [home page](glossary.html#home-page), PocoCMS
-generated a stub `index.md` file. If you view its contents,
+generates a simple `index.md` file. If you view its contents,
 you'll see this:
 
+```markdown
+---
+Stylesheets:
+    - https://unpkg.com/simpledotcss/simple.min.css
+---
+# Welcome to mysite
 
+hello, world.
 
+Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html) 
+```
 
 
 ## PocoCMS 

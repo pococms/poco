@@ -1,4 +1,4 @@
-* [poco~~CMS~~](https://pococms.com)
+* [poco~~CMS~~](/#)
 * [Download](../../../build-from-source.html)
 * [Documentation](../../pages/reference.html)
 * [Tutorials](../../pages/tutorials.html)
