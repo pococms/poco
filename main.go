@@ -55,6 +55,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -62,7 +63,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	//"reflect"
+	"time"
 )
 
 // Required begininng for a valid HTML document
@@ -562,6 +563,9 @@ type config struct {
 	// If present, it's either "README.md" or "index.md"
 	homePage string
 
+	// Port localhost server runs on
+	port string
+
 	// Home directory for source code
 	root string
 
@@ -652,6 +656,9 @@ func main() {
 	var stylesheets string
 	flag.StringVar(&stylesheets, "styles", "", "One or more stylesheets (use quotes if more than one)")
 
+	// Port server runs on
+	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
+
 	// Title tag.
 	var title string
 	flag.StringVar(&title, "Title", poweredBy, "Contents of the HTML title tag")
@@ -703,9 +710,11 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
-	webrootPath := buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
+	buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
 	//debug("%v", c.files)
-	quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
+	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
+	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
+	c.serve()
 
 }
 
@@ -778,8 +787,7 @@ func buildFileToTemplatedString(c *config, filename string, stylesheets string, 
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
-// Return name of the root directory files are published to
-func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
+func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -915,12 +923,8 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-	//debug("returning webrootPath: %s. c.webroot: %s", webrootPath, c.webroot)
 	Verbose("%v file(s) copied", c.copied)
-	// xxxxtarget = c.webroot
-	//return target
-	return webrootPath
-}
+} // buildSite()
 
 // ensureIndexHTML makes sure there's an index.html file
 // in the webroot directory. It's required because some existing
@@ -1414,7 +1418,8 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	}
 	// fmt.Println(msg + errmsg)
 	if c.currentFilename != "" {
-		// Error exit
+		// Error exit.
+		// Prints name of source file being processed.
 		if exitCode != 0 {
 			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 		} else {
@@ -1425,8 +1430,18 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 }
 
 // debug displays messages to stdout using Fprintf syntax.
-// A little list printing and easier to search
+// Same as print, but lets you search for debug
+// in source code when it's meant to be in there
+// temporarily.
+// Differs from warn(), which sends its text to stderr
 func debug(format string, ss ...interface{}) {
+	fmt.Println(fmtMsg(format, ss...))
+}
+
+// print messages to stdout using Fprintf syntax.
+// Same as debug, but meant to be left in the code.
+// Differs from warn(), which sends its text to stderr
+func print(format string, ss ...interface{}) {
 	fmt.Println(fmtMsg(format, ss...))
 }
 
@@ -1641,4 +1656,47 @@ func promptYes(prompt string) bool {
 		}
 	}
 	///return strings.HasPrefix(strings.ToLower(answer), "y")
+}
+
+// serve is the world's simplest web server, for quick tests
+// only. c.port is a string like ":12345" and c.webroot is the
+// pathname of the directory to serve static files from.
+func (c *config) serve() {
+	dir := filepath.Join(c.root, c.webroot)
+	if err := os.Chdir(dir); err != nil {
+		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
+	}
+	if portBusy(c.port) {
+		print("Port %s is already in use", c.port)
+		os.Exit(1)
+	}
+	// Simple static webserver:
+	debug("\n%s Web server running. Paste this address into your web browser:\nhttps://localhost%s\nTo stop the web server, press Ctrl+C (Cmd+C on MacOS)", theTime(), c.port)
+	//log.Fatal(http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))))
+	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))); err != nil {
+		quit(1, err, c, "Error running web server")
+	}
+}
+
+// Return the current time as a string
+func theTime() string {
+	t := time.Now()
+	s := fmt.Sprintf("%s", t.Format("02 Jan 2006 15:04:05"))
+	return s
+}
+
+// portBusy() returns true if the port
+// (in the form ":12345" is already in use.
+func portBusy(port string) bool {
+	ln, err := net.Listen("tcp", port)
+	if err != nil {
+		return true
+	}
+  err = ln.Close()
+  if err != nil {
+    // TODO: Make this a quit 
+    panic(err)
+  }
+
+	return false
 }
