@@ -129,15 +129,15 @@ with a space.
 * After the space, place this code: `{hl_lines=[]}`
 * Now inside the square brackets, insert the lines or 
 ranges of lines you want to highlight. For example:
-
-* To highlight only line 1: `{hl_lines=[1]}`
-* To highlight a range from lines 3-6 inclusive: `{hl_lines=[3-6]}`
-* To highlight lines 3, then 8 to 9 inclusive: `{hl_lines=[3,8-9]}` 
+* When you enter a number or a range, use double quotes `"` around it.
+* To highlight only line 1: `{hl_lines=["1"]}`
+* To highlight a range from lines 7-9 inclusive: `{hl_lines=["7-9"]}`
+* To highlight lines 3, then 7 to 9 inclusive: `{hl_lines=["3","7-9"]}` 
 
 Here's a typical example.
 
 ```
-    ```text {hl_lines=[3,8-9]}
+    ```text {hl_lines=["3","7-9"]}
     Sonnet 116
 
     Love is not love
@@ -154,7 +154,7 @@ Here's a typical example.
 
 It renders like this:
 
-```text {hl_lines=[3,8-9]}
+```text {hl_lines=["3","7-9"]}
 Sonnet 116
 
 Love is not love
