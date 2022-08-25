@@ -7,7 +7,7 @@ Theme: "pages/themes/pocodocs"
 ---
 # Poco CMS, the world's easiest static site generator
 
-*23 August 2022* 23:11 Many bugs to go. Soft opening on 1 September 2022.
+*25 August 2022* 02:13 Many bugs to go. Soft opening on 1 September 2022.
 
 [Report an issue](https://github.com/pococms/poco/issues)
 
