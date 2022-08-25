@@ -214,29 +214,18 @@ directive.</p>
 <code>go</code> or <code>java</code> or <code>python</code> but merely <code>text</code>. Here's how
 to add the <code>hl_lines</code> directive:</p>
 <ul>
-<li>
-<p>Follow the language designation  (<code>text</code> in this example),
-with a space.</p>
-</li>
-<li>
-<p>After the space, place this code: <code>{hl_lines=[]}</code></p>
-</li>
-<li>
-<p>Now inside the square brackets, insert the lines or
-ranges of lines you want to highlight. For example:</p>
-</li>
-<li>
-<p>To highlight only line 1: <code>{hl_lines=[1]}</code></p>
-</li>
-<li>
-<p>To highlight a range from lines 3-6 inclusive: <code>{hl_lines=[3-6]}</code></p>
-</li>
-<li>
-<p>To highlight lines 3, then 8 to 9 inclusive: <code>{hl_lines=[3,8-9]}</code></p>
-</li>
+<li>Follow the language designation  (<code>text</code> in this example),
+with a space.</li>
+<li>After the space, place this code: <code>{hl_lines=[]}</code></li>
+<li>Now inside the square brackets, insert the lines or
+ranges of lines you want to highlight. For example:</li>
+<li>When you enter a number or a range, use double quotes <code>&quot;</code> around it.</li>
+<li>To highlight only line 1: <code>{hl_lines=[&quot;1&quot;]}</code></li>
+<li>To highlight a range from lines 7-9 inclusive: <code>{hl_lines=[&quot;7-9&quot;]}</code></li>
+<li>To highlight lines 3, then 7 to 9 inclusive: <code>{hl_lines=[&quot;3&quot;,&quot;7-9&quot;]}</code></li>
 </ul>
 <p>Here's a typical example.</p>
-<pre><code>    ```text {hl_lines=[3,8-9]}
+<pre><code>    ```text {hl_lines=[&quot;3&quot;,&quot;7-9&quot;]}
     Sonnet 116
 
     Love is not love
@@ -257,9 +246,9 @@ ranges of lines you want to highlight. For example:</p>
 </span></span><span style="display:flex;"><span>Which alters when it alteration finds,
 </span></span><span style="display:flex;"><span>Or bends with the remover to remove.
 </span></span><span style="display:flex;"><span>O no, it is an ever-fixed mark
-</span></span><span style="display:flex;"><span>That looks on tempests and is never shaken;
+</span></span><span style="display:flex; background-color:#e5e5e5"><span>That looks on tempests and is never shaken;
 </span></span><span style="display:flex; background-color:#e5e5e5"><span>It is the star to every wand&#39;ring bark,
-</span></span><span style="display:flex;"><span>Whose worth&#39;s unknown, although his height be taken.&#34;
+</span></span><span style="display:flex; background-color:#e5e5e5"><span>Whose worth&#39;s unknown, although his height be taken.&#34;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>― William Shakespeare
 </span></span></code></pre><h3 id="adding-line-numbers">Adding line numbers</h3>
