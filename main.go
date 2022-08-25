@@ -621,17 +621,15 @@ func (c *config) setup() {
 	c.loadTheme()
 }
 
-// initConfig reads the home page and gets
+// newConfig allocates a config object.
 // sitewide configuration info.
-func initConfig() *config {
+func newConfig() *config {
 	config := config{}
 	return &config
 }
 
-// initConfig()
-
 func main() {
-	c := initConfig()
+	c := newConfig()
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	var cleanup bool
@@ -651,6 +649,10 @@ func main() {
 
 	//var root string
 	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
+
+	// Run as server without processing any files
+	var serve bool
+	flag.BoolVar(&serve, "serve", false, "Run as a web server on localhost")
 
 	// List of stylesheets to include on each page.
 	var stylesheets string
@@ -710,11 +712,22 @@ func main() {
 	var markdownExtensions searchInfo
 	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
+	// If -serve flag was used just run as server.
+	if serve {
+		if dirExists(c.webroot) {
+			c.serve()
+		} else {
+			print("Can't find webroot directory %s", c.webroot)
+			os.Exit(1)
+			// TODO: This code doesn't seem to execute?
+			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
+		}
+	}
+
 	buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
 	//debug("%v", c.files)
 	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
 	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
-	c.serve()
 
 }
 
@@ -1399,14 +1412,6 @@ func metatag(tag string, content string) string {
 
 // PRINTY utilities
 
-// If the Verbose flag is set, use the Printf style parameters
-// to format the input and return a string.
-func Verbose(format string, ss ...interface{}) {
-	if gVerbose {
-		fmt.Println(fmtMsg(format, ss...))
-	}
-}
-
 // quit displays a message fmt.Printf style and exits to the OS.
 // That format string must be preceded by an exit code and an
 // error object (nil if an error didn't occur).
@@ -1416,7 +1421,6 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	if err != nil {
 		errmsg = " " + err.Error()
 	}
-	// fmt.Println(msg + errmsg)
 	if c.currentFilename != "" {
 		// Error exit.
 		// Prints name of source file being processed.
@@ -1449,6 +1453,14 @@ func print(format string, ss ...interface{}) {
 func warn(format string, ss ...interface{}) {
 	msg := fmt.Sprintf(format, ss...)
 	fmt.Fprintln(os.Stderr, msg)
+}
+
+// If the Verbose flag is set, use the Printf style parameters
+// to format the input and return a string.
+func Verbose(format string, ss ...interface{}) {
+	if gVerbose {
+		fmt.Println(fmtMsg(format, ss...))
+	}
 }
 
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
@@ -1499,8 +1511,8 @@ func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 // the usual template execution, etc. It discards the
 // generated HTML and returns a dummy config object with
 // the front matter from the file in nc.fm.
-func getFrontMatter(filename string) (newConfig *config) {
-	nc := initConfig()
+func getFrontMatter(filename string) (n *config) {
+	nc := newConfig()
 	var rawHTML string
 	var err error
 
@@ -1671,8 +1683,7 @@ func (c *config) serve() {
 		os.Exit(1)
 	}
 	// Simple static webserver:
-	debug("\n%s Web server running. Paste this address into your web browser:\nhttps://localhost%s\nTo stop the web server, press Ctrl+C (Cmd+C on MacOS)", theTime(), c.port)
-	//log.Fatal(http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))))
+	debug("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
 	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
@@ -1692,11 +1703,11 @@ func portBusy(port string) bool {
 	if err != nil {
 		return true
 	}
-  err = ln.Close()
-  if err != nil {
-    // TODO: Make this a quit 
-    panic(err)
-  }
+	err = ln.Close()
+	if err != nil {
+		// TODO: Make this a quit
+		panic(err)
+	}
 
 	return false
 }
