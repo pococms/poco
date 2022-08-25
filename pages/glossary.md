@@ -1,6 +1,23 @@
 # Glossary
 
 
+## code fence
+A [code fences](highlighting.html) surrounds arbitrary text with lines
+consisting of 3 tickmarks: \`\`\` so that the text displays
+in a monospace font. It's good for distinguishing blocks
+of code in an article. Here's an example.
+
+```
+    ```
+    // Return the current time as a string
+    func theTime() string {
+      t := time.Now()
+      s := fmt.Sprintf("%s", t.Format("02 Jan 2006 15:04:05"))
+      return s
+    }
+    ```
+```
+
 ## CommmonMark
 The term *CommonMark* is the name of a community standard for
 for the [Markdown](#markdown) text formatting

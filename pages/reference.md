@@ -1,6 +1,7 @@
 # Poco CMS Reference
 
 [PocoCMS glossary](glossary.html)  
+[Code highlighting](highlighting.html)  
 [Front matter](front-matter.html)  
 [Technical overview](technical-overview.html)  
 
