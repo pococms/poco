@@ -3,6 +3,7 @@ Title:  PocoCMS
 Description: PocoCMS builds documentation websites fast, with zero learning or configuration required
 Keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
 Theme: "pages/themes/pocodocs"
+#Theme: "pages/themes/informer"
 ---
 # Poco CMS, the world's easiest static site generator
 
@@ -14,7 +15,7 @@ Theme: "pages/themes/pocodocs"
 
 For the moment, you need to build PocoCMS yourself as a 
 Go program. Don't worry. There are explicit instructions at
-hey [Build from source](pages/build-from-source.html)
+bobo [Build from source](pages/build-from-source.html)
 
 ## To create a website using PocoCMS
 

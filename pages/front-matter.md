@@ -13,6 +13,7 @@ front matter options PocoCMS provides.
 [Formatting rules](#formatting-rules)  
 [Front matter basics](#front-matter-basics)   
 
+
 ## Alphabetical list of front matter options
 
 [Author](#author)  
@@ -24,6 +25,8 @@ front matter options PocoCMS provides.
 [Stylesheets](#stylesheets)  
 [Styletags](#styletags)  
 [Title](#title)  
+
+Return to [top](#front-matter)
 
 ## Front Matter basics
 
@@ -128,15 +131,23 @@ Caused a `keywords` metatag to be inserted into the file:
 <meta name="keywords" content="static site generator, jamstack, cms">
 ```
 
+Return to [top](#front-matter)
+
 ## Formatting rules
 
-* The front matter always starts with a line consisting
-solely of 3 dashes: `---`
-* If you include front matter in a Markdown file, the
-first line must be `---` and cannot be blank.
+* The front matter always starts with a dashed line consisting
+solely of 3 hyphens: `---`
+* The first line of front matter must be the very first line
+of the Markdown file. Blank lines before the
+front matter aren't allowed. (If there's no front
+matter, blank lines are permitted)
 * The front matter always ends with a line consisting
 solely of 3 dashes: `---`
 * The dashed lines demarcate YAML front matter but do not include it.
+That is, the YAML begins after the first dashed line and 
+end before the second dashed line.
+* Front matter consists of key/value pairs, where
+the key precedes a colon and the value comes after the colon.
 * The key name (on the left side, behind the colon) is
 case sensitive. So while this will create a `<title>`
 tag in your HTML document:

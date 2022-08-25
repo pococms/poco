@@ -1,4 +1,4 @@
-* [Latest theme](https://pococms.com)
+* [Informer theme](https://pococms.com)
 * [Topics](#)
 * [Columns](#)
 * [Insights](#)

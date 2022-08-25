@@ -1,7 +1,5 @@
-# Latest theme
-## Use Latest for news sites
-
-[Test light theme](test-all-light.html)
+# Informer theme
+## Use Informer for news sites
 
 
 **Seattle** The Latest theme for PocoCMS has just been released. 
