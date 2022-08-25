@@ -126,6 +126,20 @@ article>p{font-familiy:serif; !important}
 <li><a href="../pages/technical-overview.html">Technical Overview</a></li>
 </ul></header>
 			<article id="article"><h1 id="glossary">Glossary</h1>
+<h2 id="code-fence">code fence</h2>
+<p>A <a href="highlighting.html">code fences</a> surrounds arbitrary text with lines
+consisting of 3 tickmarks: ``` so that the text displays
+in a monospace font. It's good for distinguishing blocks
+of code in an article. Here's an example.</p>
+<pre><code>    ```
+    // Return the current time as a string
+    func theTime() string {
+      t := time.Now()
+      s := fmt.Sprintf(&quot;%s&quot;, t.Format(&quot;02 Jan 2006 15:04:05&quot;))
+      return s
+    }
+    ```
+</code></pre>
 <h2 id="commmonmark">CommmonMark</h2>
 <p>The term <em>CommonMark</em> is the name of a community standard for
 for the <a href="#markdown">Markdown</a> text formatting
