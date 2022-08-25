@@ -55,6 +55,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -62,7 +63,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	//"reflect"
+	"time"
 )
 
 // Required begininng for a valid HTML document
@@ -76,7 +77,7 @@ var poweredBy = `Powered by PocoCMS`
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(c *config, filename string, article string, language string, stylesheetList string) string {
+func assemble(c *config, filename string, article string, language string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
@@ -107,21 +108,21 @@ func assemble(c *config, filename string, article string, language string, style
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-		titleTag(c) +
-		metatags(c) +
-		linktags(c) +
-		stylesheets(stylesheetList, c) +
+		c.titleTag() +
+		c.metatags() +
+		c.linktags() +
+		c.stylesheets() +
 		themeExtraTemplateTags +
 		extraStyleTags +
 		"</head>\n<body>\n" +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
-		"\t" + layoutEl(c, "Header", filename) +
-		"\t" + layoutEl(c, "Nav", filename) +
-		"\t" + layoutEl(c, "Aside", filename) +
+		"\t" + c.layoutEl("Header", filename) +
+		"\t" + c.layoutEl("Nav", filename) +
+		"\t" + c.layoutEl("Aside", filename) +
 		"\t" + "<article id=\"article\">" + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
-		"\t" + layoutEl(c, "Footer", filename) +
+		"\t" + c.layoutEl("Footer", filename) +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
@@ -180,7 +181,7 @@ func assemble(c *config, filename string, article string, language string, style
 // to be a Markdown file and is processed that way.
 // sourcefile is the fully qualified pathname of the .md file being processed
 // TODO: Code smell
-func layoutEl(c *config, element string, sourcefile string) string {
+func (c *config) layoutEl(element string, sourcefile string) string {
 	// element looks like "Header", "Footer", etc. because front matter key is capitalized.
 	// Force to lowercase for use as an HTML tag.
 	tag := strings.ToLower(element)
@@ -193,7 +194,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// you can suppress its output by using the special value
 	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
 	// the front matter, e.g. Header: "SUPPRESS"
-	filename := frontMatterStr(element, c)
+	filename := c.frontMatterStr(element)
 	// debug("\tlayoutEl %s: %s", element, filename)
 	//debug("\t%s %s (%s):  %+v", filepath.Base(sourcefile),element,filename,c.fm)
 
@@ -224,7 +225,7 @@ func layoutEl(c *config, element string, sourcefile string) string {
 	// matter my say Header: myheader.md so
 	// layoutElSource is 'myheader.md'
 
-	layoutElSource := frontMatterStr(element, c)
+	layoutElSource := c.frontMatterStr(element)
 	//debug("\t%s ***layoutEl specified file %s", c.currentFilename, layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
@@ -269,11 +270,11 @@ func layoutEl(c *config, element string, sourcefile string) string {
 // and load its files into c.theme
 // Tests:
 // - Missing README.md
-// - Missing Stylesheets, StyleFileTemplates
+// - Missing Stylesheets
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
-	themeDir := frontMatterStr("Theme", nc)
+	themeDir := nc.frontMatterStr("Theme")
 	if themeDir == "" {
 		return
 	}
@@ -322,7 +323,7 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	styleFileList := frontMatterStrSlice("Stylesheets", nc)
+	styleFileList := nc.frontMatterStrSlice("Stylesheets")
 	// nc.theme.dir = themeDir
 	c.styleFiles(styleFileList)
 	// Theme loaded. Now get additional style tags.
@@ -431,7 +432,7 @@ func sliceToStylesheetStr(sheets []string) string {
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 func (c *config) styleTags() string {
-	tagSlice := frontMatterStrSlice("StyleTags", c)
+	tagSlice := c.frontMatterStrSlice("StyleTags")
 	if tagSlice == nil {
 		return ""
 	}
@@ -444,34 +445,31 @@ func (c *config) styleTags() string {
 	return tags
 }
 
-// stylesheets() takes stylesheets listed on the command line
-// e.g. --styles "foo.css bar.css", and adds them to
-// the head. It then generates stylesheet tags for the ones listed in
-// the front matter.
-// Those listed in the front matter are appended, so they take
+// stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
-func stylesheets(sheets string, c *config) string {
-	var globalSlice []string
-	var globals string
+func (c *config) stylesheets() string {
+	//var globalSlice []string
+	//var globals string
 
 	// Handle case of theme specified
 	// This is how you tell if a theme is present
-	if c.theme.dir != "" && frontMatterStr("Theme", c) != "SUPPRESS" {
+	if c.theme.dir != "" && c.frontMatterStr("Theme") != "SUPPRESS" {
 		// TODO: minify these mofos
 		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
 
+	/*ji
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
 		globalSlice = strings.Split(sheets, " ")
 		globals = sliceToStylesheetStr(globalSlice)
 	}
+	*/
 	// Build a string from stylesheets named in the
-	// StyleFileTemplates: front matter for the home page
 	//templates := ""
 	// Build a string from stylesheets named in the
 	// Stylesheets: front matter for this page
-	localSlice := frontMatterStrSlice("Stylesheets", c)
+	localSlice := c.frontMatterStrSlice("Stylesheets")
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -479,7 +477,7 @@ func stylesheets(sheets string, c *config) string {
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return globals + c.styleFileTemplates + locals
+	return /*globals +*/ c.styleFileTemplates + locals
 }
 
 // The --verbose flag. It shows progress as the site is created.
@@ -546,8 +544,9 @@ type theme struct {
 // That stuff lives in the front matter of the home
 // page (first checks for README.md, then checks for index.md)
 type config struct {
-	// Front matter
-	fm map[string]interface{}
+	// Command-line -cleanup flag determines
+	// whether or not the publish (aka WWW) directory gets deleted on start.
+	cleanup bool
 
 	// # of files copied to webroot
 	copied int
@@ -555,15 +554,44 @@ type config struct {
 	// Name of Markdown file being processed
 	currentFilename string
 
+	// dumpfm command-line option shows the front matter of each page
+	dumpFm bool
+
 	// List of all files being processed
 	files []string
+
+	// Front matter
+	fm map[string]interface{}
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
 	homePage string
 
+	// Command-line flag -lang sets the language of the HTML files
+	lang string
+
+	// markdownExtensions are how PocoCMS figures out whether
+	// a file is Markdown. If it ends in any one of these then
+	// it gets converted to HTML.
+	markdownExtensions searchInfo
+
+	// Port localhost server runs on
+	port string
+
 	// Home directory for source code
 	root string
+
+	// Command-line flag -serve determing if running as
+	// a localhost web server
+	runServe bool
+
+	// Command line flag -settings shows configuration values
+	// instead of processing files
+	settings bool
+
+	// Command-line flag -skip lets you skip
+	// the named files from being processed
+	skip string
 
 	// List of stylesheets to apply to every page in
 	// string form, ready to drop into the
@@ -607,7 +635,7 @@ func (c *config) findHomePage() {
 	}
 }
 
-// setup() Obtains README.md or index.md.
+// setup() Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 func (c *config) setup() {
@@ -615,42 +643,49 @@ func (c *config) setup() {
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
+
+	// markdownExtensions are how PocoCMS figures out whether
+	// a file is Markdown. If it ends in any one of these then
+	// it gets converted to HTML.
+	//var markdownExtensions searchInfo
+	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 }
 
-// initConfig reads the home page and gets
+// newConfig allocates a config object.
 // sitewide configuration info.
-func initConfig() *config {
+func newConfig() *config {
 	config := config{}
 	return &config
 }
 
-// initConfig()
-
-func main() {
-	c := initConfig()
+// parseCommandLine obtains command line flags and
+// initializes values.
+func (c *config) parseCommandLine() {
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
-	var cleanup bool
-	flag.BoolVar(&cleanup, "cleanup", true, "Delete publish directory before converting files")
+	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
 
 	// debugFrontmatter command-line option shows the front matter of each page
-	var debugFrontMatter bool
-	flag.BoolVar(&debugFrontMatter, "debug-frontmatter", false, "Shows the front matter of each page")
+	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
-	var skip string
-	flag.StringVar(&skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
+	flag.StringVar(&c.skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
 
-	// language sets HTML lang= value, such as <html lang="fr">
-	var language string
-	flag.StringVar(&language, "language", "en", "HTML language designation, such as en or fr")
+	// lang sets HTML lang= value, such as <html lang="fr">
+	// for all files
+	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
 
-	//var root string
 	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
-	// List of stylesheets to include on each page.
-	var stylesheets string
-	flag.StringVar(&stylesheets, "styles", "", "One or more stylesheets (use quotes if more than one)")
+	// Run as server without processing any files
+	flag.BoolVar(&c.runServe, "serve", false, "Run as a web server on localhost")
+
+	// Port server runs on
+	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
+
+	// -settings command-line shows configuration values
+	// instead of processing files
+	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values")
 
 	// Title tag.
 	var title string
@@ -675,6 +710,22 @@ func main() {
 	if c.root, err = filepath.Abs(c.root); err != nil {
 		quit(1, err, c, "Unable to determine absolute path of %s", c.root)
 	}
+
+}
+
+func main() {
+	c := newConfig()
+	// No file was given on the command line.
+	// Build the project in place.
+
+	// Obtain README.md or index.md.
+	// Read in the front matter to get its config information.
+	// Set values accordingly.
+	c.setup()
+
+	// Collect command-line flags, directory to build, etc.
+	c.parseCommandLine()
+	var err error
 	if c.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a directory. Exit if that dir doesn't exit.
@@ -689,23 +740,29 @@ func main() {
 			c.root = currDir()
 		}
 	}
-	// No file was given on the command line.
-	// Build the project in place.
 
-	// Obtain README.md or index.md.
-	// Read in the front matter to get its config information.
-	// Set values accordingly.
-	c.setup()
+	// If -serve flag was used just run as server.
+	if c.runServe {
+		if dirExists(c.webroot) {
+			c.serve()
+		} else {
+			print("Can't find webroot directory %s", c.webroot)
+			os.Exit(1)
+			// TODO: This code doesn't seem to execute?
+			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
+		}
+	}
 
-	// markdownExtensions are how PocoCMS figures out whether
-	// a file is Markdown. If it ends in any one of these then
-	// it gets converted to HTML.
-	var markdownExtensions searchInfo
-	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
+	// If -settings flag just show config values and quit
+	if c.settings {
+		c.dumpSettings()
+		os.Exit(0)
+	}
 
-	webrootPath := buildSite(c, c.webroot, skip, markdownExtensions, language, stylesheets, cleanup, debugFrontMatter)
+	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
 	//debug("%v", c.files)
-	quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
+	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
+	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
 
 }
 
@@ -768,7 +825,7 @@ func buildFileToTemplatedString(c *config, filename string, stylesheets string, 
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(c, c.currentFilename, rawHTML, language, stylesheets)
+		finishedDocument := assemble(c, c.currentFilename, rawHTML, language)
 		// Return the finished document and its filename
 		return finishedDocument, dest
 	}
@@ -778,8 +835,7 @@ func buildFileToTemplatedString(c *config, filename string, stylesheets string, 
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
-// Return name of the root directory files are published to
-func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, stylesheets string, cleanup bool, debugFrontMatter bool) string {
+func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, cleanup bool, debugFrontMatter bool) {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -860,9 +916,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
 			quit(1, err, c, "Unable to get relative paths of %s and %s", homeDir, sourceDir)
 		}
-		//debug("filepath.Rel(%s,%s) == %s", homeDir, sourceDir, rel)
 		// Determine the destination directory.
-		// xxx
 		webrootPath = filepath.Join(homeDir, webroot, rel)
 		// Obtain file extension.
 		ext := path.Ext(filename)
@@ -875,8 +929,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			}
 			// If asked, display the front matter
 			if debugFrontMatter {
-				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
-				debug(dumpFrontMatter(c))
+				debug(dumpFm(c))
 			}
 			// TODO: Use replaceExtension
 			source = filename[0:len(filename)-len(ext)] + ".html"
@@ -904,7 +957,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			h := assemble(c, c.currentFilename, HTML, language, stylesheets)
+			h := assemble(c, c.currentFilename, HTML, language)
 			writeStringToFile(c, target, h)
 		} else {
 			copyFile(c, source, target)
@@ -915,12 +968,8 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-	//debug("returning webrootPath: %s. c.webroot: %s", webrootPath, c.webroot)
 	Verbose("%v file(s) copied", c.copied)
-	// xxxxtarget = c.webroot
-	//return target
-	return webrootPath
-}
+} // buildSite()
 
 // ensureIndexHTML makes sure there's an index.html file
 // in the webroot directory. It's required because some existing
@@ -1292,7 +1341,7 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 //
 // It would render like this in the HTML:
 // I like yo mama
-func frontMatterStr(key string, c *config) string {
+func (c *config) frontMatterStr(key string) string {
 	v := c.fm[key]
 	value, ok := v.(string)
 	if !ok {
@@ -1311,7 +1360,7 @@ func frontMatterStr(key string, c *config) string {
 // ---
 //
 // I like yo mama
-func frontMatterStrSlice(key string, c *config) []string {
+func (c *config) frontMatterStrSlice(key string) []string {
 	if key == "" {
 		return []string{}
 	}
@@ -1355,8 +1404,8 @@ func frontMatterStrSliceStr(key string, c *config) string {
 
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
-func linktags(c *config) string {
-	linkTags := frontMatterStrSlice("LinkTags", c)
+func (c *config) linktags() string {
+	linkTags := c.frontMatterStrSlice("LinkTags")
 	if len(linkTags) < 1 {
 		return ""
 	}
@@ -1367,8 +1416,8 @@ func linktags(c *config) string {
 	return tags
 }
 
-func titleTag(c *config) string {
-	title := frontMatterStr("Title", c)
+func (c *config) titleTag() string {
+	title := c.frontMatterStr("Title")
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
 	} else {
@@ -1377,11 +1426,11 @@ func titleTag(c *config) string {
 }
 
 // Generate common metatags
-func metatags(c *config) string {
-	return metatag("description", frontMatterStr("Description", c)) +
-		metatag("keywords", frontMatterStr("Keywords", c)) +
-		metatag("robots", frontMatterStr("Robots", c)) +
-		metatag("author", frontMatterStr("Author", c))
+func (c *config) metatags() string {
+	return metatag("description", c.frontMatterStr("Description")) +
+		metatag("keywords", c.frontMatterStr("Keywords")) +
+		metatag("robots", c.frontMatterStr("Robots")) +
+		metatag("author", c.frontMatterStr("Author"))
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
@@ -1395,14 +1444,6 @@ func metatag(tag string, content string) string {
 
 // PRINTY utilities
 
-// If the Verbose flag is set, use the Printf style parameters
-// to format the input and return a string.
-func Verbose(format string, ss ...interface{}) {
-	if gVerbose {
-		fmt.Println(fmtMsg(format, ss...))
-	}
-}
-
 // quit displays a message fmt.Printf style and exits to the OS.
 // That format string must be preceded by an exit code and an
 // error object (nil if an error didn't occur).
@@ -1412,9 +1453,9 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	if err != nil {
 		errmsg = " " + err.Error()
 	}
-	// fmt.Println(msg + errmsg)
 	if c.currentFilename != "" {
-		// Error exit
+		// Error exit.
+		// Prints name of source file being processed.
 		if exitCode != 0 {
 			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 		} else {
@@ -1425,8 +1466,18 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 }
 
 // debug displays messages to stdout using Fprintf syntax.
-// A little list printing and easier to search
+// Same as print, but lets you search for debug
+// in source code when it's meant to be in there
+// temporarily.
+// Differs from warn(), which sends its text to stderr
 func debug(format string, ss ...interface{}) {
+	fmt.Println(fmtMsg(format, ss...))
+}
+
+// print messages to stdout using Fprintf syntax.
+// Same as debug, but meant to be left in the code.
+// Differs from warn(), which sends its text to stderr
+func print(format string, ss ...interface{}) {
 	fmt.Println(fmtMsg(format, ss...))
 }
 
@@ -1436,26 +1487,58 @@ func warn(format string, ss ...interface{}) {
 	fmt.Fprintln(os.Stderr, msg)
 }
 
+// If the Verbose flag is set, use the Printf style parameters
+// to format the input and return a string.
+func Verbose(format string, ss ...interface{}) {
+	if gVerbose {
+		fmt.Println(fmtMsg(format, ss...))
+	}
+}
+
 // fmtMsg() takes a list of strings like Fprintf, interpolates, and writes to a string
 func fmtMsg(format string, ss ...interface{}) string {
 	return fmt.Sprintf(format, ss...)
 }
 
-// DEBUG UTILITIES
+// DEBUG UTILITIES/DUMP UTILITIES
 
-// dumpFrontMatter Displays the contents of the page's front matter in JSON format
-func dumpFrontMatter(c *config) string {
+// dumpSettings() lists config values
+func (c *config) dumpSettings() {
+	print("Markdown extensions: %v", c.markdownExtensions.list)
+	print("Theme: %s", c.theme.dir)
+	print("Source directory: %s", c.root)
+	print("Webroot directory: %s", c.webroot)
+	// xxx
+}
+
+// dumpFm Displays the contents of the page's front matter in JSON format
+func dumpFm(c *config) string {
+	var s string
 	b, err := json.MarshalIndent(c.fm, "", "  ")
-	s := string(b)
+	if err != nil {
+		return ("Error marshalling front matter")
+	}
+	s = string(b)
 	s = strings.ReplaceAll(s, "{", "")
 	s = strings.ReplaceAll(s, "}", "")
 	s = strings.ReplaceAll(s, "[", "")
 	s = strings.ReplaceAll(s, "]", "")
 	s = strings.ReplaceAll(s, "\"", "")
-	if err == nil {
-		return s
-	}
-	return err.Error()
+	s = strings.TrimSpace(s)
+	return s
+	/*
+	  d := fmt.Sprintf("%v", c.fm)
+		if err == nil && d != "map[]"{
+			return d
+		} else {
+	    return ""
+	  }
+	  d = fmt.Sprintf("%v", err)
+	  if d != "<nil>"{
+	    return ""
+	  }
+	  return d
+	*/
 }
 
 // PARSING UTILITIES
@@ -1484,8 +1567,8 @@ func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 // the usual template execution, etc. It discards the
 // generated HTML and returns a dummy config object with
 // the front matter from the file in nc.fm.
-func getFrontMatter(filename string) (newConfig *config) {
-	nc := initConfig()
+func getFrontMatter(filename string) (n *config) {
+	nc := newConfig()
 	var rawHTML string
 	var err error
 
@@ -1641,4 +1724,46 @@ func promptYes(prompt string) bool {
 		}
 	}
 	///return strings.HasPrefix(strings.ToLower(answer), "y")
+}
+
+// serve is the world's simplest web server, for quick tests
+// only. c.port is a string like ":12345" and c.webroot is the
+// pathname of the directory to serve static files from.
+func (c *config) serve() {
+	dir := filepath.Join(c.root, c.webroot)
+	if err := os.Chdir(dir); err != nil {
+		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
+	}
+	if portBusy(c.port) {
+		print("Port %s is already in use", c.port)
+		os.Exit(1)
+	}
+	// Simple static webserver:
+	debug("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
+	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))); err != nil {
+		quit(1, err, c, "Error running web server")
+	}
+}
+
+// Return the current time as a string
+func theTime() string {
+	t := time.Now()
+	s := fmt.Sprintf("%s", t.Format("02 Jan 2006 15:04:05"))
+	return s
+}
+
+// portBusy() returns true if the port
+// (in the form ":12345" is already in use.
+func portBusy(port string) bool {
+	ln, err := net.Listen("tcp", port)
+	if err != nil {
+		return true
+	}
+	err = ln.Close()
+	if err != nil {
+		// TODO: Make this a quit
+		panic(err)
+	}
+
+	return false
 }

@@ -126,22 +126,20 @@ article>p{font-familiy:serif; !important}
 <li><a href="../pages/technical-overview.html">Technical Overview</a></li>
 </ul></header>
 			<article id="article"><h1 id="glossary">Glossary</h1>
-<dl>
-<dt>CommmonMark</dt>
-<dd>The term <em>CommonMark</em> is the name of a community standard for
+<h2 id="commmonmark">CommmonMark</h2>
+<p>The term <em>CommonMark</em> is the name of a community standard for
 for the <a href="#markdown">Markdown</a> text formatting
 conventions used to generate your web pages.
 In these help pages it is synonomous with
 Markdown and markup.
-<!-- raw HTML omitted --><!-- raw HTML omitted --></dd>
-<dt>front matter</dt>
-<dd>Front matter is everything in between the line starting
+<!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="front-matter">front matter</h2>
+<p>Front matter is everything in between the line starting
 with <code>---</code> to its matching <code>---</code>  line at the end. All front
 matter entries consist of a single key followed by a <code>:</code>
 colon character, a space, and a value consisting
 of one or more items. PocoCMS uses the key to look up
-the value.</dd>
-</dl>
+the value.</p>
 <p>In the example
 below, there are two entries in the front matter: <code>Title</code>
 with the value <code>Introducing PocoCMS</code>, and
@@ -156,13 +154,11 @@ Stylesheets:
 ---
 </code></pre>
 <p>See <a href="front-matter.html">Front matter</a> for more details.</p>
-<dl>
-<dt>home page</dt>
-<dd>The home page is a file named either <code>index.md</code> or <code>README.md</code>
+<h2 id="home-page">home page</h2>
+<p>The home page is a file named either <code>index.md</code> or <code>README.md</code>
 in the root directory of your project. It has some special
 qualities, for example, it's the only file you can use to
-set a theme for the site overall.</dd>
-</dl>
+set a theme for the site overall.</p>
 <p><em>README.md vs index.md</em></p>
 <p>If you have two home page files, one named <code>README.md</code> and
 another named <code>index.md</code>, the one named <code>README.md</code> takes
@@ -174,17 +170,15 @@ for the distinguished file named <code>index.html</code> in its own webroot dire
 <code>index.html</code> has special importance.</p>
 <p>The reason <code>README.md</code> takes priority over <code>index.md</code> is that's how many
 previous site generators roll, such as the one on GitHub.</p>
-<dl>
-<dt>Layout element</dt>
-<dd>The structure of a<br />
+<h2 id="layout-element">Layout element</h2>
+<p>The structure of a<br />
 <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#HTML_layout_elements_in_more_detail">complete HTML document</a>
 is based on these tags: <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;article&gt;</code>, and <code>&lt;footer&gt;</code>. They are also known as <em>layout elements</em>.
 PocoCMS takes their corresponding tags from the
 <a href="#front-matter">front matter</a>
-and uses those rules to generate the contents of each tag.</dd>
-<dt>Markdown</dt>
-<dd>Markdown is a sensible way to represent text files so that they read easily as plain text if printed out as is, but which also carry enough semantic meaning that they can be converted into HTML. Markdown is technically known as a <em>markup langauge</em>, which means that it contains both text, e.g. hello, world, and easily distinguishable annotations about how the text is used, e.g. marking up <em>hello</em> to emphasize the word in italics--its markup. The name markdown is a play on the term markup. The name markdown is a play on the term markup.</dd>
-</dl>
+and uses those rules to generate the contents of each tag.</p>
+<h2 id="markdown">Markdown</h2>
+<p>Markdown is a sensible way to represent text files so that they read easily as plain text if printed out as is, but which also carry enough semantic meaning that they can be converted into HTML. Markdown is technically known as a <em>markup langauge</em>, which means that it contains both text, e.g. hello, world, and easily distinguishable annotations about how the text is used, e.g. marking up <em>hello</em> to emphasize the word in italics--its markup. The name markdown is a play on the term markup. The name markdown is a play on the term markup.</p>
 <p>The closest thing to an industry standard for Markdown is CommonMark. PocoCMS converts all CommonMark text according to specification, and includes extensions for things like tables, strikethrough, and autolinks. See the source to Goldmark for more information on extensions.</p>
 <p>Take this example of Markdown you might use in a document:</p>
 <pre><code># Introduction
@@ -198,42 +192,38 @@ and uses those rules to generate the contents of each tag.</dd>
 <p>That means the <code># Introduction</code> line actually represents the HTML heading type h1, which is the hightest level of organization. <code>## Introduction</code> would generate an h2 header, and so on.</p>
 <p>The asterisk characters are replaced by the <code>&lt;em&gt;</code> tag pair, which means they have the semantic power of emphasis. This is represented by HTML as italics, although you could override it in CSS.</p>
 <p>In these help pages Markdown is synonyomous with markup and CommonMark.</p>
-<dl>
-<dt>Markup</dt>
-<dd>The term <em>markup</em> generally refers to the <a href="#markdown">Markdown</a> text formatting
+<h2 id="markup">Markup</h2>
+<p>The term <em>markup</em> generally refers to the <a href="#markdown">Markdown</a> text formatting
 conventions used to generate your web pages. In these help pages it is synonomous with
-Markdown, markup, and <a href="#commonmark">CommonMark</a>.</dd>
-</dl>
+Markdown, markup, and <a href="#commonmark">CommonMark</a>.</p>
 <p>Technically speaking HTML is also a markup language(<a href="https://en.wikipedia.org/wiki/Markup_language">https://en.wikipedia.org/wiki/Markup_language</a>) but in the context of static site generators
 such as PocoCMS the term normally refers to Markdown.</p>
-<dl>
-<dt>project</dt>
-<dd>A PocoCMS <em>project</em> is a directory tree with th
+<h2 id="project">project</h2>
+<p>A PocoCMS <em>project</em> is a directory tree with th
 source Markdown files and other assets required to
 create a website. At a minimum, it needs a
 <a href="#home-page">home page</a>, which is a Markdown file named
 either <code>index.md</code> or <code>README.md</code>, and a webroot subdirectory,
-by default named <code>WWW</code>.</dd>
-<dt>site</dt>
-<dd>See <a href="#project">project</a></dd>
-<dt>source file</dt>
-<dd>A <em>source file</em> is the Markdown file used to create a matching HTML file for output.
+by default named <code>WWW</code>.</p>
+<h2 id="site">site</h2>
+<p>See <a href="#project">project</a></p>
+<h2 id="source-file">source file</h2>
+<p>A <em>source file</em> is the Markdown file used to create a matching HTML file for output.
 For example, most directories have a source filenamed <code>index.html</code>, which
 is the default location web servers look when users navigate to a
-website</dd>
-<dt>theme</dt>
-<dd>A  PocoCMS site can have an optional theme, which is a collection of stylesheets and Markdown files structured in a particular way. A theme has its own folder, which is used as the name of the theme. The theme can specify stylesheets
+website</p>
+<h2 id="theme">theme</h2>
+<p>A  PocoCMS site can have an optional theme, which is a collection of stylesheets and Markdown files structured in a particular way. A theme has its own folder, which is used as the name of the theme. The theme can specify stylesheets
 to include on every page of the site. The theme can also specify
-a header, nav bar, footer, or aside to include on each page.</dd>
-<dt>web root</dt>
-<dd>Synonymous with <a href="#web-root">webroot</a>.</dd>
-<dt>webroot</dt>
-<dd>The webroot is a directory contains all files generated by Poco CMS required
+a header, nav bar, footer, or aside to include on each page.</p>
+<h2 id="web-root">web root</h2>
+<p>Synonymous with <a href="#web-root">webroot</a>.</p>
+<h2 id="webroot">webroot</h2>
+<p>The webroot is a directory contains all files generated by Poco CMS required
 for your website. By default it's a subdirectory under the directory
 used for your home named <code>WWW</code> but you can
 designate a different directory using the <code>webroot</code>
-<a href="cli.html#webroot">command line option</a></dd>
-</dl>
+<a href="cli.html#webroot">command line option</a></p>
 	</article>
 </div><!-- content-wrap -->
 	</div><!-- page-container -->
