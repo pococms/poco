@@ -77,7 +77,7 @@ var poweredBy = `Powered by PocoCMS`
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(c *config, filename string, article string, language string, ) string {
+func assemble(c *config, filename string, article string, language string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
@@ -270,7 +270,7 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 // and load its files into c.theme
 // Tests:
 // - Missing README.md
-// - Missing Stylesheets, StyleFileTemplates
+// - Missing Stylesheets
 // - Missing LICENSE file
 func (c *config) loadTheme() {
 	nc := getFrontMatter(c.homePage)
@@ -458,15 +458,14 @@ func (c *config) stylesheets() string {
 		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
 
-  /*ji
+	/*ji
 	if sheets != "" {
 		// Build a string from stylesheets named on the command line.
 		globalSlice = strings.Split(sheets, " ")
 		globals = sliceToStylesheetStr(globalSlice)
 	}
-  */
+	*/
 	// Build a string from stylesheets named in the
-	// StyleFileTemplates: front matter for the home page
 	//templates := ""
 	// Build a string from stylesheets named in the
 	// Stylesheets: front matter for this page
@@ -545,9 +544,9 @@ type theme struct {
 // That stuff lives in the front matter of the home
 // page (first checks for README.md, then checks for index.md)
 type config struct {
-	// Command-line -cleanup falg determines 
-  // whether or not the publish (aka WWW) directory gets deleted on start.
-  cleanup bool
+	// Command-line -cleanup flag determines
+	// whether or not the publish (aka WWW) directory gets deleted on start.
+	cleanup bool
 
 	// # of files copied to webroot
 	copied int
@@ -556,7 +555,7 @@ type config struct {
 	currentFilename string
 
 	// debug-frontmatter command-line option shows the front matter of each page
-  debugFrontMatter bool
+	debugFrontMatter bool
 
 	// List of all files being processed
 	files []string
@@ -568,8 +567,13 @@ type config struct {
 	// If present, it's either "README.md" or "index.md"
 	homePage string
 
-  // Command-line flag -languae sets the language of the HTML files
-  language string
+	// Command-line flag -lang sets the language of the HTML files
+	lang string
+
+	// markdownExtensions are how PocoCMS figures out whether
+	// a file is Markdown. If it ends in any one of these then
+	// it gets converted to HTML.
+	markdownExtensions searchInfo
 
 	// Port localhost server runs on
 	port string
@@ -577,13 +581,17 @@ type config struct {
 	// Home directory for source code
 	root string
 
-  // Command-line flag -serve determing if running as 
-  // a localhost web server
-  runServe bool
+	// Command-line flag -serve determing if running as
+	// a localhost web server
+	runServe bool
 
-	// Command-line flag -skip lets you skip 
-  //the named files from being processed
-  skip string
+	// Command line flag -settings shows configuration values
+	// instead of processing files
+	settings bool
+
+	// Command-line flag -skip lets you skip
+	// the named files from being processed
+	skip string
 
 	// List of stylesheets to apply to every page in
 	// string form, ready to drop into the
@@ -635,6 +643,12 @@ func (c *config) setup() {
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
+
+	// markdownExtensions are how PocoCMS figures out whether
+	// a file is Markdown. If it ends in any one of these then
+	// it gets converted to HTML.
+	//var markdownExtensions searchInfo
+	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 }
 
 // newConfig allocates a config object.
@@ -644,11 +658,11 @@ func newConfig() *config {
 	return &config
 }
 
-
+// parseCommandLine obtains command line flags and
+// initializes values.
 func (c *config) parseCommandLine() {
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
-	//var cleanup bool
 	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
 
 	// debugFrontmatter command-line option shows the front matter of each page
@@ -657,10 +671,10 @@ func (c *config) parseCommandLine() {
 	// skip lets you skip the named files from being processed
 	flag.StringVar(&c.skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
 
-	// language sets HTML lang= value, such as <html lang="fr">
-	flag.StringVar(&c.language, "language", "en", "HTML language designation, such as en or fr")
+	// lang sets HTML lang= value, such as <html lang="fr">
+	// for all files
+	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
 
-	//var root string
 	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
 	// Run as server without processing any files
@@ -668,6 +682,10 @@ func (c *config) parseCommandLine() {
 
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
+
+	// -settings command-line shows configuration values
+	// instead of processing files
+	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values")
 
 	// Title tag.
 	var title string
@@ -705,9 +723,9 @@ func main() {
 	// Set values accordingly.
 	c.setup()
 
-  // Collect command-line flags, directory to build, etc.
-  c.parseCommandLine()
-  var err error
+	// Collect command-line flags, directory to build, etc.
+	c.parseCommandLine()
+	var err error
 	if c.currentFilename != "" {
 		// Something's left on the command line. It's presumed to
 		// be a directory. Exit if that dir doesn't exit.
@@ -721,11 +739,7 @@ func main() {
 			}
 			c.root = currDir()
 		}
-	}	// markdownExtensions are how PocoCMS figures out whether
-	// a file is Markdown. If it ends in any one of these then
-	// it gets converted to HTML.
-	var markdownExtensions searchInfo
-	markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
+	}
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
@@ -739,7 +753,13 @@ func main() {
 		}
 	}
 
-	buildSite(c, c.webroot, c.skip, markdownExtensions, c.language,  c.cleanup, c.debugFrontMatter)
+	// If -settings flag just show config values and quit
+	if c.settings {
+		c.dumpSettings()
+		os.Exit(0)
+	}
+
+	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.debugFrontMatter)
 	//debug("%v", c.files)
 	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
 	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
@@ -896,9 +916,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
 			quit(1, err, c, "Unable to get relative paths of %s and %s", homeDir, sourceDir)
 		}
-		//debug("filepath.Rel(%s,%s) == %s", homeDir, sourceDir, rel)
 		// Determine the destination directory.
-		// xxx
 		webrootPath = filepath.Join(homeDir, webroot, rel)
 		// Obtain file extension.
 		ext := path.Ext(filename)
@@ -1343,7 +1361,7 @@ func (c *config) frontMatterStr(key string) string {
 // ---
 //
 // I like yo mama
-func (c *config)frontMatterStrSlice(key string) []string {
+func (c *config) frontMatterStrSlice(key string) []string {
 	if key == "" {
 		return []string{}
 	}
@@ -1399,7 +1417,7 @@ func (c *config) linktags() string {
 	return tags
 }
 
-func (c *config)titleTag() string {
+func (c *config) titleTag() string {
 	title := c.frontMatterStr("Title")
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
@@ -1484,6 +1502,15 @@ func fmtMsg(format string, ss ...interface{}) string {
 }
 
 // DEBUG UTILITIES
+
+// dumpSettings() lists config values
+func (c *config) dumpSettings() {
+	print("Markdown extensions: %v", c.markdownExtensions.list)
+	print("Theme: %s", c.theme.dir)
+	print("Source directory: %s", c.root)
+	print("Webroot directory: %s", c.webroot)
+	// xxx
+}
 
 // dumpFrontMatter Displays the contents of the page's front matter in JSON format
 func dumpFrontMatter(c *config) string {
