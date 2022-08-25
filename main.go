@@ -554,8 +554,8 @@ type config struct {
 	// Name of Markdown file being processed
 	currentFilename string
 
-	// debug-frontmatter command-line option shows the front matter of each page
-	debugFrontMatter bool
+	// dumpfm command-line option shows the front matter of each page
+	dumpFm bool
 
 	// List of all files being processed
 	files []string
@@ -666,7 +666,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
 
 	// debugFrontmatter command-line option shows the front matter of each page
-	flag.BoolVar(&c.debugFrontMatter, "debug-frontmatter", false, "Shows the front matter of each page")
+	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
 	flag.StringVar(&c.skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
@@ -759,7 +759,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.debugFrontMatter)
+	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
 	//debug("%v", c.files)
 	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
 	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
@@ -929,7 +929,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			}
 			// If asked, display the front matter
 			if debugFrontMatter {
-				debug(dumpFrontMatter(c))
+				debug(dumpFm(c))
 			}
 			// TODO: Use replaceExtension
 			source = filename[0:len(filename)-len(ext)] + ".html"
@@ -1511,8 +1511,8 @@ func (c *config) dumpSettings() {
 	// xxx
 }
 
-// dumpFrontMatter Displays the contents of the page's front matter in JSON format
-func dumpFrontMatter(c *config) string {
+// dumpFm Displays the contents of the page's front matter in JSON format
+func dumpFm(c *config) string {
 	var s string
 	b, err := json.MarshalIndent(c.fm, "", "  ")
 	if err != nil {
