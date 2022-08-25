@@ -929,7 +929,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			}
 			// If asked, display the front matter
 			if debugFrontMatter {
-				debug("TODO: dumpFrontMatter() TODO not hit in 1 file situation")
 				debug(dumpFrontMatter(c))
 			}
 			// TODO: Use replaceExtension
@@ -1501,7 +1500,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 	return fmt.Sprintf(format, ss...)
 }
 
-// DEBUG UTILITIES
+// DEBUG UTILITIES/DUMP UTILITIES
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
@@ -1514,17 +1513,32 @@ func (c *config) dumpSettings() {
 
 // dumpFrontMatter Displays the contents of the page's front matter in JSON format
 func dumpFrontMatter(c *config) string {
+	var s string
 	b, err := json.MarshalIndent(c.fm, "", "  ")
-	s := string(b)
+	if err != nil {
+		return ("Error marshalling front matter")
+	}
+	s = string(b)
 	s = strings.ReplaceAll(s, "{", "")
 	s = strings.ReplaceAll(s, "}", "")
 	s = strings.ReplaceAll(s, "[", "")
 	s = strings.ReplaceAll(s, "]", "")
 	s = strings.ReplaceAll(s, "\"", "")
-	if err == nil {
-		return s
-	}
-	return err.Error()
+	s = strings.TrimSpace(s)
+	return s
+	/*
+	  d := fmt.Sprintf("%v", c.fm)
+		if err == nil && d != "map[]"{
+			return d
+		} else {
+	    return ""
+	  }
+	  d = fmt.Sprintf("%v", err)
+	  if d != "<nil>"{
+	    return ""
+	  }
+	  return d
+	*/
 }
 
 // PARSING UTILITIES
