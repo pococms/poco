@@ -53,6 +53,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
+  embed "github.com/13rac1/goldmark-embed"
 	"io"
 	"io/ioutil"
 	"net"
@@ -270,22 +271,42 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 
 }
 
+func (c *config) foo() {
+	c = getFrontMatter(c.homePage)
+  debug("c.foo() c: %+v", c)
+
+  // xxxx
+}
+
 // loadTheme tries to find the named theme directory
 // and load its files into c.theme
 // Tests:
 // - Missing README.md
 // - Missing Stylesheets
 // - Missing LICENSE file
+// TODO: Document this carefully. Code smell is strong in this one.
 func (c *config) loadTheme() {
-	debug("\tloadTheme(): current file is %s", c.currentFilename)
+
+	// Get front matter for /index.md or /README.md
+	// in the root directory--the home page.
+	// Put it in a dummy config object.
 	nc := getFrontMatter(c.homePage)
-  debug("\tloadTheme():c.theme %+v", c.theme)
+
+	// Obtain the home page theme directory.
 	themeDir := nc.frontMatterStr("Theme")
-	debug("\tloadTheme(): Stylesheets %v", c.theme.styleFiles)
-  // xxxxx loadTheme()
+
+	// Leave if no theme specified.
+	// xxxxx loadTheme()
 	if themeDir == "" {
 		return
 	}
+
+	themeReadme := filepath.Join(themeDir, "README.md")
+	if !fileExists(themeReadme) {
+		quit(1, nil, c, "Theme %s specified in %s can't be found", themeReadme, c.homePage)
+	}
+	// TODO: I think this should be nc.homePage
+	debug("Checking for %s. Themedir is %s", c.homePage, themeDir)
 	if !fileExists(c.homePage) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
 	}
@@ -331,9 +352,9 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	styleFileList := nc.frontMatterStrSlice("Stylesheets")
+	stylesheetList := nc.frontMatterStrSlice("Stylesheets")
 	// nc.theme.dir = themeDir
-	c.styleFiles(styleFileList)
+	c.styleFiles(stylesheetList)
 	// Theme loaded. Now get additional style tags.
 	c.styleTags()
 	/*
@@ -349,10 +370,10 @@ func (c *config) loadTheme() {
 }
 
 // Pre: c.theme.dir must know theme directory.
-func (c *config) styleFiles(styleFileList []string) {
+func (c *config) styleFiles(stylesheetList []string) {
 	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
 	var s string
-	for _, filename := range styleFileList {
+	for _, filename := range stylesheetList {
 		// Filename could be in one of these forms:
 		// Stylesheets:
 		// - "tufte.min.css"
@@ -483,7 +504,7 @@ func (c *config) stylesheets() string {
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return /*globals +*/ c.styleFileTemplates + locals
+	return /*globals +*/  locals
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -520,10 +541,10 @@ type theme struct {
 	footer string
 
 	// Names of stylesheets
-	styleFiles []string
+	stylesheets []string
 
 	// Names of template stylesheets
-	styleFileTemplates string
+	stylesheetTemplates string
 
 	// Names of style tags FROM THE CURRENT MARKDOWN FILE,
 	// not the theme's README.md.
@@ -606,11 +627,6 @@ type config struct {
 	// everything in the -skip command-line flag.
 	skipPublish searchInfo
 
-	// List of stylesheets to apply to every page in
-	// string form, ready to drop into the
-	// <head>
-	styleFileTemplates string
-
 	// Contents of a theme directory
 	theme theme
 
@@ -660,36 +676,36 @@ func (c *config) findHomePage() {
 // setup() Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
-// Pre: call c.parseCommandLine() 
+// Pre: call c.parseCommandLine()
 func (c *config) setup() {
 	c.findHomePage()
 
 	c.verbose("%s", c.homePage)
-  // Process home page. It has site config info
-  // It will be added to the excluded file list.
+	// Process home page. It has site config info
+	// It will be added to the excluded file list.
 
-  // Make sure there's a webroot directory
-  if !dirExists(c.webroot) {
-    err := os.MkdirAll(c.webroot, os.ModePerm)
-    if err != nil && !os.IsExist(err) {
-      quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
-    }
-  }
-  // c.setup() xxxx
-  //c = getFrontMatter(c.currentFilename) 
+	// Make sure there's a webroot directory
+	if !dirExists(c.webroot) {
+		err := os.MkdirAll(c.webroot, os.ModePerm)
+		if err != nil && !os.IsExist(err) {
+			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
+		}
+	}
+	// c.setup() xxxx
+	//c = getFrontMatter(c.currentFilename)
 
 	// Convert the list of exclusions into a searchInfo list
 	// before traversing the directory tree.
 	c.getSkipPublish()
 
-  c.skipPublish.list = append(c.skipPublish.list, c.homePage)
+	c.skipPublish.list = append(c.skipPublish.list, c.homePage)
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
-
-  debug("\tc.setup(): front matter is %v\n", c.fm)
-  // Publish this page
-  outputFile := buildFileToFile(c, c.currentFilename, false) 
+	c.foo()
+	debug("\tc.setup(): front matter is %v\n", c.fm)
+	// Publish this page
+	outputFile := buildFileToFile(c, c.currentFilename, false)
 	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
 
 	// a file is Markdown. If it ends in any one of these then
@@ -820,8 +836,6 @@ func main() {
 	if c.settingsAfter {
 		c.dumpSettings()
 	}
-
-
 
 	final := filepath.Join(c.webroot, "index.html")
 	if !c.verboseFlag {
@@ -1016,7 +1030,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-      // TODO: Use BuildFileToFile here?
+			// TODO: Use BuildFileToFile here?
 			h := assemble(c, c.currentFilename, HTML, language)
 			writeStringToFile(c, target, h)
 		} else {
@@ -1067,11 +1081,11 @@ func ensureIndexHTML(path string, c *config) {
 // This should be established only on the home page
 // and from the -skip command-line option
 func (c *config) getSkipPublish() {
-  // The home page must be processed first, and
-  // once only. So it should be in the list already.
+	// The home page must be processed first, and
+	// once only. So it should be in the list already.
 
 	// Add anything from the -skip command line option
-  list := strings.Split(c.skip, " ")
+	list := strings.Split(c.skip, " ")
 	c.skipPublish.list = append(c.skipPublish.list, list...)
 
 	// Get what's specified in the home page front matter
@@ -1367,9 +1381,9 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		}
 		isDir := info.IsDir()
 		// Obtain just the full pathname
-    // TODO: slow due to currDir()?
+		// TODO: slow due to currDir()?
 		name := info.Name()
-		name = filepath.Join(currDir(), name); 
+		name = filepath.Join(currDir(), name)
 
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
@@ -1580,7 +1594,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 func (c *config) dumpSettings() {
 	print("Theme: %s", c.theme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
-  print("SkipPublish: %v", c.skipPublish.list)
+	print("SkipPublish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
 	print("Home page: %s", c.homePage)
@@ -1688,6 +1702,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.DefinitionList,
 		extension.Footnote,
 		extension.Linkify,
+    embed.New(),
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
