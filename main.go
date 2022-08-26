@@ -279,7 +279,10 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 func (c *config) loadTheme() {
 	debug("\tloadTheme(): current file is %s", c.currentFilename)
 	nc := getFrontMatter(c.homePage)
+  debug("\tloadTheme():c.theme %+v", c.theme)
 	themeDir := nc.frontMatterStr("Theme")
+	debug("\tloadTheme(): Stylesheets %v", c.theme.styleFiles)
+  // xxxxx loadTheme()
 	if themeDir == "" {
 		return
 	}
@@ -657,33 +660,24 @@ func (c *config) findHomePage() {
 // setup() Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
+// Pre: call c.parseCommandLine() 
 func (c *config) setup() {
 	c.findHomePage()
 
 	c.verbose("%s", c.homePage)
   // Process home page. It has site config info
   // It will be added to the excluded file list.
-  /*
-  var rawHtml string
-  var err error
-*/
 
-  // TODO:
-// should be using something like func buildFileToFile(c *config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
-// TODO: Andshould be using in the main loop, no?	
-
-  
-/*
-  if rawHtml, err = mdYAMLFileToHTMLString(c, c.homePage); err != nil {
-    quit(1, err, c, "Error converting home page to HTML")
+  // Make sure there's a webroot directory
+  if !dirExists(c.webroot) {
+    err := os.MkdirAll(c.webroot, os.ModePerm)
+    if err != nil && !os.IsExist(err) {
+      quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
+    }
   }
-  */
-  // Publish this page
-  //finishedDocument := assemble(c, c.currentFilename, rawHtml, c.lang)
-  outputFile := buildFileToFile(c, c.currentFilename, "", c.lang, false) 
-	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
+  // c.setup() xxxx
+  //c = getFrontMatter(c.currentFilename) 
 
-  // xxxxx
 	// Convert the list of exclusions into a searchInfo list
 	// before traversing the directory tree.
 	c.getSkipPublish()
@@ -692,6 +686,11 @@ func (c *config) setup() {
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
+
+  debug("\tc.setup(): front matter is %v\n", c.fm)
+  // Publish this page
+  outputFile := buildFileToFile(c, c.currentFilename, false) 
+	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
 
 	// a file is Markdown. If it ends in any one of these then
 	// it gets converted to HTML.
@@ -857,7 +856,7 @@ func doTemplate(templateName string, source string, c *config) (string, error) {
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
-func buildFileToFile(c *config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
+func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
 	html, htmlFilename := buildFileToTemplatedString(c, filename)
@@ -873,8 +872,7 @@ func buildFileToFile(c *config, filename string, stylesheets string, language st
 // generates an output file,
 // and returns name of the destination HTML file
 // Does not check if the input file is Markdown.
-// TODO: Ideally this would be called from buildSite()
-// Reeturns the string and the filenlame
+// Returns the string and the filen:ame
 func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
@@ -1012,7 +1010,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 				quit(1, err, c, "Unable to create directory %s", webrootPath)
 			}
 		}
-
 		// Now have list of all files in directory tree.
 		// If markdown, convert to HTML and copy that file to the HTML publication directory.
 		// If not, copy to target publication directory unchanged.
@@ -1587,7 +1584,6 @@ func (c *config) dumpSettings() {
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
 	print("Home page: %s", c.homePage)
-	// xxx
 }
 
 // dumpFm Displays the contents of the page's front matter in JSON format
