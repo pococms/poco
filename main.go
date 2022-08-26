@@ -95,6 +95,10 @@ func assemble(c *config, filename string, article string, language string) strin
 	if themeExtraTemplateTags != "" {
 		themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
 	}
+	timestamp := ""
+	if c.timestamp && c.currentFilename == c.homePage {
+		timestamp = "\n<p>" + theTime() + "</p>\n"
+	}
 	// If there are style tags in the current file,
 	// add and enclose in a <style> tag. Otherwise
 	// leave it empty.
@@ -120,7 +124,7 @@ func assemble(c *config, filename string, article string, language string) strin
 		"\t" + c.layoutEl("Header", filename) +
 		"\t" + c.layoutEl("Nav", filename) +
 		"\t" + c.layoutEl("Aside", filename) +
-		"\t" + "<article id=\"article\">" + article + "\t" + "</article>" + "\n" +
+		"\t" + "<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + c.layoutEl("Footer", filename) +
 		"</div><!-- page-container -->\n" +
@@ -273,6 +277,7 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 // - Missing Stylesheets
 // - Missing LICENSE file
 func (c *config) loadTheme() {
+	debug("\tloadTheme(): current file is %s", c.currentFilename)
 	nc := getFrontMatter(c.homePage)
 	themeDir := nc.frontMatterStr("Theme")
 	if themeDir == "" {
@@ -448,8 +453,6 @@ func (c *config) styleTags() string {
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
 func (c *config) stylesheets() string {
-	//var globalSlice []string
-	//var globals string
 
 	// Handle case of theme specified
 	// This is how you tell if a theme is present
@@ -458,12 +461,12 @@ func (c *config) stylesheets() string {
 		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
 
-	/*ji
-	if sheets != "" {
-		// Build a string from stylesheets named on the command line.
-		globalSlice = strings.Split(sheets, " ")
-		globals = sliceToStylesheetStr(globalSlice)
-	}
+	/*
+		if sheets != "" {
+			// Build a string from stylesheets named on the command line.
+			globalSlice = strings.Split(sheets, " ")
+			globals = sliceToStylesheetStr(globalSlice)
+		}
 	*/
 	// Build a string from stylesheets named in the
 	//templates := ""
@@ -479,10 +482,6 @@ func (c *config) stylesheets() string {
 	// the front matter.
 	return /*globals +*/ c.styleFileTemplates + locals
 }
-
-// The --verbose flag. It shows progress as the site is created.
-// Required by the Verbose() function.
-var gVerbose bool
 
 // theme contains all the (lightweight) files needed for a theme:
 // header.md, style sheets, etc.
@@ -592,6 +591,14 @@ type config struct {
 	// Command-line flag -skip lets you skip
 	// the named files from being processed
 	skip string
+	// xxxx type config
+
+	// String slice list of items not to
+	// process or send to webroot
+	// that will contain everything
+	// from both SkipPublish in the front matter and
+	// everything in the -skip command-line flag.
+	skipPublish searchInfo
 
 	// List of stylesheets to apply to every page in
 	// string form, ready to drop into the
@@ -600,6 +607,14 @@ type config struct {
 
 	// Contents of a theme directory
 	theme theme
+
+	// Command-line flag -timestamp inserts a timestamp at the
+	// top of the article when true
+	timestamp bool
+
+	// The --verbose flag. It shows progress as the site is created.
+	// Required by the verbose() function.
+	verboseFlag bool
 
 	// Output directory for published files
 	webroot string
@@ -615,8 +630,8 @@ func (c *config) findHomePage() {
 	// Look for "README.md" or "index.md" in that order.
 	// return "" if neither found.
 	c.homePage = indexFile(c.root)
-
 	if c.homePage != "" {
+		c.currentFilename = c.homePage
 		return
 	}
 
@@ -624,7 +639,7 @@ func (c *config) findHomePage() {
 		// No home page.
 		// Directory has files.
 		// User may not wish to create a new project.
-		if promptYes("Create a home page?") {
+		if promptYes("This isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
 			writeDefaultHomePage(c, c.root)
 		} else {
 			quit(1, nil, c, "Can't build a project with an index.md or README.md")
@@ -633,12 +648,14 @@ func (c *config) findHomePage() {
 		// Empty dir, so create home page
 		writeDefaultHomePage(c, c.root)
 	}
+	c.currentFilename = c.homePage
 }
 
 // setup() Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 func (c *config) setup() {
+	// xxx
 	c.findHomePage()
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
@@ -669,7 +686,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
-	flag.StringVar(&c.skip, "skip", "node_modules .git .DS_Store .gitignore", "List of files to skip when generating a site")
+	flag.StringVar(&c.skip, "skip", "", "List of files to skip when generating a site")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -687,12 +704,17 @@ func (c *config) parseCommandLine() {
 	// instead of processing files
 	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values")
 
+	// /xxxxx
+	// Command-line flag -timestamp inserts a timestamp at the
+	// top of the article when true
+	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
+
 	// Title tag.
 	var title string
 	flag.StringVar(&title, "Title", poweredBy, "Contents of the HTML title tag")
 
 	// Verbose shows progress as site is generated.
-	flag.BoolVar(&gVerbose, "verbose", false, "Display information about project as it's generated")
+	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
 
 	// webroot is the directory used to house the final generated website.
 	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
@@ -718,11 +740,6 @@ func main() {
 	// No file was given on the command line.
 	// Build the project in place.
 
-	// Obtain README.md or index.md.
-	// Read in the front matter to get its config information.
-	// Set values accordingly.
-	c.setup()
-
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 	var err error
@@ -731,15 +748,19 @@ func main() {
 		// be a directory. Exit if that dir doesn't exit.
 		if !dirExists(c.currentFilename) {
 			quit(1, nil, c, "Can't find the directory %v", c.currentFilename)
-		} else {
-			c.root = c.currentFilename
-			c.currentFilename = ""
-			if err = os.Chdir(c.root); err != nil {
-				quit(1, err, c, "Unable to change to new root directory %s", c.root)
-			}
-			c.root = currDir()
+		}
+		c.root = c.currentFilename
+		c.currentFilename = ""
+		if err = os.Chdir(c.root); err != nil {
+			quit(1, err, c, "Unable to change to new root directory %s", c.root)
+			//c.root = currDir()
 		}
 	}
+
+	// Obtain README.md or index.md.
+	// Read in the front matter to get its config information.
+	// Set values accordingly.
+	c.setup()
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
@@ -749,6 +770,7 @@ func main() {
 			print("Can't find webroot directory %s", c.webroot)
 			os.Exit(1)
 			// TODO: This code doesn't seem to execute?
+			// Or more likely it quits silently
 			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
 		}
 	}
@@ -762,8 +784,13 @@ func main() {
 	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
 	//debug("%v", c.files)
 	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
-	debug("Site published to %s", filepath.Join(c.webroot, "index.html"))
-
+	final := filepath.Join(c.webroot, "index.html")
+	if !c.verboseFlag {
+		print("Site published to %s", final)
+		// xxxx
+	} else {
+		print("%s Site published to %s", theTime(), final)
+	}
 }
 
 // TEMPLATE FUNCTIONS
@@ -835,6 +862,7 @@ func buildFileToTemplatedString(c *config, filename string, stylesheets string, 
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
+// TODO: I believe skip isn't used. It shouldn't be.
 func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, cleanup bool, debugFrontMatter bool) {
 
 	var err error
@@ -854,19 +882,18 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// Delete web root directory unless otherwise requested
 	if cleanup {
 		delDir := filepath.Join(homeDir, webroot)
-		Verbose("Deleting directory %v", delDir)
+		c.verbose("Deleting directory %v", delDir)
 		if err := os.RemoveAll(delDir); err != nil {
 			quit(1, err, c, "Unable to delete publish directory %v", delDir)
 		}
 	}
 
-	// Convert the list of exclusions into a string slice.
-	// skipPublish = getSkipPublish()
-	var skipPublish searchInfo
-	skipPublish.list = strings.Split(skip, " ")
+	// Convert the list of exclusions into a searchInfo list
+	// before traversing the directory tree.
+	c.getSkipPublish()
 
 	// Collect all the files required for this project.
-	c.files, err = getProjectTree(".", skipPublish)
+	c.files, err = getProjectTree(".", c.skipPublish)
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
@@ -906,7 +933,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		// Get the fully qualified pathname for this file.
 		c.currentFilename = filepath.Join(homeDir, filename)
 
-		Verbose("%s", c.currentFilename)
+		c.verbose("%s", c.currentFilename)
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(c.currentFilename)
 
@@ -968,7 +995,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-	Verbose("%v file(s) copied", c.copied)
+	c.verbose("%v file(s) copied", c.copied)
 } // buildSite()
 
 // ensureIndexHTML makes sure there's an index.html file
@@ -998,9 +1025,28 @@ func ensureIndexHTML(path string, c *config) {
 	}
 }
 
-func getSkipPublish() []string {
+// getSkipPublish() obtains the list of directories
+// and files to ignore during creation of  a site.
+// An example would be something like:
+//
+//	"node_modules/ .git/ .DS_Store/ .gitignore"
+//
+// This should be established only on the home page
+// and from the -skip command-line option
+func (c *config) getSkipPublish() []string {
+	// Start with anything from the -skip command line option
+	c.skipPublish.list = strings.Split(c.skip, " ")
+	debug("getSkipPublish command line %v", c.skipPublish.list)
+
+	// Get what's specified in the home page front matter
+	localSlice := c.frontMatterStrSlice("SkipPublish")
+	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
+	debug("getSkipPublish front Matter %v", localSlice)
+	debug("getSkipPublish HOME PAGE ONLY PLZ: c.skipPublish.list %v", c.skipPublish.list)
+	//locals := sliceToStylesheetStr(localSlice)
+	//var skipPublish searchInfo
+
 	// var skipPublish searchInfo
-	// skipPublish.list = strings.Split(skip, " ")
 	// var skipPublish searchInfo
 	// skipPublish.list = strings.Split(skip, " ")
 	// skipPublish = getSkipPublish()
@@ -1487,10 +1533,10 @@ func warn(format string, ss ...interface{}) {
 	fmt.Fprintln(os.Stderr, msg)
 }
 
-// If the Verbose flag is set, use the Printf style parameters
+// If the c.verbose flag is set, use the Printf style parameters
 // to format the input and return a string.
-func Verbose(format string, ss ...interface{}) {
-	if gVerbose {
+func (c *config) verbose(format string, ss ...interface{}) {
+	if c.verboseFlag {
 		fmt.Println(fmtMsg(format, ss...))
 	}
 }
@@ -1527,17 +1573,17 @@ func dumpFm(c *config) string {
 	s = strings.TrimSpace(s)
 	return s
 	/*
-	  d := fmt.Sprintf("%v", c.fm)
-		if err == nil && d != "map[]"{
-			return d
-		} else {
-	    return ""
-	  }
-	  d = fmt.Sprintf("%v", err)
-	  if d != "<nil>"{
-	    return ""
-	  }
-	  return d
+		  d := fmt.Sprintf("%v", c.fm)
+			if err == nil && d != "map[]"{
+				return d
+			} else {
+		    return ""
+		  }
+		  d = fmt.Sprintf("%v", err)
+		  if d != "<nil>"{
+		    return ""
+		  }
+		  return d
 	*/
 }
 
@@ -1723,7 +1769,6 @@ func promptYes(prompt string) bool {
 			return strings.HasPrefix(strings.ToLower(answer), "y")
 		}
 	}
-	///return strings.HasPrefix(strings.ToLower(answer), "y")
 }
 
 // serve is the world's simplest web server, for quick tests
