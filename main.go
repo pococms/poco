@@ -588,10 +588,13 @@ type config struct {
 	// instead of processing files
 	settings bool
 
+	// Command line flag -settings-after shows configuration values
+	// after processing files
+	settingsAfter bool
+
 	// Command-line flag -skip lets you skip
 	// the named files from being processed
 	skip string
-	// xxxx type config
 
 	// String slice list of items not to
 	// process or send to webroot
@@ -655,13 +658,41 @@ func (c *config) findHomePage() {
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 func (c *config) setup() {
-	// xxx
 	c.findHomePage()
+
+	c.verbose("%s", c.homePage)
+  // Process home page. It has site config info
+  // It will be added to the excluded file list.
+  /*
+  var rawHtml string
+  var err error
+*/
+
+  // TODO:
+// should be using something like func buildFileToFile(c *config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
+// TODO: Andshould be using in the main loop, no?	
+
+  
+/*
+  if rawHtml, err = mdYAMLFileToHTMLString(c, c.homePage); err != nil {
+    quit(1, err, c, "Error converting home page to HTML")
+  }
+  */
+  // Publish this page
+  //finishedDocument := assemble(c, c.currentFilename, rawHtml, c.lang)
+  outputFile := buildFileToFile(c, c.currentFilename, "", c.lang, false) 
+	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
+
+  // xxxxx
+	// Convert the list of exclusions into a searchInfo list
+	// before traversing the directory tree.
+	c.getSkipPublish()
+
+  c.skipPublish.list = append(c.skipPublish.list, c.homePage)
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
 
-	// markdownExtensions are how PocoCMS figures out whether
 	// a file is Markdown. If it ends in any one of these then
 	// it gets converted to HTML.
 	//var markdownExtensions searchInfo
@@ -702,9 +733,12 @@ func (c *config) parseCommandLine() {
 
 	// -settings command-line shows configuration values
 	// instead of processing files
-	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values")
+	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values instead of processing site")
 
-	// /xxxxx
+	// Command line flag -settings-after shows configuration values
+	// after processing files
+	flag.BoolVar(&c.settingsAfter, "settings-after", false, "Shows configuration values after processing site")
+
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
@@ -782,12 +816,17 @@ func main() {
 	}
 
 	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
-	//debug("%v", c.files)
-	//quit(0, nil, c, "Site published to %s", filepath.Join(webrootPath, "index.html"))
+
+	// If -settings-after flag just show config values and quit
+	if c.settingsAfter {
+		c.dumpSettings()
+	}
+
+
+
 	final := filepath.Join(c.webroot, "index.html")
 	if !c.verboseFlag {
 		print("Site published to %s", final)
-		// xxxx
 	} else {
 		print("%s Site published to %s", theTime(), final)
 	}
@@ -821,7 +860,7 @@ func doTemplate(templateName string, source string, c *config) (string, error) {
 func buildFileToFile(c *config, filename string, stylesheets string, language string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
-	html, htmlFilename := buildFileToTemplatedString(c, filename, stylesheets, language)
+	html, htmlFilename := buildFileToTemplatedString(c, filename)
 	// Write the contents of the completed HTML document to a file.
 	writeStringToFile(c, htmlFilename, html)
 	// Return the name of the converted file
@@ -836,7 +875,7 @@ func buildFileToFile(c *config, filename string, stylesheets string, language st
 // Does not check if the input file is Markdown.
 // TODO: Ideally this would be called from buildSite()
 // Reeturns the string and the filenlame
-func buildFileToTemplatedString(c *config, filename string, stylesheets string, language string) (string, string) {
+func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -852,8 +891,8 @@ func buildFileToTemplatedString(c *config, filename string, stylesheets string, 
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(c, c.currentFilename, rawHTML, language)
-		// Return the finished document and its filename
+		finishedDocument := assemble(c, c.currentFilename, rawHTML, c.lang)
+		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
 }
@@ -887,10 +926,6 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			quit(1, err, c, "Unable to delete publish directory %v", delDir)
 		}
 	}
-
-	// Convert the list of exclusions into a searchInfo list
-	// before traversing the directory tree.
-	c.getSkipPublish()
 
 	// Collect all the files required for this project.
 	c.files, err = getProjectTree(".", c.skipPublish)
@@ -984,6 +1019,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
+      // TODO: Use BuildFileToFile here?
 			h := assemble(c, c.currentFilename, HTML, language)
 			writeStringToFile(c, target, h)
 		} else {
@@ -1033,25 +1069,17 @@ func ensureIndexHTML(path string, c *config) {
 //
 // This should be established only on the home page
 // and from the -skip command-line option
-func (c *config) getSkipPublish() []string {
-	// Start with anything from the -skip command line option
-	c.skipPublish.list = strings.Split(c.skip, " ")
-	debug("getSkipPublish command line %v", c.skipPublish.list)
+func (c *config) getSkipPublish() {
+  // The home page must be processed first, and
+  // once only. So it should be in the list already.
+
+	// Add anything from the -skip command line option
+  list := strings.Split(c.skip, " ")
+	c.skipPublish.list = append(c.skipPublish.list, list...)
 
 	// Get what's specified in the home page front matter
 	localSlice := c.frontMatterStrSlice("SkipPublish")
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
-	debug("getSkipPublish front Matter %v", localSlice)
-	debug("getSkipPublish HOME PAGE ONLY PLZ: c.skipPublish.list %v", c.skipPublish.list)
-	//locals := sliceToStylesheetStr(localSlice)
-	//var skipPublish searchInfo
-
-	// var skipPublish searchInfo
-	// var skipPublish searchInfo
-	// skipPublish.list = strings.Split(skip, " ")
-	// skipPublish = getSkipPublish()
-	return []string{}
-	// xxxx
 }
 
 // isProject() looks at the structure of the specified directory
@@ -1341,14 +1369,17 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 			return err
 		}
 		isDir := info.IsDir()
-		// Obtain just the filename.
-		name := filepath.Base(info.Name())
+		// Obtain just the full pathname
+    // TODO: slow due to currDir()?
+		name := info.Name()
+		name = filepath.Join(currDir(), name); 
 
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
 		if skipPublish.Found(name) && isDir {
 			return filepath.SkipDir
 		}
+
 		// It may be just a filename on the exclude list.
 		if skipPublish.Found(name) {
 			return nil
@@ -1550,10 +1581,12 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
-	print("Markdown extensions: %v", c.markdownExtensions.list)
 	print("Theme: %s", c.theme.dir)
+	print("Markdown extensions: %v", c.markdownExtensions.list)
+  print("SkipPublish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
+	print("Home page: %s", c.homePage)
 	// xxx
 }
 
