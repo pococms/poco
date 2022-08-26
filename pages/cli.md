@@ -1,4 +1,32 @@
-# poco command-line options
+# PocoCMS command-line options
+
+{{- /* TODO: screenshots of both kinds of output for timestamp */ -}}
+
+## timestamp
+
+The `-timestamp` command-line option lets you insert
+a timestamp before the rest of the article text on your
+home page. It also adds a timestamp at the end of 
+project creationg. It helps when server or browser caches are
+preventing you from changes to your site's output.
+
+### timestamp example
+
+Enter this at the operating system prompt:
+
+```bash
+poco -timestamp
+```
+
+Upon completion you'll see the timestamp before the completion message:
+
+```bash
+25 Aug 2023 18:33:29 Site published to WWW/index.html
+```
+
+You can now check it against the timestamp on your homepage
+to ensure the home page you see has cleared browser or server caches.
+
 
 ## webroot
 

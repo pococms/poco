@@ -1,5 +1,6 @@
 # Poco CMS Reference
 
+[PocoCMS command line options](cli.html)  
 [PocoCMS glossary](glossary.html)  
 [Code highlighting](highlighting.html)  
 [Front matter](front-matter.html)  
