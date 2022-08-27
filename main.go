@@ -84,7 +84,7 @@ func assemble(c *config, filename string, article string, language string) strin
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["Title"] is set to, etc.
 	if parsedArticle, err := doTemplate("", article, c); err != nil {
-		quit(1, err, c, "%v: Unable to execute ", filename)
+		quit(1, err, c, "%v: template error", filename)
 	} else {
 		article = parsedArticle
 	}
@@ -96,6 +96,9 @@ func assemble(c *config, filename string, article string, language string) strin
 	if themeExtraTemplateTags != "" {
 		themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
 	}
+
+  // If it's the home page, and a timestamp was requested, 
+  // insert it in a paragraph at the top of the article.
 	timestamp := ""
 	if c.timestamp && c.currentFilename == c.homePage {
 		timestamp = "\n<p>" + theTime() + "</p>\n"
@@ -125,7 +128,7 @@ func assemble(c *config, filename string, article string, language string) strin
 		"\t" + c.layoutEl("Header", filename) +
 		"\t" + c.layoutEl("Nav", filename) +
 		"\t" + c.layoutEl("Aside", filename) +
-		"\t" + "<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
+		"<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + c.layoutEl("Footer", filename) +
 		"</div><!-- page-container -->\n" +
@@ -200,8 +203,6 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
 	// the front matter, e.g. Header: "SUPPRESS"
 	filename := c.frontMatterStr(element)
-	// debug("\tlayoutEl %s: %s", element, filename)
-	//debug("\t%s %s (%s):  %+v", filepath.Base(sourcefile),element,filename,c.fm)
 
 	if filename == "SUPPRESS" {
 		return ""
@@ -231,7 +232,6 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	// layoutElSource is 'myheader.md'
 
 	layoutElSource := c.frontMatterStr(element)
-	//debug("\t%s ***layoutEl specified file %s", c.currentFilename, layoutElSource)
 	if filepath.IsAbs(layoutElSource) {
 		fullPath = layoutElSource
 	} else {
@@ -248,21 +248,20 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 		isMarkdown = true
 	}
 
-	parsedArticle := ""
+	convertedElement := ""
 	raw := ""
 	var err error
 	if isMarkdown {
 		if !fileExists(fullPath) {
-			quit(1, nil, c, "Front matter \"%s:\" specified file %s but can't find it", element, fullPath)
+			quit(1, nil, c, "Theme \"%s:\" specified file %s but it's not available", element, fullPath)
 		}
-		// TODO: This feels wasteful
 		raw = convertMdYAMLFileToHTMLStr(fullPath, c)
-		if parsedArticle, err = doTemplate("", raw, c); err != nil {
+		if convertedElement, err = doTemplate("", raw, c); err != nil {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
-		if parsedArticle != "" {
-			//debug("\t\tFront matter is now: %+v", c.fm)
-			wholeTag := "<" + tag + ">" + parsedArticle + "</" + tag + ">\n"
+		if convertedElement!= "" {
+			wholeTag := "<" + tag + " id=\"" + tag + "\"" + ">" + convertedElement + "</" + tag + ">\n"
+      debug("\t\tConverted tag %s", wholeTag)
 			return wholeTag
 		}
 		return ""
@@ -271,9 +270,10 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 
 }
 
-func (c *config) foo() {
-	c = getFrontMatter(c.homePage)
-  debug("c.foo() c: %+v", c)
+// homePagePrefs gets configuration settings from the
+// home page (READ.me or index.md in root source directory)
+func (c *config) homePagePrefs() {
+  c.getSkipPublish()
 
   // xxxx
 }
@@ -291,6 +291,10 @@ func (c *config) loadTheme() {
 	// in the root directory--the home page.
 	// Put it in a dummy config object.
 	nc := getFrontMatter(c.homePage)
+  
+  // Obtain home page prefs before loading theme, because
+  // if you don't have a theme stuff goes mising
+  nc.homePagePrefs()
 
 	// Obtain the home page theme directory.
 	themeDir := nc.frontMatterStr("Theme")
@@ -339,6 +343,7 @@ func (c *config) loadTheme() {
 	}
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
+  // I believe this is required to propagate styles to other pages
 	themeReadMe := filepath.Join(themeDir, "README.md")
 	nc = getFrontMatter(themeReadMe)
 
@@ -357,16 +362,6 @@ func (c *config) loadTheme() {
 	c.styleFiles(stylesheetList)
 	// Theme loaded. Now get additional style tags.
 	c.styleTags()
-	/*
-	  debug("Theme: %v\nHeader: %v\nNav: %v\nAside: %v\nFooter: %v. styleGilesEmbedded: %v\n\n",
-	      themeDir,
-	      c.theme.header,
-	      c.theme.nav,
-	      c.theme.aside,
-	      c.theme.footer,
-	      c.theme.styleFilesEmbedded)
-	*/
-
 }
 
 // Pre: c.theme.dir must know theme directory.
@@ -673,6 +668,13 @@ func (c *config) findHomePage() {
 	c.currentFilename = c.homePage
 }
 
+// processing() returns the name of the file
+// being processed, since it's displayed in 
+// two different places
+func (c *config) currentFile() string {
+  return c.currentFilename
+}
+
 // setup() Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
@@ -680,7 +682,12 @@ func (c *config) findHomePage() {
 func (c *config) setup() {
 	c.findHomePage()
 
-	c.verbose("%s", c.homePage)
+  // Display home page filename in verbose mode. Same as
+  // elsewhere in buildSite for all the other files.
+  // xxx
+  c.currentFilename = c.homePage
+  // Display name of file being processed
+	c.verbose(c.currentFile())
 	// Process home page. It has site config info
 	// It will be added to the excluded file list.
 
@@ -691,19 +698,10 @@ func (c *config) setup() {
 			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
 		}
 	}
-	// c.setup() xxxx
-	//c = getFrontMatter(c.currentFilename)
-
-	// Convert the list of exclusions into a searchInfo list
-	// before traversing the directory tree.
-	c.getSkipPublish()
-
-	c.skipPublish.list = append(c.skipPublish.list, c.homePage)
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
-	c.foo()
-	debug("\tc.setup(): front matter is %v\n", c.fm)
+
 	// Publish this page
 	outputFile := buildFileToFile(c, c.currentFilename, false)
 	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
@@ -806,11 +804,6 @@ func main() {
 		}
 	}
 
-	// Obtain README.md or index.md.
-	// Read in the front matter to get its config information.
-	// Set values accordingly.
-	c.setup()
-
 	// If -serve flag was used just run as server.
 	if c.runServe {
 		if dirExists(c.webroot) {
@@ -824,11 +817,18 @@ func main() {
 		}
 	}
 
+	// Obtain README.md or index.md.
+	// Read in the front matter to get its config information.
+	// Set values accordingly.
+	c.setup()
+
 	// If -settings flag just show config values and quit
 	if c.settings {
 		c.dumpSettings()
 		os.Exit(0)
 	}
+  debug("main() c.skipPublish.list %v", c.skipPublish.list)
+
 
 	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
 
@@ -940,6 +940,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	}
 
 	// Collect all the files required for this project.
+
 	c.files, err = getProjectTree(".", c.skipPublish)
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
@@ -980,7 +981,9 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		// Get the fully qualified pathname for this file.
 		c.currentFilename = filepath.Join(homeDir, filename)
 
-		c.verbose("%s", c.currentFilename)
+    // Display name of file being processed
+  	c.verbose(c.currentFile())
+
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(c.currentFilename)
 
@@ -1090,6 +1093,7 @@ func (c *config) getSkipPublish() {
 
 	// Get what's specified in the home page front matter
 	localSlice := c.frontMatterStrSlice("SkipPublish")
+  debug("SkipPublish for %s: %v", c.currentFilename, localSlice)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1373,6 +1377,8 @@ func (s *searchInfo) Found(searchFor string) bool {
 // DIRECTORY TREE
 
 func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
+  debug("\tvisit skipPublish: %v", skipPublish.list)
+
 	// Find out what directories to exclude
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -1388,11 +1394,13 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
 		if skipPublish.Found(name) && isDir {
+      debug("\tvisit(): found %s in %v", name, skipPublish.list)
 			return filepath.SkipDir
 		}
 
 		// It may be just a filename on the exclude list.
 		if skipPublish.Found(name) {
+      debug("\tvisit(): skipping file %s. Found in %v", name, skipPublish.list)
 			return nil
 		}
 
@@ -1409,6 +1417,8 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 // Ignore items in exclude.List
 func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
+  debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
+
 	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
 		return []string{}, err
@@ -1815,26 +1825,29 @@ func promptYes(prompt string) bool {
 	}
 }
 
+
+// SERVER UTILITIES
+
 // serve is the world's simplest web server, for quick tests
 // only. c.port is a string like ":12345" and c.webroot is the
 // pathname of the directory to serve static files from.
 func (c *config) serve() {
-	dir := filepath.Join(c.root, c.webroot)
-	if err := os.Chdir(dir); err != nil {
-		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
-	}
 	if portBusy(c.port) {
 		print("Port %s is already in use", c.port)
 		os.Exit(1)
 	}
+	dir := filepath.Join(c.root, c.webroot)
+	if err := os.Chdir(dir); err != nil {
+		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
+	}
 	// Simple static webserver:
-	debug("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
+	print("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
 	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
 }
 
-// Return the current time as a string
+// time returns the current time as a string
 func theTime() string {
 	t := time.Now()
 	s := fmt.Sprintf("%s", t.Format("02 Jan 2006 15:04:05"))
@@ -1845,14 +1858,18 @@ func theTime() string {
 // (in the form ":12345" is already in use.
 func portBusy(port string) bool {
 	ln, err := net.Listen("tcp", port)
+  defer ln.Close()
 	if err != nil {
 		return true
 	}
 	err = ln.Close()
 	if err != nil {
 		// TODO: Make this a quit
-		panic(err)
+		quit(1, err, nil, "Problem closing port")
 	}
 
 	return false
 }
+
+// MINIFY
+
