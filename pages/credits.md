@@ -20,6 +20,13 @@ Poco CMS relies on many other inimitable Yuin, including:
 
 * [https://github.com/abhinav/goldmark-toc](https://github.com/abhinav/goldmark-toc) for table of contents support
 
+
+## Alec Thomas for the Chroma highlighter
+
+PocoCMS relies on [Chroma](https://github.com/alecthomas/chroma) 
+for code syntax highlighting, thanks to the [Alec Thomas](https://github.com/alecthomas).
+
+
 ## CDN services
 
 Amazingly, [jsDelivr](https://www.jsdelivr.com/) hosts open source files

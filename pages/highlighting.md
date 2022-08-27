@@ -17,7 +17,8 @@ func theTime() string {
 }
 ```
 
-It's called code fencing. PocoCMS supports extensions to that
+It's called a [code fence](glossary.html#code-fence). 
+PocoCMS supports extensions to that
 minimal standard, including support for keyword highlighting
 in many programming languages and marking specific lines numbers
 in the code for clarity.
@@ -66,7 +67,6 @@ Here's an example using technique #2, which is indenting 4 spaces:
         }
 
 
-As you know, you can use [code fences](glossary.html#code-fence)
 
 ## Programming language support
 
@@ -99,7 +99,7 @@ func theTime() string {
 ### List of supported languages
 
 You can get a list of supported programming languages
-for highlighting [here](https://github.com/alecthomas/chroma#supported-languages).
+for highlighting [here](https://github.com/alecthomas/chroma#supported-languages), thanks to the tireless work of [Alec Thomas](https://github.com/alecthomas).
 
 ```
     ```go {hl_lines=[1,"3-4"]}
