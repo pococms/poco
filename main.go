@@ -105,7 +105,7 @@ func (c *config) scriptAfter() string {
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(c *config, filename string, article string, language string) string {
+func assemble(c *config, filename string, article string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
@@ -150,7 +150,7 @@ func assemble(c *config, filename string, article string, language string) strin
 	}
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
-	htmlFile = docType + "\"" + language + "\">" + "\n" +
+	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
 		"<head>\n" +
 		"\t<meta charset=\"utf-8\">\n" +
 		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
@@ -831,7 +831,7 @@ func (c *config) parseCommandLine() {
 	// top of the article when true
 	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
 
-		// Verbose shows progress as site is generated.
+	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
 
 	// webroot flag is the directory used to house the final generated website.
@@ -880,7 +880,8 @@ func main() {
 	}
 	// kdebug("main() c.skipPublish.list %v", c.skipPublish.list)
 
-	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
+	// Generate the site based in c.root. Output its contens to c.webroot.
+	c.buildSite()
 
 	// If -settings-after flag just show config values and quit
 	if c.settingsAfter {
@@ -954,7 +955,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(c, c.currentFile(), rawHTML, c.lang)
+		finishedDocument := assemble(c, c.currentFile(), rawHTML)
 		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
@@ -965,7 +966,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 // TODO: I believe skip isn't used. It shouldn't be.
-func buildSite(c *config, webroot string, skip string, markdownExtensions searchInfo, language string, cleanup bool, debugFrontMatter bool) {
+func (c *config) buildSite() {
 
 	var err error
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -982,8 +983,8 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	}
 
 	// Delete web root directory unless otherwise requested
-	if cleanup {
-		delDir := filepath.Join(homeDir, webroot)
+	if c.cleanup {
+		delDir := filepath.Join(homeDir, c.webroot)
 		c.verbose("Deleting directory %v", delDir)
 		if err := os.RemoveAll(delDir); err != nil {
 			quit(1, err, c, "Unable to delete publish directory %v", delDir)
@@ -1017,7 +1018,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 	var converted bool
 
 	// Name of directory used to publish output files
-	var webrootPath string
+	var webrootRelPath string
 
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
@@ -1045,18 +1046,20 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			quit(1, err, c, "Unable to get relative paths of %s and %s", homeDir, sourceDir)
 		}
 		// Determine the destination directory.
-		webrootPath = filepath.Join(homeDir, webroot, rel)
+		// This is always the relative path of the filename
+		webrootRelPath = filepath.Join(homeDir, c.webroot, rel)
+
 		// Obtain file extension.
 		ext := path.Ext(filename)
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
-		if markdownExtensions.Found(ext) {
+		if c.markdownExtensions.Found(ext) {
 			// Convert the Markdown file to an HTML string
 			if HTML, err = mdYAMLFileToHTMLString(c, filename); err != nil {
 				quit(1, err, c, "Error converting Markdown file to HTML")
 			}
 			// If asked, display the front matter
-			if debugFrontMatter {
+			if c.dumpFm {
 				debug(dumpFm(c))
 			}
 			// TODO: Use replaceExtension
@@ -1068,14 +1071,14 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 			// Insert destination (webroot) directory
 			converted = false
 		}
-		target = filepath.Join(webrootPath, filepath.Base(source))
+		target = filepath.Join(webrootRelPath, filepath.Base(source))
 
 		// Create the target directory for this file if it
 		// doesn't exist.
-		if !dirExists(webrootPath) {
-			err := os.MkdirAll(webrootPath, os.ModePerm)
+		if !dirExists(webrootRelPath) {
+			err := os.MkdirAll(webrootRelPath, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to create directory %s", webrootPath)
+				quit(1, err, c, "Unable to create directory %s", webrootRelPath)
 			}
 		}
 		// Now have list of all files in directory tree.
@@ -1085,7 +1088,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
 			// TODO: Use BuildFileToFile here?
-			h := assemble(c, c.currentFile(), HTML, language)
+			h := assemble(c, c.currentFile(), HTML)
 			writeStringToFile(c, target, h)
 		} else {
 			copyFile(c, source, target)
