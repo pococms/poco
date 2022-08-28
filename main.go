@@ -19,19 +19,8 @@ package main
 // poco
 //
 // Learn the command-line options:
-// poco --help
+// poco -help
 //
-//
-// Use a style sheet from a CDN (you don't have to copy it to your project)
-// poco --styles "https://cdn.jsdelivr.net/npm/holiday.css"
-//
-// Include the 2 css files shown
-// poco --styles "theme.css light-mode.css"
-//
-// Compile only file template.md and deposit its HTML output in the same directory.
-// Use the hack.css stylesheet from a CDN.
-// Filename must come after all the options.
-// ./poco --styles "https://unpkg.com/hack@0.8.1/dist/hack.css" template.md
 // Use the docs subdirectory as the root of the site.
 // ./poco --root "./docs"
 
@@ -157,7 +146,7 @@ func assemble(c *config, filename string, article string, language string) strin
 	scriptAfterStr := c.scriptAfter()
 	if scriptAfterStr != "" {
 		//hasScript = true
-		debug(scriptAfterStr)
+		//debug(scriptAfterStr)
 	}
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
@@ -419,7 +408,7 @@ func (c *config) styleFiles(stylesheetList []string) {
 	var s string
 	for _, filename := range stylesheetList {
 		// Filename could be in one of these forms:
-		// Stylesheets:
+		// stylesheets:
 		// - "tufte.min.css"
 		// - "~/Users/tom/tufte.min.css"
 		// - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
@@ -695,15 +684,12 @@ type config struct {
 // Set c.currentFilename to the home page when found
 // Pre: c.root must be a fully qualified pathname
 func (c *config) findHomePage() {
-	debug("\tfindHomePage: c.root is %s", c.root)
 	// Look for "README.md" or "index.md" in that order.
-	// return "" if neither found.
 	c.homePage = indexFile(c.root)
 	if c.homePage != "" {
 		c.currentFilename = c.homePage
 		return
 	}
-	debug("\tfindHomePage: home page is %s", c.homePage)
 
 	if !dirEmpty(c.root) {
 		// No home page.
@@ -728,50 +714,46 @@ func (c *config) currentFile() string {
 	return c.currentFilename
 }
 
-
 // setRoot() obtains a fully qualified pathname for the home page source filename
 // and its root directory.
 func (c *config) setRoot() {
-  var err error
-  // Determine home page, which may have been passed on command line.
+	var err error
+	// Determine home page, which may have been passed on command line.
 	if c.root == "." || c.root == "" {
-    // Handle most common case: no params, just process this directory.
+		// Handle most common case: no params, just process this directory.
 		c.root = currDir()
 	} else {
 		// Something's left on the command line. It's presumed to
 		// be a directory. Exit if that dir doesn't exist.
-    if !filepath.IsAbs(c.root) {
-      c.root, err = filepath.Abs(c.root)
-      if err != nil {
-        quit(1, err, nil, "Can't get absolute path for home page")
-      }
-    }
-  }
-  // c.root finally established. Does it even exist?
-  if !dirExists(c.root) {
-    quit(1, nil, c, "Can't find the directory %v", c.root)
-  }
+		if !filepath.IsAbs(c.root) {
+			c.root, err = filepath.Abs(c.root)
+			if err != nil {
+				quit(1, err, nil, "Can't get absolute path for home page")
+			}
+		}
+	}
+	// c.root finally established. Does it even exist?
+	if !dirExists(c.root) {
+		quit(1, nil, c, "Can't find the directory %v", c.root)
+	}
 }
 
 // setup() handles config for this site
-// Determines root directory and explands it to full pathname
+// Determines root directory and changes to it.
 // Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 // Pre: call c.parseCommandLine()
 func (c *config) setup() {
 
-	c.currentFilename = ""
+	// Determine home page directory and filename
+	c.setRoot()
 
-  // Determine home page directory and filename
-  c.setRoot()
-
-  var err error
-  // Root dir exists. Now change to it.
-  if err = os.Chdir(c.root); err != nil {
-    quit(1, err, c, "Unable to change to new root directory %s", c.root)
-  }
-
+	var err error
+	// Root dir exists. Now change to it.
+	if err = os.Chdir(c.root); err != nil {
+		quit(1, err, c, "Unable to change to new root directory %s", c.root)
+	}
 
 	c.findHomePage()
 
@@ -849,14 +831,10 @@ func (c *config) parseCommandLine() {
 	// top of the article when true
 	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
 
-	// Title tag.
-	var title string
-	flag.StringVar(&title, "title", poweredBy, "Contents of the HTML title tag")
-
-	// Verbose shows progress as site is generated.
+		// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
 
-	// webroot is the directory used to house the final generated website.
+	// webroot flag is the directory used to house the final generated website.
 	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
 
 	// Process command line flags such as --verbose, --title and so on.
@@ -876,20 +854,6 @@ func main() {
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
-  /*
-	if c.root != "" {
-		// Something's left on the command line. It's presumed to
-		// be a directory. Exit if that dir doesn't exit.
-		if !dirExists(c.root) {
-			quit(1, nil, c, "Can't find the directory %v", c.root)
-		}
-		c.currentFilename = ""
-		if err = os.Chdir(c.root); err != nil {
-			quit(1, err, c, "Unable to change to new root directory %s", c.root)
-			//c.root = currDir()
-		}
-	}
-  */
 
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
@@ -920,6 +884,7 @@ func main() {
 
 	// If -settings-after flag just show config values and quit
 	if c.settingsAfter {
+		debug("\n******* SETTINGS AFTER!!!!******")
 		c.dumpSettings()
 	}
 
@@ -1256,7 +1221,7 @@ func copyFile(c *config, source string, target string) {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-Stylesheets:
+stylesheets:
     - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
 ---
 `
