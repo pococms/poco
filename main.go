@@ -67,6 +67,21 @@ import (
 	"time"
 )
 
+
+// If javascript files are included, need this to avoid
+// starting before doc has loaded.
+// It's saved as "loading.js"
+var loading =`
+if (document.readyState !== 'loading') {
+    docReady();
+} else {
+    document.addEventListener('DOMContentLoaded', function () {
+        docReady();
+    });
+}
+`
+
+
 // Required begininng for a valid HTML document
 var docType = `<!DOCTYPE html>
 <html lang=`
@@ -74,6 +89,32 @@ var docType = `<!DOCTYPE html>
 // If a page lacks a title tag, it fails validation.
 // Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
+
+
+// Adds Javascript after the body, just before the closing </body> tag
+func (c *config) scriptAfter() string {
+  // If javascript files are included, they should be 
+  // called from inside this function. 
+  // NOTE: Make sure the final } gets inserted 
+  // before the closing </code> tag
+
+  // xxx
+	slice := c.frontMatterStrSlice("script-after")
+ 	if slice == nil {
+		return ""
+	}
+	// Return value
+	scripts := "<script>\n" + "\t" + "function docReady() {\n\t"
+  var s string
+  
+	for _, value := range slice {
+		filename := value
+    s = s + c.getWebOrLocalFileStr(filename)
+	}
+  scripts  += s + "}\n" + "</script>" + "\n"
+	return scripts
+
+}
 
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
@@ -110,6 +151,17 @@ func assemble(c *config, filename string, article string, language string) strin
 	if extraStyleTags != "" {
 		extraStyleTags = "\t" + tagSurround("style", extraStyleTags, "\n")
 	}
+
+  // True if there's any script injected into this file
+  //hasScript := false
+
+  // Get Javascript that goes after the body
+  // xxx
+  scriptAfterStr := c.scriptAfter()
+  if scriptAfterStr != "" {
+    //hasScript = true
+    debug(scriptAfterStr)
+  }
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
@@ -260,8 +312,8 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
 		if convertedElement!= "" {
-			wholeTag := "<" + tag + " id=\"" + tag + "\"" + ">" + convertedElement + "</" + tag + ">\n"
-      debug("\t\tConverted tag %s", wholeTag)
+			wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
+      //debug("\t\tConverted tag %s", wholeTag)
 			return wholeTag
 		}
 		return ""
@@ -310,7 +362,7 @@ func (c *config) loadTheme() {
 		quit(1, nil, c, "Theme %s specified in %s can't be found", themeReadme, c.homePage)
 	}
 	// TODO: I think this should be nc.homePage
-	debug("Checking for %s. Themedir is %s", c.homePage, themeDir)
+	// debug("Checking for %s. Themedir is %s", c.homePage, themeDir)
 	if !fileExists(c.homePage) {
 		quit(1, nil, c, "Theme %s is missing a README.md", themeDir)
 	}
@@ -432,6 +484,9 @@ func tagSurround(tag string, txt string, extra ...string) string {
 // <link rel="stylesheet" href="foo.css"/>
 // <link rel="stylesheet" href="bar.css"/>
 func sliceToStylesheetStr(sheets []string) string {
+  if len(sheets) <= 0 {
+    return ""
+  }
 	var tags string
 	for _, sheet := range sheets {
 		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
@@ -569,7 +624,7 @@ type config struct {
 	// # of files copied to webroot
 	copied int
 
-	// Name of Markdown file being processed
+  // Name of Markdown file being processed. NOTE: read it with currentFile() method.
 	currentFilename string
 
 	// dumpfm command-line option shows the front matter of each page
@@ -640,10 +695,20 @@ type config struct {
 // findHomePage() returns the source file used for the root
 // index page in the root directory. Since README.md is
 // commonly used, it takes priority. Next priority is index.md
+// Set c.currentFilename to the home page when found
 func (c *config) findHomePage() {
 	if c.root == "." || c.root == "" {
 		c.root = currDir()
 	}
+  
+  debug("\tfindHomePage: c.root is %s", c.root)
+  var err error
+  if !filepath.IsAbs(c.root) {
+    c.root, err = filepath.Abs(c.root);
+    if err != nil {
+      quit(1, err, nil, "Can't get absolute path for home page")
+    }
+  }
 	// Look for "README.md" or "index.md" in that order.
 	// return "" if neither found.
 	c.homePage = indexFile(c.root)
@@ -651,12 +716,13 @@ func (c *config) findHomePage() {
 		c.currentFilename = c.homePage
 		return
 	}
+  debug("\tfindHomePage: home page is %s", c.homePage)
 
 	if !dirEmpty(c.root) {
 		// No home page.
 		// Directory has files.
 		// User may not wish to create a new project.
-		if promptYes("This isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
+		if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
 			writeDefaultHomePage(c, c.root)
 		} else {
 			quit(1, nil, c, "Can't build a project with an index.md or README.md")
@@ -668,7 +734,7 @@ func (c *config) findHomePage() {
 	c.currentFilename = c.homePage
 }
 
-// processing() returns the name of the file
+// currentFile() returns the name of the file
 // being processed, since it's displayed in 
 // two different places
 func (c *config) currentFile() string {
@@ -771,14 +837,16 @@ func (c *config) parseCommandLine() {
 
 	// Collect configuration info for this project
 
-	// See if a source file was specified. Otherwise the whole directory
-	// and nested subdirectories are processed.
-	c.currentFilename = flag.Arg(0)
+	// See if a directory was specified.
+	c.root = flag.Arg(0)
 
+  /*
 	var err error
+
 	if c.root, err = filepath.Abs(c.root); err != nil {
 		quit(1, err, c, "Unable to determine absolute path of %s", c.root)
 	}
+  */
 
 }
 
@@ -790,13 +858,12 @@ func main() {
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 	var err error
-	if c.currentFilename != "" {
+	if c.root != "" {
 		// Something's left on the command line. It's presumed to
 		// be a directory. Exit if that dir doesn't exit.
-		if !dirExists(c.currentFilename) {
-			quit(1, nil, c, "Can't find the directory %v", c.currentFilename)
+		if !dirExists(c.root ) {
+			quit(1, nil, c, "Can't find the directory %v", c.root)
 		}
-		c.root = c.currentFilename
 		c.currentFilename = ""
 		if err = os.Chdir(c.root); err != nil {
 			quit(1, err, c, "Unable to change to new root directory %s", c.root)
@@ -827,7 +894,7 @@ func main() {
 		c.dumpSettings()
 		os.Exit(0)
 	}
-  debug("main() c.skipPublish.list %v", c.skipPublish.list)
+  // kdebug("main() c.skipPublish.list %v", c.skipPublish.list)
 
 
 	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
@@ -903,7 +970,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(c, c.currentFilename, rawHTML, c.lang)
+		finishedDocument := assemble(c, c.currentFile(), rawHTML, c.lang)
 		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
@@ -985,7 +1052,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
   	c.verbose(c.currentFile())
 
 		// Separate out the file's origin directory
-		sourceDir := filepath.Dir(c.currentFilename)
+		sourceDir := filepath.Dir(c.currentFile())
 
 		// Get the relatve directory. For example, if your directory
 		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
@@ -1034,7 +1101,7 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		if converted {
 			// Take the raw converted HTML and use it to generate a complete HTML document in a string
 			// TODO: Use BuildFileToFile here?
-			h := assemble(c, c.currentFilename, HTML, language)
+			h := assemble(c, c.currentFile(), HTML, language)
 			writeStringToFile(c, target, h)
 		} else {
 			copyFile(c, source, target)
@@ -1093,7 +1160,6 @@ func (c *config) getSkipPublish() {
 
 	// Get what's specified in the home page front matter
 	localSlice := c.frontMatterStrSlice("skip-publish")
-  debug("skip-publish for %s: %v", c.currentFilename, localSlice)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1253,6 +1319,7 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 
 	// Handle case of local file with relative path
 	if !filepath.IsAbs(filename) {
+    // TODO: Could replace with filepath.Abs I think
 		fullPath := filepath.Join(c.theme.dir, filename)
 		s = c.fileToString(fullPath)
 		return s
@@ -1377,7 +1444,7 @@ func (s *searchInfo) Found(searchFor string) bool {
 // DIRECTORY TREE
 
 func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
-  debug("\tvisit skipPublish: %v", skipPublish.list)
+  //debug("\tvisit skipPublish: %v", skipPublish.list)
 
 	// Find out what directories to exclude
 	return func(path string, info os.FileInfo, err error) error {
@@ -1394,7 +1461,7 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
 		if skipPublish.Found(name) && isDir {
-      debug("\tvisit(): found %s in %v", name, skipPublish.list)
+      //debug("\tvisit(): found %s in %v", name, skipPublish.list)
 			return filepath.SkipDir
 		}
 
@@ -1417,7 +1484,7 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 // Ignore items in exclude.List
 func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
-  debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
+  //debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
 
 	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
@@ -1555,7 +1622,7 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 		// Error exit.
 		// Prints name of source file being processed.
 		if exitCode != 0 {
-			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
+			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg)
 		} else {
 			fmt.Printf("%s%s\n", msg, errmsg)
 		}
@@ -1744,8 +1811,8 @@ func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
 	if b, c.fm, err = mdYAMLToHTML([]byte(markdown)); err != nil {
 		quit(1, err, c, "Unable to convert markdown to raw HTML")
 	}
-	if parsedHTML, err = doTemplate(filepath.Base(c.currentFilename), string(b), c); err != nil {
-		quit(1, err, c, "%v: Problem executing template code", c.currentFilename)
+	if parsedHTML, err = doTemplate(filepath.Base(c.currentFile()), string(b), c); err != nil {
+		quit(1, err, c, "%v: Problem executing template code", c.currentFile())
 	}
 	return parsedHTML
 }
