@@ -45,6 +45,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	embed "github.com/13rac1/goldmark-embed"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -53,7 +54,6 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
-  embed "github.com/13rac1/goldmark-embed"
 	"io"
 	"io/ioutil"
 	"net"
@@ -67,11 +67,10 @@ import (
 	"time"
 )
 
-
 // If javascript files are included, need this to avoid
 // starting before doc has loaded.
 // It's saved as "loading.js"
-var loading =`
+var loading = `
 if (document.readyState !== 'loading') {
     docReady();
 } else {
@@ -81,7 +80,6 @@ if (document.readyState !== 'loading') {
 }
 `
 
-
 // Required begininng for a valid HTML document
 var docType = `<!DOCTYPE html>
 <html lang=`
@@ -90,28 +88,27 @@ var docType = `<!DOCTYPE html>
 // Insert this if none is found.
 var poweredBy = `Powered by PocoCMS`
 
-
 // Adds Javascript after the body, just before the closing </body> tag
 func (c *config) scriptAfter() string {
-  // If javascript files are included, they should be 
-  // called from inside this function. 
-  // NOTE: Make sure the final } gets inserted 
-  // before the closing </code> tag
+	// If javascript files are included, they should be
+	// called from inside this function.
+	// NOTE: Make sure the final } gets inserted
+	// before the closing </code> tag
 
-  // xxx
+	// xxx
 	slice := c.frontMatterStrSlice("script-after")
- 	if slice == nil {
+	if slice == nil {
 		return ""
 	}
 	// Return value
 	scripts := "<script>\n" + "\t" + "function docReady() {\n\t"
-  var s string
-  
+	var s string
+
 	for _, value := range slice {
 		filename := value
-    s = s + c.getWebOrLocalFileStr(filename)
+		s = s + c.getWebOrLocalFileStr(filename)
 	}
-  scripts  += s + "}\n" + "</script>" + "\n"
+	scripts += s + "}\n" + "</script>" + "\n"
 	return scripts
 
 }
@@ -138,8 +135,8 @@ func assemble(c *config, filename string, article string, language string) strin
 		themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
 	}
 
-  // If it's the home page, and a timestamp was requested, 
-  // insert it in a paragraph at the top of the article.
+	// If it's the home page, and a timestamp was requested,
+	// insert it in a paragraph at the top of the article.
 	timestamp := ""
 	if c.timestamp && c.currentFilename == c.homePage {
 		timestamp = "\n<p>" + theTime() + "</p>\n"
@@ -152,16 +149,16 @@ func assemble(c *config, filename string, article string, language string) strin
 		extraStyleTags = "\t" + tagSurround("style", extraStyleTags, "\n")
 	}
 
-  // True if there's any script injected into this file
-  //hasScript := false
+	// True if there's any script injected into this file
+	//hasScript := false
 
-  // Get Javascript that goes after the body
-  // xxx
-  scriptAfterStr := c.scriptAfter()
-  if scriptAfterStr != "" {
-    //hasScript = true
-    debug(scriptAfterStr)
-  }
+	// Get Javascript that goes after the body
+	// xxx
+	scriptAfterStr := c.scriptAfter()
+	if scriptAfterStr != "" {
+		//hasScript = true
+		debug(scriptAfterStr)
+	}
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + language + "\">" + "\n" +
@@ -311,9 +308,9 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 		if convertedElement, err = doTemplate("", raw, c); err != nil {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
-		if convertedElement!= "" {
+		if convertedElement != "" {
 			wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
-      //debug("\t\tConverted tag %s", wholeTag)
+			//debug("\t\tConverted tag %s", wholeTag)
 			return wholeTag
 		}
 		return ""
@@ -325,9 +322,9 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 // homePagePrefs gets configuration settings from the
 // home page (READ.me or index.md in root source directory)
 func (c *config) homePagePrefs() {
-  c.getSkipPublish()
+	c.getSkipPublish()
 
-  // xxxx
+	// xxxx
 }
 
 // loadTheme tries to find the named theme directory
@@ -343,10 +340,10 @@ func (c *config) loadTheme() {
 	// in the root directory--the home page.
 	// Put it in a dummy config object.
 	nc := getFrontMatter(c.homePage)
-  
-  // Obtain home page prefs before loading theme, because
-  // if you don't have a theme stuff goes mising
-  nc.homePagePrefs()
+
+	// Obtain home page prefs before loading theme, because
+	// if you don't have a theme stuff goes mising
+	nc.homePagePrefs()
 
 	// Obtain the home page theme directory.
 	themeDir := nc.frontMatterStr("theme")
@@ -395,7 +392,7 @@ func (c *config) loadTheme() {
 	}
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
-  // I believe this is required to propagate styles to other pages
+	// I believe this is required to propagate styles to other pages
 	themeReadMe := filepath.Join(themeDir, "README.md")
 	nc = getFrontMatter(themeReadMe)
 
@@ -484,9 +481,9 @@ func tagSurround(tag string, txt string, extra ...string) string {
 // <link rel="stylesheet" href="foo.css"/>
 // <link rel="stylesheet" href="bar.css"/>
 func sliceToStylesheetStr(sheets []string) string {
-  if len(sheets) <= 0 {
-    return ""
-  }
+	if len(sheets) <= 0 {
+		return ""
+	}
 	var tags string
 	for _, sheet := range sheets {
 		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
@@ -554,7 +551,7 @@ func (c *config) stylesheets() string {
 	// on the command line that act as templates, but that
 	// you can override using stylesheets named in
 	// the front matter.
-	return /*globals +*/  locals
+	return /*globals +*/ locals
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -624,7 +621,7 @@ type config struct {
 	// # of files copied to webroot
 	copied int
 
-  // Name of Markdown file being processed. NOTE: read it with currentFile() method.
+	// Name of Markdown file being processed. NOTE: read it with currentFile() method.
 	currentFilename string
 
 	// dumpfm command-line option shows the front matter of each page
@@ -696,19 +693,9 @@ type config struct {
 // index page in the root directory. Since README.md is
 // commonly used, it takes priority. Next priority is index.md
 // Set c.currentFilename to the home page when found
+// Pre: c.root must be a fully qualified pathname
 func (c *config) findHomePage() {
-	if c.root == "." || c.root == "" {
-		c.root = currDir()
-	}
-  
-  debug("\tfindHomePage: c.root is %s", c.root)
-  var err error
-  if !filepath.IsAbs(c.root) {
-    c.root, err = filepath.Abs(c.root);
-    if err != nil {
-      quit(1, err, nil, "Can't get absolute path for home page")
-    }
-  }
+	debug("\tfindHomePage: c.root is %s", c.root)
 	// Look for "README.md" or "index.md" in that order.
 	// return "" if neither found.
 	c.homePage = indexFile(c.root)
@@ -716,7 +703,7 @@ func (c *config) findHomePage() {
 		c.currentFilename = c.homePage
 		return
 	}
-  debug("\tfindHomePage: home page is %s", c.homePage)
+	debug("\tfindHomePage: home page is %s", c.homePage)
 
 	if !dirEmpty(c.root) {
 		// No home page.
@@ -735,24 +722,64 @@ func (c *config) findHomePage() {
 }
 
 // currentFile() returns the name of the file
-// being processed, since it's displayed in 
+// being processed, since it's displayed in
 // two different places
 func (c *config) currentFile() string {
-  return c.currentFilename
+	return c.currentFilename
 }
 
-// setup() Obtains home page README.md or index.md.
+
+// setRoot() obtains a fully qualified pathname for the home page source filename
+// and its root directory.
+func (c *config) setRoot() {
+  var err error
+  // Determine home page, which may have been passed on command line.
+	if c.root == "." || c.root == "" {
+    // Handle most common case: no params, just process this directory.
+		c.root = currDir()
+	} else {
+		// Something's left on the command line. It's presumed to
+		// be a directory. Exit if that dir doesn't exist.
+    if !filepath.IsAbs(c.root) {
+      c.root, err = filepath.Abs(c.root)
+      if err != nil {
+        quit(1, err, nil, "Can't get absolute path for home page")
+      }
+    }
+  }
+  // c.root finally established. Does it even exist?
+  if !dirExists(c.root) {
+    quit(1, nil, c, "Can't find the directory %v", c.root)
+  }
+}
+
+// setup() handles config for this site
+// Determines root directory and explands it to full pathname
+// Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 // Pre: call c.parseCommandLine()
 func (c *config) setup() {
+
+	c.currentFilename = ""
+
+  // Determine home page directory and filename
+  c.setRoot()
+
+  var err error
+  // Root dir exists. Now change to it.
+  if err = os.Chdir(c.root); err != nil {
+    quit(1, err, c, "Unable to change to new root directory %s", c.root)
+  }
+
+
 	c.findHomePage()
 
-  // Display home page filename in verbose mode. Same as
-  // elsewhere in buildSite for all the other files.
-  // xxx
-  c.currentFilename = c.homePage
-  // Display name of file being processed
+	// Display home page filename in verbose mode. Same as
+	// elsewhere in buildSite for all the other files.
+	// xxx
+	c.currentFilename = c.homePage
+	// Display name of file being processed
 	c.verbose(c.currentFile())
 	// Process home page. It has site config info
 	// It will be added to the excluded file list.
@@ -840,14 +867,6 @@ func (c *config) parseCommandLine() {
 	// See if a directory was specified.
 	c.root = flag.Arg(0)
 
-  /*
-	var err error
-
-	if c.root, err = filepath.Abs(c.root); err != nil {
-		quit(1, err, c, "Unable to determine absolute path of %s", c.root)
-	}
-  */
-
 }
 
 func main() {
@@ -857,11 +876,11 @@ func main() {
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
-	var err error
+  /*
 	if c.root != "" {
 		// Something's left on the command line. It's presumed to
 		// be a directory. Exit if that dir doesn't exit.
-		if !dirExists(c.root ) {
+		if !dirExists(c.root) {
 			quit(1, nil, c, "Can't find the directory %v", c.root)
 		}
 		c.currentFilename = ""
@@ -870,6 +889,7 @@ func main() {
 			//c.root = currDir()
 		}
 	}
+  */
 
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
@@ -894,8 +914,7 @@ func main() {
 		c.dumpSettings()
 		os.Exit(0)
 	}
-  // kdebug("main() c.skipPublish.list %v", c.skipPublish.list)
-
+	// kdebug("main() c.skipPublish.list %v", c.skipPublish.list)
 
 	buildSite(c, c.webroot, c.skip, c.markdownExtensions, c.lang, c.cleanup, c.dumpFm)
 
@@ -1048,8 +1067,8 @@ func buildSite(c *config, webroot string, skip string, markdownExtensions search
 		// Get the fully qualified pathname for this file.
 		c.currentFilename = filepath.Join(homeDir, filename)
 
-    // Display name of file being processed
-  	c.verbose(c.currentFile())
+		// Display name of file being processed
+		c.verbose(c.currentFile())
 
 		// Separate out the file's origin directory
 		sourceDir := filepath.Dir(c.currentFile())
@@ -1319,7 +1338,7 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 
 	// Handle case of local file with relative path
 	if !filepath.IsAbs(filename) {
-    // TODO: Could replace with filepath.Abs I think
+		// TODO: Could replace with filepath.Abs I think
 		fullPath := filepath.Join(c.theme.dir, filename)
 		s = c.fileToString(fullPath)
 		return s
@@ -1444,7 +1463,7 @@ func (s *searchInfo) Found(searchFor string) bool {
 // DIRECTORY TREE
 
 func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
-  //debug("\tvisit skipPublish: %v", skipPublish.list)
+	//debug("\tvisit skipPublish: %v", skipPublish.list)
 
 	// Find out what directories to exclude
 	return func(path string, info os.FileInfo, err error) error {
@@ -1461,13 +1480,13 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
 		if skipPublish.Found(name) && isDir {
-      //debug("\tvisit(): found %s in %v", name, skipPublish.list)
+			//debug("\tvisit(): found %s in %v", name, skipPublish.list)
 			return filepath.SkipDir
 		}
 
 		// It may be just a filename on the exclude list.
 		if skipPublish.Found(name) {
-      debug("\tvisit(): skipping file %s. Found in %v", name, skipPublish.list)
+			debug("\tvisit(): skipping file %s. Found in %v", name, skipPublish.list)
 			return nil
 		}
 
@@ -1484,7 +1503,7 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 // Ignore items in exclude.List
 func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
-  //debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
+	//debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
 
 	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
@@ -1779,7 +1798,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.DefinitionList,
 		extension.Footnote,
 		extension.Linkify,
-    embed.New(),
+		embed.New(),
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
@@ -1892,7 +1911,6 @@ func promptYes(prompt string) bool {
 	}
 }
 
-
 // SERVER UTILITIES
 
 // serve is the world's simplest web server, for quick tests
@@ -1925,7 +1943,7 @@ func theTime() string {
 // (in the form ":12345" is already in use.
 func portBusy(port string) bool {
 	ln, err := net.Listen("tcp", port)
-  defer ln.Close()
+	defer ln.Close()
 	if err != nil {
 		return true
 	}
@@ -1939,4 +1957,3 @@ func portBusy(port string) bool {
 }
 
 // MINIFY
-
