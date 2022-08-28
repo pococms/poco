@@ -1,10 +1,10 @@
 ---
-Header: header.md
-Nav: nav.md
-Aside: aside.md
-Footer: footer.md
+header: header.md
+nav: nav.md
+aside: aside.md
+footer: footer.md
 
-Stylesheets:
+stylesheets:
 - ../../assets/css/poquito.css
 - pococms.css
 ---

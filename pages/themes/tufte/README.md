@@ -1,8 +1,8 @@
 ---
-Author: Tom Campbell
-Branding: The Tufte Theme
+author: Tom Campbell
+branding: The Tufte Theme
 
-Stylesheets:
+stylesheets:
   - https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css
   - layout-only.css
 ---

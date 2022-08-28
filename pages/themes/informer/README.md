@@ -1,9 +1,9 @@
 ---
-Author: Tom Campbell
-Branding: Informer
+author: Tom Campbell
+branding: Informer
 
 
-Stylesheets:
+stylesheets:
   - reset.css
   - ../../assets/css/poquito.css
   - ../../assets/css/layout-only.css

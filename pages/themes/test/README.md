@@ -1,9 +1,9 @@
 ---
-Author: Tom Campbell
-Branding: Latest
+author: Tom Campbell
+branding: Latest
 
 
-Stylesheets:
+stylesheets:
   - /Users/tom/foo/bahunya.css
 ---
 # Test 

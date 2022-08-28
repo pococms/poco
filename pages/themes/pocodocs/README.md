@@ -1,9 +1,9 @@
 ---
-Author: Tom Campbell
-Branding: PocoCMS Documentation theme
+author: Tom Campbell
+branding: PocoCMS Documentation theme
 
 
-Stylesheets:
+stylesheets:
   - reset.css
   #- ../../assets/css/newpoquito.css
   - ../../assets/css/poquito.css

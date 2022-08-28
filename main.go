@@ -82,7 +82,7 @@ func assemble(c *config, filename string, article string, language string) strin
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
-	// whatever frontMatter["Title"] is set to, etc.
+	// whatever frontMatter["title"] is set to, etc.
 	if parsedArticle, err := doTemplate("", article, c); err != nil {
 		quit(1, err, c, "%v: template error", filename)
 	} else {
@@ -297,7 +297,7 @@ func (c *config) loadTheme() {
   nc.homePagePrefs()
 
 	// Obtain the home page theme directory.
-	themeDir := nc.frontMatterStr("Theme")
+	themeDir := nc.frontMatterStr("theme")
 
 	// Leave if no theme specified.
 	// xxxxx loadTheme()
@@ -357,7 +357,7 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	stylesheetList := nc.frontMatterStrSlice("Stylesheets")
+	stylesheetList := nc.frontMatterStrSlice("stylesheets")
 	// nc.theme.dir = themeDir
 	c.styleFiles(stylesheetList)
 	// Theme loaded. Now get additional style tags.
@@ -442,13 +442,13 @@ func sliceToStylesheetStr(sheets []string) string {
 
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
-// These are literal tags, not filenames.
-// They're listed under "StyleTags" in the front matter
+// These are literal tags, not filenases.
+// They're listed under "style-tags" in the front matter
 // Returns them as a string. For clarity each tag is indented
 // and ends with a newline.
 // Example:
 //
-// StyleTags:
+// style-tags:
 //   - "h1{color:blue;}"
 //   - "p{color:darkgray;}"
 //
@@ -456,7 +456,7 @@ func sliceToStylesheetStr(sheets []string) string {
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 func (c *config) styleTags() string {
-	tagSlice := c.frontMatterStrSlice("StyleTags")
+	tagSlice := c.frontMatterStrSlice("style-tags")
 	if tagSlice == nil {
 		return ""
 	}
@@ -475,7 +475,7 @@ func (c *config) stylesheets() string {
 
 	// Handle case of theme specified
 	// This is how you tell if a theme is present
-	if c.theme.dir != "" && c.frontMatterStr("Theme") != "SUPPRESS" {
+	if c.theme.dir != "" && c.frontMatterStr("theme") != "SUPPRESS" {
 		// TODO: minify these mofos
 		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
@@ -491,7 +491,7 @@ func (c *config) stylesheets() string {
 	//templates := ""
 	// Build a string from stylesheets named in the
 	// Stylesheets: front matter for this page
-	localSlice := c.frontMatterStrSlice("Stylesheets")
+	localSlice := c.frontMatterStrSlice("stylesheets")
 	locals := sliceToStylesheetStr(localSlice)
 
 	// Stylesheets named in the front matter takes priority,
@@ -546,7 +546,7 @@ type theme struct {
 	// Scenario: You've developed a light theme.
 	// You want to experiment with a dark theme.
 	// So you add IN THE CURRENT MARKDOWN FILE
-	// StyleTags:
+	// style-tags:
 	// - "article{background-color:black;color:black}"
 	styleFileTemplateTags string
 
@@ -758,7 +758,7 @@ func (c *config) parseCommandLine() {
 
 	// Title tag.
 	var title string
-	flag.StringVar(&title, "Title", poweredBy, "Contents of the HTML title tag")
+	flag.StringVar(&title, "title", poweredBy, "Contents of the HTML title tag")
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
@@ -1092,8 +1092,8 @@ func (c *config) getSkipPublish() {
 	c.skipPublish.list = append(c.skipPublish.list, list...)
 
 	// Get what's specified in the home page front matter
-	localSlice := c.frontMatterStrSlice("SkipPublish")
-  debug("SkipPublish for %s: %v", c.currentFilename, localSlice)
+	localSlice := c.frontMatterStrSlice("skip-publish")
+  debug("skip-publish for %s: %v", c.currentFilename, localSlice)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1440,7 +1440,7 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 // It would render like this in the HTML:
 // I like yo mama
 func (c *config) frontMatterStr(key string) string {
-	v := c.fm[key]
+	v := c.fm[strings.ToLower(key)]
 	value, ok := v.(string)
 	if !ok {
 		return ""
@@ -1462,7 +1462,7 @@ func (c *config) frontMatterStrSlice(key string) []string {
 	if key == "" {
 		return []string{}
 	}
-	v, ok := c.fm[key].([]interface{})
+	v, ok := c.fm[strings.ToLower(key)].([]interface{})
 	if !ok {
 		return []string{}
 	}
@@ -1503,7 +1503,7 @@ func frontMatterStrSliceStr(key string, c *config) string {
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
 func (c *config) linktags() string {
-	linkTags := c.frontMatterStrSlice("LinkTags")
+	linkTags := c.frontMatterStrSlice("linktags")
 	if len(linkTags) < 1 {
 		return ""
 	}
@@ -1515,7 +1515,7 @@ func (c *config) linktags() string {
 }
 
 func (c *config) titleTag() string {
-	title := c.frontMatterStr("Title")
+	title := c.frontMatterStr("title")
 	if title == "" {
 		return "\t<title>" + poweredBy + "</title>\n"
 	} else {
@@ -1525,10 +1525,10 @@ func (c *config) titleTag() string {
 
 // Generate common metatags
 func (c *config) metatags() string {
-	return metatag("description", c.frontMatterStr("Description")) +
-		metatag("keywords", c.frontMatterStr("Keywords")) +
-		metatag("robots", c.frontMatterStr("Robots")) +
-		metatag("author", c.frontMatterStr("Author"))
+	return metatag("description", c.frontMatterStr("description")) +
+		metatag("keywords", c.frontMatterStr("keywords")) +
+		metatag("robots", c.frontMatterStr("robots")) +
+		metatag("author", c.frontMatterStr("author"))
 }
 
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
@@ -1604,7 +1604,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 func (c *config) dumpSettings() {
 	print("Theme: %s", c.theme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
-	print("SkipPublish: %v", c.skipPublish.list)
+	print("skip-publish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
 	print("Home page: %s", c.homePage)

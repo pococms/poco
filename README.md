@@ -1,20 +1,21 @@
 ---
-Title:  PocoCMS
-Description: PocoCMS builds documentation websites fast, with zero learning or configuration required
-Keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
-Theme: "pages/themes/pocodocs"
-SkipPublish:
+title:  PocoCMS
+description: PocoCMS builds documentation websites fast, with zero learning or configuration required
+keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
+#theme: "pages/themes/pocodocs"
+theme: "pages/themes/tufte"
+skip-publish:
 - "node_modules/" 
 - ".git/"
 - ".DS_Store/" 
 - ".gitignore"
 - "beat me"
 - "foo.xls"
-#StyleTags:
+#style-tags:
 #- "article>p{color:green;}"
-#Stylesheets:
+#stylesheets:
 #- "foundinREADME.md"
-#Theme: "pages/themes/informer"
+#theme: "pages/themes/informer"
 ---
 # Poco CMS, the world's easiest static site generator
 
