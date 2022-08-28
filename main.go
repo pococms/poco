@@ -871,6 +871,11 @@ func main() {
 		}
 	}
 
+	// Obtain README.md or index.md.
+	// Read in the front matter to get its config information.
+	// Set values accordingly.
+	c.setup()
+
 	// If -serve flag was used just run as server.
 	if c.runServe {
 		if dirExists(c.webroot) {
@@ -883,11 +888,6 @@ func main() {
 			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
 		}
 	}
-
-	// Obtain README.md or index.md.
-	// Read in the front matter to get its config information.
-	// Set values accordingly.
-	c.setup()
 
 	// If -settings flag just show config values and quit
 	if c.settings {
