@@ -16,15 +16,15 @@ front matter options PocoCMS provides.
 
 ## Alphabetical list of front matter options
 
-[Author](#author)  
-[Description](#description)  
-[Keywords](#keywords)  
-[Key/value pairs](#keyvalue-pairs)  
-[Robots](#robots)  
-[Skippublish](#skippublish)  
-[Stylesheets](#stylesheets)  
-[Styletags](#styletags)  
-[Title](#title)  
+[author](#author)  
+[description](#description)  
+[keywords](#keywords)  
+[key/value pairs](#keyvalue-pairs)  
+[robots](#robots)  
+[skip-publish](#skippublish)  
+[stylesheets](#stylesheets)  
+[style-tags](#styletags)  
+[title](#title)  
 
 Return to [top](#front-matter)
 
@@ -59,8 +59,8 @@ nonprinting commands that start the file:
 
 ```yaml
 ---
-Title: "Introducing PocoCMS"
-Keywords: "static site generator, jamstack, cms"
+title: "Introducing PocoCMS"
+keywords: "static site generator, jamstack, cms"
 ---
 hello, world. 
 ```
@@ -107,7 +107,7 @@ As you've already surmised, this portion of the front matter
 
 ```yaml
 ---
-Title: "Introducing PocoCMS"
+title: "Introducing PocoCMS"
 ---
 ```
 
@@ -121,7 +121,7 @@ And obviously this line of front matter
 
 ```yaml
 ---
-Keywords: static site generator, jamstack, cms
+keywords: static site generator, jamstack, cms
 ---
 ```
 
@@ -154,7 +154,7 @@ tag in your HTML document:
 
 ```yaml
 ---
-Title: PocoCMS makes cry out with joy
+title: PocoCMS makes cry out with joy
 ---
 ```
 
@@ -162,7 +162,7 @@ This will not:
 
 ```yaml
 ---
-title: I'm totally invisible
+Title: I'm totally invisible
 ---
 ```
 
@@ -174,7 +174,7 @@ with empty front matter like this:
 ---
 ```
 
-## Author 
+## author 
 
 Causes an `author` metatag to be inserted into the file.
 
@@ -184,7 +184,7 @@ Using this `Author` declaration in the front matter:
 
 ```yaml
 ---
-Author: "Tom Campbell"
+author: "Tom Campbell"
 ---
 ```
 
@@ -194,7 +194,7 @@ Causes this metatag to be generated:
 <meta name="author" content="Tom Campbell">
 ```
 
-## Description
+## description
 
 Causes a `description` metatag to be inserted into the file.
 
@@ -203,7 +203,7 @@ Causes a `description` metatag to be inserted into the file.
 Using this `Description` in the front matter:
 ```yaml
 ---
-Description: "PocoCMS is the easiest static site generator available"
+description: "PocoCMS is the easiest static site generator available"
 ---
 ```
 
@@ -214,7 +214,7 @@ Causes this metatag to be generated:
 ```
 
 
-## Keywords
+## keywords
 
 Causes a `keywords` metatag to be inserted into the file.
 
@@ -223,7 +223,7 @@ Causes a `keywords` metatag to be inserted into the file.
 Using these `Keywords` in the front matter:
 ```yaml
 ---
-Keywords: "static site generator, jamstack, cms"
+keywords: "static site generator, jamstack, cms"
 ---
 ```
 
@@ -246,7 +246,7 @@ is the value:
 
 ```yaml
 ---
-Title: "Welcome to PocoCMS"
+title: "Welcome to PocoCMS"
 ---
 ```
 
@@ -262,7 +262,7 @@ The value in this case is the list consisting of `["poquito.css", "pococms.css"]
 
 ```yaml
 ---
-Stylesheets: 
+stylesheets: 
 - poquito.css
 - pococms.css
 ---
@@ -270,7 +270,7 @@ Stylesheets:
 
 This page details all front matter options.
 
-## Robots 
+## robots 
 
 Causes a [`robots` metatag](https://moz.com/learn/seo/robots-meta-directives#:~:text=Robots%20meta%20directives%20(sometimes%20called,or%20index%20web%20page%20content.) to be inserted into the file.
 
@@ -280,7 +280,7 @@ Using this `Robots` entry in the front matter:
 
 ```yaml
 ---
-Robots: "NoIndex"
+robots: "NoIndex"
 ---
 ```
 
@@ -297,8 +297,8 @@ search engines *not* to index your page, which is
 the opposite of what you normally want.
 
 
-## SkipPublish
-`SkipPublish` lists files and directories you don't want to be published.
+## skip-publish
+`skip-publish` lists files and directories you don't want to be published.
 
 Remember that if a directory contains the files `index.md`, `installation.md`,
 and `avatar.png`, and `401K-info.xls`, here's what will happen when you 
@@ -316,14 +316,14 @@ the personal spreadsheet with your 401K details published.
 `.git` is included here for good form but 
 PocoCMS treats directories with that name starts with `.` as hidden and
 doesn't publish them.
-* The answer to these problems is to list what you don't want published in `SkipPublish` 
+* The answer to these problems is to list what you don't want published in `skip-publish` 
 as shown below.
 
 ### Example
 
 ```yaml
 ---
-SkipPublish:
+skip-publish:
 - 401k-info.xls
 - node_modules
 - www
@@ -338,7 +338,7 @@ Here are some common items to skip:
 
 ```yaml
 ---
-SkipPublish:
+skip-publish:
 - node_modules
 - htdocs
 - public_html
@@ -350,7 +350,7 @@ SkipPublish:
 ```
 
 
-## Title
+## title
 The `Title` key lets you set a title for your HTML page.
 This has a number of important benefits.
 
@@ -366,10 +366,10 @@ Example:
 
 ```
 ---
-Title: "Static generator overview"
+title: "Static generator overview"
 ---
 
-Here's your {{ .Title }}.
+Here's your {{ .title }}.
 ```
 
 This page would have its `keywords` [metatag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name) set to 
@@ -381,7 +381,7 @@ read as shown beloe in a web browser:
 Here's your Static generator overview
 ```
 
-## Stylesheets 
+## stylesheets 
 
 Causes a `<style>` to be inserted into the file
 for each file in the list.
@@ -391,7 +391,7 @@ for each file in the list.
 Using these `Stylesheets` in the front matter:
 ```yaml
 ---
-Stylesheets: 
+stylesheets: 
 - "poquito.css"
 - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css"
 ---
@@ -406,7 +406,7 @@ Causes this HTML to be generated:
 
 xxxx
 
-# Styletags
+# style-tags
 
 Causes a `<style>` tag to be inserted into the file
 for each line in the list. Because they
@@ -419,10 +419,10 @@ dark, and vice versa.
 
 ### Example
 
-Using this `Styletags` entry in the front matter:
+Using this `style-tags` entry in the front matter:
 ```yaml
 ---
-Styletags: 
+style-tags: 
 - "article>p{color:blue;}"
 ---
 ```
