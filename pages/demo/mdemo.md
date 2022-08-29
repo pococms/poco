@@ -1,6 +1,10 @@
-# Metabuzz Markdown quick reference
+# PocoCMS Markdown quick reference
 
-When in the course of human events, it becomes necessary for one people to dissolve the political bands that connect one another 
+This page serves as a Markdown quick reference.
+It is also gives you a good idea of how a
+classless CSS framework can operate in the
+real world.
+
 ## Table of contents 
 
 * [Common text formatting](#common-text-formatting)
