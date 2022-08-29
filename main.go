@@ -884,16 +884,6 @@ func main() {
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 
-  /*
-	// If a root dir was specified
-	// make sure it exists
-	if c.root != "" && !dirExists(c.root) {
-		//debug("CAN't find %s", c.root)
-		quit(1, nil, c, "Unable to find a directory named %s", c.root)
-	}
-  */
-	// xxxx
-
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
@@ -1062,7 +1052,6 @@ func (c *config) buildSite() {
 				quit(1, err, c, "Unable to create directory %s in webroot", targetDir)
 			}
 		}
-
 		// Obtain file extension.
 		ext := path.Ext(filename)
 
@@ -1071,7 +1060,12 @@ func (c *config) buildSite() {
 		if c.markdownExtensions.Found(ext) {
       // It's a markdown file. Convert to HTML, 
       // then rename with HTML extensions.
-			HTML, target := buildFileToTemplatedString(c, filename)
+			HTML, _ := buildFileToTemplatedString(c, filename)
+      ///kj0jtarget = filepath.Join(targetDir, target)
+      //target = filepath.Join(c.webroot, relDir, target)
+      target = filepath.Join(c.webroot, filename)
+      target = replaceExtension(target, "html")
+      //debug("copying converted file %s to %s", filename, target)
 			writeStringToFile(c, target, HTML)
 		} else {
       // It's an asset. Just pass through.
