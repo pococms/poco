@@ -1,12 +1,12 @@
 ---
 author: Tom Campbell
 branding: Informer
-
+header: header.md
 
 stylesheets:
   - reset.css
   - ../../assets/css/poquito.css
-  - ../../assets/css/layout-only.css
+  - ../../assets/css/layout.css
   - informer.css
 #  - dark.css
 
