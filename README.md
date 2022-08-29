@@ -3,9 +3,12 @@ title:  PocoCMS
 description: PocoCMS builds documentation websites fast, with zero learning or configuration required
 keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
 theme: "pages/themes/pocodocs"
+title: "YO MAM"
+stylesheets:
+- ../informer/dark.css
 #theme: "pages/themes/informer"
 #theme: "pages/themes/simplicity"
-#theme: "pages/themes/tufte"
+theme: "pages/themes/tufte"
 skip-publish:
 - "node_modules/" 
 - ".git/"
