@@ -21,7 +21,7 @@ a wide variety of [favicons](https://en.wikipedia.org/wiki/Favicon).
 
 ## Diagnostics
 * Page showing all [FrontMatter settings](pages/diagnostics/allfeatures.html)
-* [mdemo.html](pages/demo/mdemo.html) Shows most Markup capabilities
+* [mdemo.html](demo/mdemo.html) Shows most Markup capabilities
 
 
 [Frequently Asked Questions](faq.html)

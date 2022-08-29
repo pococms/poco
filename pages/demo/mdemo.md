@@ -58,6 +58,7 @@ Horizontal rule:
 #### It shows as:
 [HTML color names](https://htmlcolorcodes.com/color-names/)
 
+<a id="handmade-anchor"><a>
 ## Bookmarks
 
 
@@ -112,7 +113,7 @@ Suppose you want a bookmark that's not a header? You can insert one anywhere by 
 You type:
 
 ```
-<a name="jump-here"></a>
+<a id="jump-here"></a>
 ```
 
 Then you create a link to it by adding the `#jump-here` portion to a link, which is noted by the web browser but not displayed:
@@ -123,7 +124,8 @@ Then you create a link to it by adding the `#jump-here` portion to a link, which
 
 Try it now: [Learn about blockquotes](#jump-here)
 
-<a name=linking-other-websites></a>
+<a id=linking-other-websites></a>
+
 ### Linking to bookmarks on other websites
 
 You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:
@@ -339,4 +341,6 @@ And here's what results from the table markdown shown above:
 
 
 ## Footer
+
+Return to the [Bookmarks](#handmade-anchor)
 
