@@ -233,19 +233,18 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	// Get the filename for this layout element. For example,
 	// if the front matter said Header: "foo.md" this would
 	// return "foo.md".
+	filename := c.frontMatterStr(element)
 
 	// Special case: if there's a theme using this element
 	// you can suppress its output by using the special value
 	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
 	// the front matter, e.g. Header: "SUPPRESS"
-	filename := c.frontMatterStr(element)
-
 	if filename == "SUPPRESS" {
 		return ""
 	}
 
 	// If no filename, then use the theme layout element, if any.
-	if filename == "" {
+	if c.theme.dir != "" {
 		// No layout element specified in front matter.
 		// See if there's a theme and if it has that layout element.
 		// Convert to HTML and executetemplate.
@@ -267,18 +266,22 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	// matter my say Header: myheader.md so
 	// layoutElSource is 'myheader.md'
 
+	// in layoutEl() jxxx
+	debug("%s Theme %s, element: %s", c.currentFile(), c.theme.dir, element)
 	layoutElSource := c.frontMatterStr(element)
 	if filepath.IsAbs(layoutElSource) {
+		// Handle case of fully specified pathname
 		fullPath = layoutElSource
 	} else {
-		var err error
-		var rel string
-		// TODO: Cache current directory
-		if rel, err = filepath.Rel(currDir(), sourcefile); err != nil {
-			quit(1, nil, c, "Error calling filepath.Rel(%s,%s)", currDir(), sourcefile)
-		}
-		rel = filepath.Dir(rel)
-		fullPath = filepath.Join(currDir(), rel, layoutElSource)
+		// TODO: Cache currDir()?
+		fullPath = filepath.Join(currDir(), c.theme.dir, layoutElSource)
+		/*
+		   debug("\tcurrDir(): %s", currDir())
+		   debug("\tsourceFile: %s", sourcefile)
+		   debug("\tlayoutElSource: %s", layoutElSource)
+		   debug("\ttheme dir: %s", c.theme.dir)
+		   debug("\tfullPath: %s", fullPath)
+		*/
 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
@@ -289,14 +292,17 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	var err error
 	if isMarkdown {
 		if !fileExists(fullPath) {
-			quit(1, nil, c, "Theme \"%s:\" specified file %s but it's not available", element, fullPath)
+			quit(1, nil, c, "Theme \"%s\" %s specifies file %s but it's not available", c.theme.dir, element, fullPath)
 		}
 		raw = convertMdYAMLFileToHTMLStr(fullPath, c)
 		if convertedElement, err = doTemplate("", raw, c); err != nil {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
 		if convertedElement != "" {
+			//wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
 			wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
+			//wholeTag  = "\t" + tagSurround(tag + " id=\"" + tag + "-poco", tag, "\n")
+			debug("********wholeTag: %s", wholeTag)
 			//debug("\t\tConverted tag %s", wholeTag)
 			return wholeTag
 		}
@@ -324,14 +330,16 @@ func (c *config) loadTheme() {
 	// Get front matter for /index.md or /README.md
 	// in the root directory--the home page.
 	// Put it in a dummy config object.
+	debug("c.homePage: %s", c.homePage)
 	nc := getFrontMatter(c.homePage)
+	// Obtain the home page theme directory.
+	themeDir := nc.frontMatterStr("theme")
+	theme := filepath.Join(themeDir, "README.md")
+	nc = getFrontMatter(theme)
 
 	// Obtain home page prefs before loading theme, because
 	// if you don't have a theme stuff goes mising
 	nc.homePagePrefs()
-
-	// Obtain the home page theme directory.
-	themeDir := nc.frontMatterStr("theme")
 
 	// Leave if no theme specified.
 	if themeDir == "" {
@@ -355,25 +363,59 @@ func (c *config) loadTheme() {
 		quit(1, nil, c, "%s theme is missing a LICENSE file", themeDir)
 	}
 	c.theme.dir = themeDir
-	header := filepath.Join(themeDir, "header.md")
-	if fileExists(header) {
-		c.theme.header = c.fileToString(header)
+
+	filename := nc.frontMatterStr("header")
+	filename = filepath.Join(themeDir, filename)
+	if fileExists(filename) {
+		c.theme.header = c.fileToString(filename)
 	}
 
-	nav := filepath.Join(themeDir, "nav.md")
-	if fileExists(nav) {
-		c.theme.nav = c.fileToString(nav)
+	filename = nc.frontMatterStr("nav")
+	filename = filepath.Join(themeDir, filename)
+	if fileExists(filename) {
+		c.theme.nav = c.fileToString(filename)
 	}
 
-	aside := filepath.Join(themeDir, "aside.md")
-	if fileExists(aside) {
-		c.theme.aside = c.fileToString(aside)
+	filename = nc.frontMatterStr("aside")
+	filename = filepath.Join(themeDir, filename)
+	if fileExists(filename) {
+		c.theme.aside = c.fileToString(filename)
 	}
 
-	footer := filepath.Join(themeDir, "footer.md")
-	if fileExists(footer) {
-		c.theme.footer = c.fileToString(footer)
+	filename = nc.frontMatterStr("footer")
+	filename = filepath.Join(themeDir, filename)
+	if fileExists(filename) {
+		c.theme.footer = c.fileToString(filename)
 	}
+
+	// xxx loadThem
+	//debug("loadTheme: %s", )
+	//layoutElSource := c.frontMatterStr(element)
+	/*
+		header := filepath.Join(themeDir, "header.md")
+		if fileExists(header) {
+			c.theme.header = c.fileToString(header)
+		}
+
+		nav := filepath.Join(themeDir, "nav.md")
+		if fileExists(nav) {
+			c.theme.nav = c.fileToString(nav)
+		}
+
+	  debug("loadtheme() Checking for %s", aside)
+		aside := filepath.Join(themeDir, "aside.md")
+	  // xxx loadTheme()
+		if fileExists(aside) {
+			c.theme.aside = c.fileToString(aside)
+		} else {
+	    debug("loadtheme() %s not found", aside)
+	  }
+
+		footer := filepath.Join(themeDir, "footer.md")
+		if fileExists(footer) {
+			c.theme.footer = c.fileToString(footer)
+		}
+	*/
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
 	// I believe this is required to propagate styles to other pages
@@ -415,30 +457,35 @@ func (c *config) styleFiles(stylesheetList []string) {
 // themeEl() returns the theme layout element (header,nav
 // aside, footer). Remember: this is in the case where
 // no header/nav/aside/footer was specified in the Markdown
-// source file's front matter. This extracts any
+// source file's front matter. It would then fallback
+// to the theme's header, footer, etc. This extracts any
 // such element.
 func (c *config) themeEl(tag string) string {
+
+	// Return value: the tag will be converted to HTML,
+	// executed against templates, and surrounded with tags
+	var s string
 	switch tag {
 	case "header":
 		if c.theme.header != "" {
-			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.header)
-			return tagSurround(tag, s, "\n")
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.header)
 		}
 	case "nav":
 		if c.theme.nav != "" {
-			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.nav)
-			return tagSurround(tag, s, "\n")
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.nav)
 		}
 	case "aside":
 		if c.theme.aside != "" {
-			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.aside)
-			return tagSurround(tag, s, "\n")
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.aside)
 		}
 	case "footer":
 		if c.theme.footer != "" {
-			s := mdYAMLStringToTemplatedHTMLString(c, c.theme.footer)
-			return tagSurround(tag, s, "\n")
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.footer)
 		}
+	}
+	if s != "" {
+		s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
+		return s
 	}
 	return ""
 }
@@ -726,7 +773,7 @@ func (c *config) setRoot() {
 		if err != nil {
 			quit(1, err, nil, "Can't get absolute path for home page")
 		}
-  }
+	}
 	// c.root finally established. Does it even exist?
 	if !dirExists(c.root) {
 		quit(1, nil, c, "Can't find the directory %v", c.root)
@@ -745,16 +792,16 @@ func (c *config) setWebroot() {
 	var err error
 
 	if !filepath.IsAbs(c.webroot) {
-    if c.root != currDir() {
-      // Handle case where user has specified a different dir for the root 
-      // but not an absolute path for the webroot. In other words:
-      //   poco ~/foo/bar
-      // When not in the ~/foo/bar directory. The webroot is then
-      // presumed to be a subdirectory of that root, not the current dir.
-      c.webroot = filepath.Join(c.root, c.webroot)
-    } else {
-		  c.webroot, err = filepath.Abs(c.webroot)
-    }
+		if c.root != currDir() {
+			// Handle case where user has specified a different dir for the root
+			// but not an absolute path for the webroot. In other words:
+			//   poco ~/foo/bar
+			// When not in the ~/foo/bar directory. The webroot is then
+			// presumed to be a subdirectory of that root, not the current dir.
+			c.webroot = filepath.Join(c.root, c.webroot)
+		} else {
+			c.webroot, err = filepath.Abs(c.webroot)
+		}
 		if err != nil {
 			quit(1, err, nil, "Can't get absolute path for webroot")
 		}
@@ -783,9 +830,7 @@ func (c *config) setup() {
 
 	c.homePagePrefs()
 
-  debug("setup() about to call c.setWebroot()")
 	// Determine output directory for all HTML and assets (webroot)
-
 	c.setWebroot()
 
 	var err error
@@ -1035,7 +1080,7 @@ func (c *config) buildSite() {
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
-	debug("buildSite() files:\n%v", c.files)
+	//debug("buildSite() files:\n%v", c.files)
 	for _, filename := range c.files {
 
 		// Full pathmame of file to be copied (may be converted to HTML first)
@@ -1058,17 +1103,15 @@ func (c *config) buildSite() {
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
 		if c.markdownExtensions.Found(ext) {
-      // It's a markdown file. Convert to HTML, 
-      // then rename with HTML extensions.
+			// It's a markdown file. Convert to HTML,
+			// then rename with HTML extensions.
 			HTML, _ := buildFileToTemplatedString(c, filename)
-      ///kj0jtarget = filepath.Join(targetDir, target)
-      //target = filepath.Join(c.webroot, relDir, target)
-      target = filepath.Join(c.webroot, filename)
-      target = replaceExtension(target, "html")
-      //debug("copying converted file %s to %s", filename, target)
+			target = filepath.Join(c.webroot, filename)
+			target = replaceExtension(target, "html")
+			//debug("copying converted file %s to %s", filename, target)
 			writeStringToFile(c, target, HTML)
 		} else {
-      // It's an asset. Just pass through.
+			// It's an asset. Just pass through.
 			copyFile(c, source, target)
 		}
 
@@ -1128,9 +1171,6 @@ func (c *config) getSkipPublish() {
 	// Get what's specified in the home page front matter
 	localSlice := c.frontMatterStrSlice("skip-publish")
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
-
-	//debug("\tgetSkipPublish: c.skipPublish.list: %s", c.skipPublish.list)
-	//wait("")
 }
 
 // isProject() looks at the structure of the specified directory
@@ -1177,7 +1217,7 @@ func currDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
-	//debug("\tcopyFile(%s,%s)", source, target)
+	c.verbose("\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -1201,7 +1241,6 @@ func copyFile(c *config, source string, target string) {
 		quit(1, err, c, "Error copying file %s to %s", source, target)
 	}
 
-	//debug("\t\tsucceeded")
 }
 
 // defaultHomePage() Generates a simple home page as an HTML string
@@ -1278,11 +1317,9 @@ func (c *config) downloadTextFile(url string) string {
 func (c *config) getWebOrLocalFileStr(filename string) string {
 	// Return value: contents of file are stored here
 	s := ""
-	////debug("***getWebOrLocalFileStr(%s)", filename)
 
 	// Handle case of URLs as opposed to local file
 	if strings.HasPrefix(filename, "http") {
-		//debug("***\tDownloading getWebOrLocalFileStr(%s)", filename)
 		// TODO: Check for redirect?
 		// https://golangdocs.com/golang-download-files
 		s = c.downloadTextFile(filename)
@@ -1417,7 +1454,6 @@ func (s *searchInfo) Found(searchFor string) bool {
 // DIRECTORY TREE
 
 func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
-	//debug("\tvisit skipPublish: %v", skipPublish.list)
 
 	// Find out what directories to exclude
 	return func(path string, info os.FileInfo, err error) error {
@@ -1455,7 +1491,6 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 // Ignore items in exclude.List
 func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
-	//debug("\tgetProjectTree skipPublish: %v", skipPublish.list)
 
 	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
@@ -1597,14 +1632,14 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 				(fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg))
 			}
 		}
-  } else {
-			// No c object available
-      if err != nil {
-			  fmt.Printf("%s: %s\n", msg, errmsg)
-      } else {
-			  fmt.Printf("%s\n", msg)
-      }
+	} else {
+		// No c object available
+		if err != nil {
+			fmt.Printf("%s: %s\n", msg, errmsg)
+		} else {
+			fmt.Printf("%s\n", msg)
 		}
+	}
 	os.Exit(exitCode)
 }
 
