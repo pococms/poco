@@ -331,15 +331,15 @@ func (c *config) loadTheme() {
 	// in the root directory--the home page.
 	// Put it in a dummy config object.
 	debug("c.homePage: %s", c.homePage)
-	nc := getFrontMatter(c.homePage)
+	themeFm := getFrontMatter(c.homePage)
 	// Obtain the home page theme directory.
-	themeDir := nc.frontMatterStr("theme")
+	themeDir := themeFm.frontMatterStr("theme")
 	theme := filepath.Join(themeDir, "README.md")
-	nc = getFrontMatter(theme)
+	themeFm = getFrontMatter(theme)
 
 	// Obtain home page prefs before loading theme, because
 	// if you don't have a theme stuff goes mising
-	nc.homePagePrefs()
+	themeFm.homePagePrefs()
 
 	// Leave if no theme specified.
 	if themeDir == "" {
@@ -364,63 +364,36 @@ func (c *config) loadTheme() {
 	}
 	c.theme.dir = themeDir
 
-	filename := nc.frontMatterStr("header")
+	filename := themeFm.frontMatterStr("header")
 	filename = filepath.Join(themeDir, filename)
 	if fileExists(filename) {
 		c.theme.header = c.fileToString(filename)
 	}
 
-	filename = nc.frontMatterStr("nav")
+	filename = themeFm.frontMatterStr("nav")
 	filename = filepath.Join(themeDir, filename)
 	if fileExists(filename) {
 		c.theme.nav = c.fileToString(filename)
 	}
 
-	filename = nc.frontMatterStr("aside")
+	filename = themeFm.frontMatterStr("aside")
 	filename = filepath.Join(themeDir, filename)
 	if fileExists(filename) {
 		c.theme.aside = c.fileToString(filename)
 	}
 
-	filename = nc.frontMatterStr("footer")
+	filename = themeFm.frontMatterStr("footer")
 	filename = filepath.Join(themeDir, filename)
 	if fileExists(filename) {
 		c.theme.footer = c.fileToString(filename)
 	}
 
-	// xxx loadThem
-	//debug("loadTheme: %s", )
-	//layoutElSource := c.frontMatterStr(element)
-	/*
-		header := filepath.Join(themeDir, "header.md")
-		if fileExists(header) {
-			c.theme.header = c.fileToString(header)
-		}
 
-		nav := filepath.Join(themeDir, "nav.md")
-		if fileExists(nav) {
-			c.theme.nav = c.fileToString(nav)
-		}
-
-	  debug("loadtheme() Checking for %s", aside)
-		aside := filepath.Join(themeDir, "aside.md")
-	  // xxx loadTheme()
-		if fileExists(aside) {
-			c.theme.aside = c.fileToString(aside)
-		} else {
-	    debug("loadtheme() %s not found", aside)
-	  }
-
-		footer := filepath.Join(themeDir, "footer.md")
-		if fileExists(footer) {
-			c.theme.footer = c.fileToString(footer)
-		}
-	*/
 	// Obtain the front matter from the README.md
 	// (inside a dummy config object)
 	// I believe this is required to propagate styles to other pages
 	themeReadMe := filepath.Join(themeDir, "README.md")
-	nc = getFrontMatter(themeReadMe)
+	themeFm = getFrontMatter(themeReadMe)
 
 	// Get the list of style sheets required for this theme.
 	// Remember that stylesheets not in this list won't
@@ -432,7 +405,7 @@ func (c *config) loadTheme() {
 	// it into the theme file's styleFilesEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
-	stylesheetList := nc.frontMatterStrSlice("stylesheets")
+	stylesheetList := themeFm.frontMatterStrSlice("stylesheets")
 	// nc.theme.dir = themeDir
 	c.styleFiles(stylesheetList)
 	// Theme loaded. Now get additional style tags.
