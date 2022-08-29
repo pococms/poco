@@ -752,7 +752,6 @@ func (c *config) setWebroot() {
 		}
 	}
 
-
 }
 
 // setup() handles config for this site
@@ -773,14 +772,6 @@ func (c *config) setup() {
 
 	// Determine output directory for all HTML and assets (webroot)
 	c.setWebroot()
-
-	// Delete web root directory unless otherwise requested
-	if c.cleanup {
-		c.verbose("Deleting webroot directory %v", c.webroot)
-		if err := os.RemoveAll(c.webroot); err != nil {
-			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
-		}
-	}
 
 	var err error
 	// Root dir exists. Now change to it.
@@ -874,7 +865,6 @@ func main() {
 	c := newConfig()
 	// No file was given on the command line.
 	// Build the project in place.
-
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
@@ -1002,13 +992,21 @@ func (c *config) buildSite() {
 
 	// Collect all the files required for this project.
 	c.files, err = getProjectTree(".", c.skipPublish)
-  // c.files is a list of files with pathnames relative to c.root
+	// c.files is a list of files with pathnames relative to c.root
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
 
+	// Delete web root directory unless otherwise requested
+	if c.cleanup {
+		c.verbose("Deleting webroot directory %v", c.webroot)
+		if err := os.RemoveAll(c.webroot); err != nil {
+			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
+		}
+	}
+
 	// Create the webroot directory
-  // AFTER list of files in site have been obtained
+	// AFTER list of files in site have been obtained
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
@@ -1017,7 +1015,6 @@ func (c *config) buildSite() {
 		c.verbose("Created webroot directory %v", c.webroot)
 	}
 
-
 	//var converted bool
 
 	// Main loop. Traverse the list of files to be copied.
@@ -1025,31 +1022,23 @@ func (c *config) buildSite() {
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
-  debug("buildSite() files:\n%v", c.files)
+	debug("buildSite() files:\n%v", c.files)
 	for _, filename := range c.files {
 
-    debug("\tsource file: %s", filename)
+		// Full pathmame of file to be copied (may be converted to HTML first)
+		source := filepath.Join(c.root, filename)
 
-    // Obtain relative directory of file 
-    // being processed.
-    // Required to determine where
-    // to copy target file.
-    //rel := filepath.Dir(filename)
-    //j:debug("\t\trel: %s", rel)
+		// Full pathname of location of copied file in webroot
+		target := filepath.Join(c.webroot, filename)
 
-    // Full pathmame of file to be copied (may be converted to HTML first)
-    source := filepath.Join(c.root, filename)
-    // Full pathname of location of copied file in webroot
-    target := filepath.Join(c.webroot, filename)
-
-    // Full pathname of output directory for copied files
-    targetDir := filepath.Dir(target)
-    if !dirExists(targetDir) {
+		// Full pathname of output directory for copied files
+		targetDir := filepath.Dir(target)
+		if !dirExists(targetDir) {
 			err := os.MkdirAll(targetDir, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
 				quit(1, err, c, "Unable to create directory %s in webroot", targetDir)
 			}
-    }
+		}
 
 		// Obtain file extension.
 		ext := path.Ext(filename)
@@ -1057,17 +1046,22 @@ func (c *config) buildSite() {
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
 		if c.markdownExtensions.Found(ext) {
-      HTML, _ := buildFileToTemplatedString(c, filename)
-      target = replaceExtension(target, "html")
-			HTML = assemble(c, source, /* c.currentFile(), */ HTML)
+			/*
+			      HTML, _ := buildFileToTemplatedString(c, filename)
+			      target = replaceExtension(target, "html")
+						writeStringToFile(c, target, HTML)
+			*/
+
+			HTML, target := buildFileToTemplatedString(c, filename)
+			//target = replaceExtension(target, "html")
 			writeStringToFile(c, target, HTML)
-    } else {
+		} else {
 			copyFile(c, source, target)
-    }
+		}
 
 		c.copied += 1
 	}
-  // ALL files now copied
+	// ALL files now copied
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
@@ -1592,8 +1586,8 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 				(fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg))
 			}
 		} else {
-      // No c object available
-      fmt.Printf("%s: %s\n", msg, errmsg)
+			// No c object available
+			fmt.Printf("%s: %s\n", msg, errmsg)
 		}
 	}
 	os.Exit(exitCode)
