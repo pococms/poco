@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+	<meta name="keywords" content="static site generator, jamstack, cms">
+</head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+  <article id="article-tag">
+  <header id="header-tag">I am Joe's Header<header>
+
+  <fieldset>
+   <legend>Show/hide these elements</legend>
+
+    <input checked type="checkbox" id="header" />
+    <label for="header">Header</label>
+    <br />
+
+    <input checked type="checkbox" id="nav"/>
+    <label for="nav">Nav</label>
+    <br />
+
+
+    <input checked type="checkbox" id="article"/>
+    <label for="article">Article</label>
+    <br />
+
+
+    <input checked type="checkbox" id="aside"/>
+    <label for="aside">Aside</label>
+    <br />
+
+    <input checked type="checkbox" id="footer"/>
+    <label for="footer">Footer</label>
+    <br />
+
+  </fieldset>
+
+
+	</article>
+</div><!-- content-wrap -->
+	</div><!-- page-container -->
+<script>
+function loadCheckboxes() {
+  document.getElementsByTagName("fieldset")[0].addEventListener("change",function(e) {
+
+  console.log("hi")
+  tag = document.getElementById(e.target.id)
+  console.log(tag)
+  if(e.target.checked) {
+      // Checkbox is checked..
+      document.getElementById(tag.id + "-tag").style.display = "none";
+      console.log (e.target.id + " checked");
+  } else {
+      // Checkbox is not checked..
+      document.getElementById(tag.id + "-tag").style.display = "block";
+      console.log (e.target.id + " unchecked");
+  }
+  });
+
+
+}</script>
+<footer id="article-tag">footer bra<footer>
+
+</body>
+
+</html>
