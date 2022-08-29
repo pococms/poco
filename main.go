@@ -718,16 +718,15 @@ func (c *config) setRoot() {
 	if c.root == "." || c.root == "" {
 		// Handle most common case: no params, just process this directory.
 		c.root = currDir()
-	} else {
-		// Something's left on the command line. It's presumed to
-		// be a directory. Exit if that dir doesn't exist.
-		if !filepath.IsAbs(c.root) {
-			c.root, err = filepath.Abs(c.root)
-			if err != nil {
-				quit(1, err, nil, "Can't get absolute path for home page")
-			}
-		}
 	}
+	// Something's left on the command line. It's presumed to
+	// be a directory. Exit if that dir doesn't exist.
+	if !filepath.IsAbs(c.root) {
+		c.root, err = filepath.Abs(c.root)
+		if err != nil {
+			quit(1, err, nil, "Can't get absolute path for home page")
+		}
+  }
 	// c.root finally established. Does it even exist?
 	if !dirExists(c.root) {
 		quit(1, nil, c, "Can't find the directory %v", c.root)
@@ -746,7 +745,16 @@ func (c *config) setWebroot() {
 	var err error
 
 	if !filepath.IsAbs(c.webroot) {
-		c.webroot, err = filepath.Abs(c.webroot)
+    if c.root != currDir() {
+      // Handle case where user has specified a different dir for the root 
+      // but not an absolute path for the webroot. In other words:
+      //   poco ~/foo/bar
+      // When not in the ~/foo/bar directory. The webroot is then
+      // presumed to be a subdirectory of that root, not the current dir.
+      c.webroot = filepath.Join(c.root, c.webroot)
+    } else {
+		  c.webroot, err = filepath.Abs(c.webroot)
+    }
 		if err != nil {
 			quit(1, err, nil, "Can't get absolute path for webroot")
 		}
@@ -770,7 +778,14 @@ func (c *config) setup() {
 	// it gets converted to HTML.
 	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
+	// Set defaults for files and dirs to skip
+	c.skip = "node_modules .git .DS_Store .gitignore ignoreme"
+
+	c.homePagePrefs()
+
+  debug("setup() about to call c.setWebroot()")
 	// Determine output directory for all HTML and assets (webroot)
+
 	c.setWebroot()
 
 	var err error
@@ -818,24 +833,24 @@ func (c *config) parseCommandLine() {
 	// debugFrontmatter command-line option shows the front matter of each page
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
-	// skip lets you skip the named files from being processed
-	flag.StringVar(&c.skip, "skip", "node_modules/ .git/ .DS_Store/ .gitignore", "List of files to skip when generating a site")
-
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
 	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
 
-	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
-
-	// Run as server without processing any files
-	flag.BoolVar(&c.runServe, "serve", false, "Run as a web server on localhost")
-
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
+
+	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
 	// -settings command-line shows configuration values
 	// instead of processing files
 	flag.BoolVar(&c.settings, "settings", false, "Shows configuration values instead of processing site")
+
+	// Run as server without processing any files
+	flag.BoolVar(&c.runServe, "serve", false, "Run as a web server on localhost")
+
+	// skip lets you skip the named files from being processed
+	flag.StringVar(&c.skip, "skip", "node_modules/ .git/ .DS_Store/ .gitignore", "List of files to skip when generating a site")
 
 	// Command line flag -settings-after shows configuration values
 	// after processing files
@@ -868,6 +883,16 @@ func main() {
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
+
+  /*
+	// If a root dir was specified
+	// make sure it exists
+	if c.root != "" && !dirExists(c.root) {
+		//debug("CAN't find %s", c.root)
+		quit(1, nil, c, "Unable to find a directory named %s", c.root)
+	}
+  */
+	// xxxx
 
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
@@ -992,7 +1017,6 @@ func (c *config) buildSite() {
 
 	// Delete web root directory unless otherwise requested
 	if c.cleanup {
-		c.verbose("Deleting webroot directory %v", c.webroot)
 		if err := os.RemoveAll(c.webroot); err != nil {
 			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
 		}
@@ -1012,7 +1036,6 @@ func (c *config) buildSite() {
 		if err != nil && !os.IsExist(err) {
 			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
 		}
-		c.verbose("Created webroot directory %v", c.webroot)
 	}
 
 	//var converted bool
@@ -1046,16 +1069,12 @@ func (c *config) buildSite() {
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
 		if c.markdownExtensions.Found(ext) {
-			/*
-			      HTML, _ := buildFileToTemplatedString(c, filename)
-			      target = replaceExtension(target, "html")
-						writeStringToFile(c, target, HTML)
-			*/
-
+      // It's a markdown file. Convert to HTML, 
+      // then rename with HTML extensions.
 			HTML, target := buildFileToTemplatedString(c, filename)
-			//target = replaceExtension(target, "html")
 			writeStringToFile(c, target, HTML)
 		} else {
+      // It's an asset. Just pass through.
 			copyFile(c, source, target)
 		}
 
@@ -1104,11 +1123,11 @@ func ensureIndexHTML(path string, c *config) {
 // This should be established only on the home page
 // and from the -skip command-line option
 func (c *config) getSkipPublish() {
+
 	// The home page must be processed first, and
 	// once only. So it should be in the list already.
 
 	// Add anything from the -skip command line option
-	//debug("\tgetSkipPublish: skip command line is %s", c.skip)
 	list := strings.Split(c.skip, " ")
 	c.skipPublish.list = append(c.skipPublish.list, list...)
 
@@ -1416,20 +1435,18 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		// Obtain just the full pathname
 		// TODO: slow due to currDir()?
 		name := info.Name()
-		name = filepath.Join(currDir(), name)
 
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
 		if skipPublish.Found(name) && isDir {
-			//debug("\tvisit(): found %s in %v", name, skipPublish.list)
 			return filepath.SkipDir
 		}
 
 		// It may be just a filename on the exclude list.
 		if skipPublish.Found(name) {
-			debug("\tvisit(): skipping file %s. Found in %v", name, skipPublish.list)
 			return nil
 		}
+		name = filepath.Join(currDir(), name)
 
 		// Don't add directories to this list.
 		if !isDir {
@@ -1585,11 +1602,15 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 			if c != nil {
 				(fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg))
 			}
-		} else {
-			// No c object available
-			fmt.Printf("%s: %s\n", msg, errmsg)
 		}
-	}
+  } else {
+			// No c object available
+      if err != nil {
+			  fmt.Printf("%s: %s\n", msg, errmsg)
+      } else {
+			  fmt.Printf("%s\n", msg)
+      }
+		}
 	os.Exit(exitCode)
 }
 
