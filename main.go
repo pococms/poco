@@ -533,7 +533,7 @@ func (c *config) stylesheets() string {
 	// This is how you tell if a theme is present
 	if c.theme.dir != "" && c.frontMatterStr("theme") != "SUPPRESS" {
 		// TODO: minify these mofos
-		return "<!-- EMBEDDED STYLE --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
+		return "<!-- " + c.theme.dir + " --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
 	}
 
 	/*
