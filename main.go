@@ -265,24 +265,19 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 	// Get the name of the file. For example, the front
 	// matter my say Header: myheader.md so
 	// layoutElSource is 'myheader.md'
-
-	// in layoutEl() jxxx
-	debug("%s Theme %s, element: %s", c.currentFile(), c.theme.dir, element)
 	layoutElSource := c.frontMatterStr(element)
+
+  // TODO: Kludge. If there's no theme we shouldn't even be here
+  if layoutElSource == "" {
+    return ""
+  }
 	if filepath.IsAbs(layoutElSource) {
 		// Handle case of fully specified pathname
 		fullPath = layoutElSource
 	} else {
 		// TODO: Cache currDir()?
 		fullPath = filepath.Join(currDir(), c.theme.dir, layoutElSource)
-		/*
-		   debug("\tcurrDir(): %s", currDir())
-		   debug("\tsourceFile: %s", sourcefile)
-		   debug("\tlayoutElSource: %s", layoutElSource)
-		   debug("\ttheme dir: %s", c.theme.dir)
-		   debug("\tfullPath: %s", fullPath)
-		*/
-	}
+ 	}
 	if filepath.Ext(fullPath) != ".html" {
 		isMarkdown = true
 	}
@@ -299,10 +294,7 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 			quit(1, err, c, "%v: Unable to execute ", filename)
 		}
 		if convertedElement != "" {
-			//wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
 			wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
-			//wholeTag  = "\t" + tagSurround(tag + " id=\"" + tag + "-poco", tag, "\n")
-			debug("********wholeTag: %s", wholeTag)
 			//debug("\t\tConverted tag %s", wholeTag)
 			return wholeTag
 		}
@@ -330,21 +322,20 @@ func (c *config) loadTheme() {
 	// Get front matter for /index.md or /README.md
 	// in the root directory--the home page.
 	// Put it in a dummy config object.
-	debug("c.homePage: %s", c.homePage)
 	themeFm := getFrontMatter(c.homePage)
 	// Obtain the home page theme directory.
 	themeDir := themeFm.frontMatterStr("theme")
+	// Leave if no theme specified.
+	if themeDir == "" {
+		return
+	}
+
 	theme := filepath.Join(themeDir, "README.md")
 	themeFm = getFrontMatter(theme)
 
 	// Obtain home page prefs before loading theme, because
 	// if you don't have a theme stuff goes mising
 	themeFm.homePagePrefs()
-
-	// Leave if no theme specified.
-	if themeDir == "" {
-		return
-	}
 
 	themeReadme := filepath.Join(themeDir, "README.md")
 	if !fileExists(themeReadme) {
@@ -434,7 +425,6 @@ func (c *config) styleFiles(stylesheetList []string) {
 // to the theme's header, footer, etc. This extracts any
 // such element.
 func (c *config) themeEl(tag string) string {
-
 	// Return value: the tag will be converted to HTML,
 	// executed against templates, and surrounded with tags
 	var s string
@@ -827,10 +817,6 @@ func (c *config) setup() {
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
-
-	// Publish this page
-	//outputFile := buildFileToFile(c, c.currentFilename, false)
-	//copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
 
 }
 
@@ -1787,7 +1773,7 @@ func newGoldmark() goldmark.Markdown {
 		parser.WithAutoHeadingID()}
 
 	renderOpts := []renderer.Option{
-		// html.WithUnsafe(),
+		html.WithUnsafe(),
 		// html.WithHardWraps(),
 		html.WithXHTML(),
 	}
