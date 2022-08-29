@@ -990,19 +990,19 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
-	// Collect all the files required for this project.
-	c.files, err = getProjectTree(".", c.skipPublish)
-	// c.files is a list of files with pathnames relative to c.root
-	if err != nil {
-		quit(1, err, c, "Unable to get directory tree")
-	}
-
 	// Delete web root directory unless otherwise requested
 	if c.cleanup {
 		c.verbose("Deleting webroot directory %v", c.webroot)
 		if err := os.RemoveAll(c.webroot); err != nil {
 			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
 		}
+	}
+
+	// Collect all the files required for this project.
+	c.files, err = getProjectTree(".", c.skipPublish)
+	// c.files is a list of files with pathnames relative to c.root
+	if err != nil {
+		quit(1, err, c, "Unable to get directory tree")
 	}
 
 	// Create the webroot directory
