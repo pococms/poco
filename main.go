@@ -84,7 +84,6 @@ func (c *config) scriptAfter() string {
 	// NOTE: Make sure the final } gets inserted
 	// before the closing </code> tag
 
-	// xxx
 	slice := c.frontMatterStrSlice("script-after")
 	if slice == nil {
 		return ""
@@ -142,7 +141,6 @@ func assemble(c *config, filename string, article string) string {
 	//hasScript := false
 
 	// Get Javascript that goes after the body
-	// xxx
 	scriptAfterStr := c.scriptAfter()
 	if scriptAfterStr != "" {
 		//hasScript = true
@@ -312,8 +310,6 @@ func (c *config) layoutEl(element string, sourcefile string) string {
 // home page (READ.me or index.md in root source directory)
 func (c *config) homePagePrefs() {
 	c.getSkipPublish()
-
-	// xxxx
 }
 
 // loadTheme tries to find the named theme directory
@@ -338,7 +334,6 @@ func (c *config) loadTheme() {
 	themeDir := nc.frontMatterStr("theme")
 
 	// Leave if no theme specified.
-	// xxxxx loadTheme()
 	if themeDir == "" {
 		return
 	}
@@ -716,6 +711,7 @@ func (c *config) currentFile() string {
 
 // setRoot() obtains a fully qualified pathname for the home page source filename
 // and its root directory.
+// Pre: parseComandLine()
 func (c *config) setRoot() {
 	var err error
 	// Determine home page, which may have been passed on command line.
@@ -738,16 +734,53 @@ func (c *config) setRoot() {
 	}
 }
 
+// setWebroot() obtains a fully qualified pathname for the webroot, where all HTML output files
+// and assets go.
+// Creates webroot if it doesn't exist
+// Pre: parseComandLine(), setRoot()
+func (c *config) setWebroot() {
+	// Webroot either defaulted to WWW or was given a new location from command line.
+	// Don't know if it's valid.
+	// Make sure there's a webroot directory
+	// First job is to expand it completely.
+	var err error
+
+	if !filepath.IsAbs(c.webroot) {
+		c.webroot, err = filepath.Abs(c.webroot)
+		if err != nil {
+			quit(1, err, nil, "Can't get absolute path for webroot")
+		}
+	}
+
+
+}
+
 // setup() handles config for this site
 // Determines root directory and changes to it.
 // Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
+// Deletes webroot directory
 // Pre: call c.parseCommandLine()
 func (c *config) setup() {
 
 	// Determine home page directory and filename
 	c.setRoot()
+
+	// If a file ends in any one of these extensions then
+	// it gets converted to HTML.
+	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
+
+	// Determine output directory for all HTML and assets (webroot)
+	c.setWebroot()
+
+	// Delete web root directory unless otherwise requested
+	if c.cleanup {
+		c.verbose("Deleting webroot directory %v", c.webroot)
+		if err := os.RemoveAll(c.webroot); err != nil {
+			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
+		}
+	}
 
 	var err error
 	// Root dir exists. Now change to it.
@@ -759,32 +792,22 @@ func (c *config) setup() {
 
 	// Display home page filename in verbose mode. Same as
 	// elsewhere in buildSite for all the other files.
-	// xxx
 	c.currentFilename = c.homePage
+
 	// Display name of file being processed
 	c.verbose(c.currentFile())
+
 	// Process home page. It has site config info
 	// It will be added to the excluded file list.
 
-	// Make sure there's a webroot directory
-	if !dirExists(c.webroot) {
-		err := os.MkdirAll(c.webroot, os.ModePerm)
-		if err != nil && !os.IsExist(err) {
-			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
-		}
-	}
 	// If a theme directory was named in front matter's Theme: key,
 	// read it in.
 	c.loadTheme()
 
 	// Publish this page
-	outputFile := buildFileToFile(c, c.currentFilename, false)
-	copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
+	//outputFile := buildFileToFile(c, c.currentFilename, false)
+	//copyFile(c, outputFile, filepath.Join(c.webroot, "index.html"))
 
-	// a file is Markdown. If it ends in any one of these then
-	// it gets converted to HTML.
-	//var markdownExtensions searchInfo
-	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 }
 
 // newConfig allocates a config object.
@@ -805,7 +828,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// skip lets you skip the named files from being processed
-	flag.StringVar(&c.skip, "skip", "", "List of files to skip when generating a site")
+	flag.StringVar(&c.skip, "skip", "node_modules/ .git/ .DS_Store/ .gitignore", "List of files to skip when generating a site")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -851,6 +874,7 @@ func main() {
 	c := newConfig()
 	// No file was given on the command line.
 	// Build the project in place.
+
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
@@ -976,126 +1000,74 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
-	// Cache project's root directory
-	var homeDir string
-	if homeDir, err = os.Getwd(); err != nil {
-		quit(1, err, c, "Unable to get name of current directory")
-	}
-
-	// Delete web root directory unless otherwise requested
-	if c.cleanup {
-		delDir := filepath.Join(homeDir, c.webroot)
-		c.verbose("Deleting directory %v", delDir)
-		if err := os.RemoveAll(delDir); err != nil {
-			quit(1, err, c, "Unable to delete publish directory %v", delDir)
-		}
-	}
-
 	// Collect all the files required for this project.
-
 	c.files, err = getProjectTree(".", c.skipPublish)
+  // c.files is a list of files with pathnames relative to c.root
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
 
-	// Full pathname of file to copy to target directory
-	var source string
+	// Create the webroot directory
+  // AFTER list of files in site have been obtained
+	if !dirExists(c.webroot) {
+		err := os.MkdirAll(c.webroot, os.ModePerm)
+		if err != nil && !os.IsExist(err) {
+			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
+		}
+		c.verbose("Created webroot directory %v", c.webroot)
+	}
 
-	// Full pathname of output directory for copied files
-	var target string
 
-	// After Markdown file is converted to HTML, it ends up in this string.
-	// and eventually
-	var HTML string
-
-	// Relative directory of file. Required to determine where
-	// to copy target file.
-	var rel string
-
-	// true if it was converted to HTML.
-	// false if it's not a Markdown file, which means it will be copied
-	// unchanged to the output directory
-	var converted bool
-
-	// Name of directory used to publish output files
-	var webrootRelPath string
+	//var converted bool
 
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
+  debug("buildSite() files:\n%v", c.files)
 	for _, filename := range c.files {
 
-		// true if it's  Markdown file converted to HTML
-		converted = false
+    debug("\tsource file: %s", filename)
 
-		// Get the fully qualified pathname for this file.
-		c.currentFilename = filepath.Join(homeDir, filename)
+    // Obtain relative directory of file 
+    // being processed.
+    // Required to determine where
+    // to copy target file.
+    //rel := filepath.Dir(filename)
+    //j:debug("\t\trel: %s", rel)
 
-		// Display name of file being processed
-		c.verbose(c.currentFile())
+    // Full pathmame of file to be copied (may be converted to HTML first)
+    source := filepath.Join(c.root, filename)
+    // Full pathname of location of copied file in webroot
+    target := filepath.Join(c.webroot, filename)
 
-		// Separate out the file's origin directory
-		sourceDir := filepath.Dir(c.currentFile())
-
-		// Get the relatve directory. For example, if your directory
-		// is ~/raj/blog and you're in ~/raj/blog/2023/may, then
-		// the relative directory is 2023/may.
-		if rel, err = filepath.Rel(homeDir, sourceDir); err != nil {
-			quit(1, err, c, "Unable to get relative paths of %s and %s", homeDir, sourceDir)
-		}
-		// Determine the destination directory.
-		// This is always the relative path of the filename
-		webrootRelPath = filepath.Join(homeDir, c.webroot, rel)
+    // Full pathname of output directory for copied files
+    targetDir := filepath.Dir(target)
+    if !dirExists(targetDir) {
+			err := os.MkdirAll(targetDir, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to create directory %s in webroot", targetDir)
+			}
+    }
 
 		// Obtain file extension.
 		ext := path.Ext(filename)
+
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
 		if c.markdownExtensions.Found(ext) {
-			// Convert the Markdown file to an HTML string
-			if HTML, err = mdYAMLFileToHTMLString(c, filename); err != nil {
-				quit(1, err, c, "Error converting Markdown file to HTML")
-			}
-			// If asked, display the front matter
-			if c.dumpFm {
-				debug(dumpFm(c))
-			}
-			// TODO: Use replaceExtension
-			source = filename[0:len(filename)-len(ext)] + ".html"
-			converted = true
-		} else {
-			// Not a Markdown file. Copy unchanged.
-			source = filename
-			// Insert destination (webroot) directory
-			converted = false
-		}
-		target = filepath.Join(webrootRelPath, filepath.Base(source))
-
-		// Create the target directory for this file if it
-		// doesn't exist.
-		if !dirExists(webrootRelPath) {
-			err := os.MkdirAll(webrootRelPath, os.ModePerm)
-			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to create directory %s", webrootRelPath)
-			}
-		}
-		// Now have list of all files in directory tree.
-		// If markdown, convert to HTML and copy that file to the HTML publication directory.
-		// If not, copy to target publication directory unchanged.
-
-		if converted {
-			// Take the raw converted HTML and use it to generate a complete HTML document in a string
-			// TODO: Use BuildFileToFile here?
-			h := assemble(c, c.currentFile(), HTML)
-			writeStringToFile(c, target, h)
-		} else {
+      HTML, _ := buildFileToTemplatedString(c, filename)
+      target = replaceExtension(target, "html")
+			HTML = assemble(c, source, /* c.currentFile(), */ HTML)
+			writeStringToFile(c, target, HTML)
+    } else {
 			copyFile(c, source, target)
-		}
-		c.copied += 1
+    }
 
+		c.copied += 1
 	}
+  // ALL files now copied
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
@@ -1142,12 +1114,16 @@ func (c *config) getSkipPublish() {
 	// once only. So it should be in the list already.
 
 	// Add anything from the -skip command line option
+	//debug("\tgetSkipPublish: skip command line is %s", c.skip)
 	list := strings.Split(c.skip, " ")
 	c.skipPublish.list = append(c.skipPublish.list, list...)
 
 	// Get what's specified in the home page front matter
 	localSlice := c.frontMatterStrSlice("skip-publish")
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
+
+	//debug("\tgetSkipPublish: c.skipPublish.list: %s", c.skipPublish.list)
+	//wait("")
 }
 
 // isProject() looks at the structure of the specified directory
@@ -1192,8 +1168,9 @@ func currDir() string {
 }
 
 // FILE UTILITIES
-// copyFile, well, does just that. Doesnt' return errors.
+// copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
+	//debug("\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -1216,6 +1193,8 @@ func copyFile(c *config, source string, target string) {
 	if _, err := trgt.ReadFrom(src); err != nil {
 		quit(1, err, c, "Error copying file %s to %s", source, target)
 	}
+
+	//debug("\t\tsucceeded")
 }
 
 // defaultHomePage() Generates a simple home page as an HTML string
@@ -1605,13 +1584,16 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 	if err != nil {
 		errmsg = " " + err.Error()
 	}
-	if c.currentFilename != "" {
+	if c == nil || c.currentFilename != "" {
 		// Error exit.
 		// Prints name of source file being processed.
 		if exitCode != 0 {
-			fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg)
+			if c != nil {
+				(fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg))
+			}
 		} else {
-			fmt.Printf("%s%s\n", msg, errmsg)
+      // No c object available
+      fmt.Printf("%s: %s\n", msg, errmsg)
 		}
 	}
 	os.Exit(exitCode)
@@ -1631,6 +1613,17 @@ func debug(format string, ss ...interface{}) {
 // Differs from warn(), which sends its text to stderr
 func print(format string, ss ...interface{}) {
 	fmt.Println(fmtMsg(format, ss...))
+}
+
+// wait displays messages to stdout using Fprintf syntax.
+// Waits for you to press a key, then Enter
+// Continues if it's just Enter. press 'q' to quit.
+func wait(format string, ss ...interface{}) {
+	fmt.Println(fmtMsg(format, ss...))
+	q := inputString()
+	if len(q) >= 1 && strings.ToLower(q[0:1]) == "q" {
+		quit(1, nil, nil, "Quitting")
+	}
 }
 
 // warn displays messages to stderr using Fprintf syntax.
@@ -1889,13 +1882,13 @@ func (c *config) serve() {
 		print("Port %s is already in use", c.port)
 		os.Exit(1)
 	}
-	dir := filepath.Join(c.root, c.webroot)
-	if err := os.Chdir(dir); err != nil {
+	//dir := filepath.Join(c.root, c.webroot)
+	if err := os.Chdir(c.webroot); err != nil {
 		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
 	}
 	// Simple static webserver:
 	print("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
-	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(dir))); err != nil {
+	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(c.webroot))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
 }
@@ -1911,7 +1904,6 @@ func theTime() string {
 // (in the form ":12345" is already in use.
 func portBusy(port string) bool {
 	ln, err := net.Listen("tcp", port)
-	defer ln.Close()
 	if err != nil {
 		return true
 	}
