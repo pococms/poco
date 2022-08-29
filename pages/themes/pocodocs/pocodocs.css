@@ -11,11 +11,3 @@ article>h2{padding-top:2.5rem;}
 article>p{font-familiy:serif; !important}
 pre{border:1px solid gray;padding:1rem;/* background-color:ghostwhite;*/ margin:1rem 0 1rem 0 !important} /* block, not inline */
 
-/* FAILED
- *
- * article>pre>code{background-color:yellow}
- * article>pre{background-color:yellow}
- *
- * article>p>pre>code{background-color:yellow}
- *
- * */

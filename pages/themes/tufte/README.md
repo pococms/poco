@@ -1,10 +1,14 @@
 ---
 author: Tom Campbell
 branding: The Tufte Theme
-
+header: header.md
+nav: nav.md
+aside: aside.md
+footer: footer.md
 stylesheets:
-  - https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css
+  - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
   - layout-only.css
+  - "overrides.css"
 ---
 # Tufte
 

@@ -1,1 +1,1 @@
-NAV for Tufte theme
+*No matter where you go... there you are*

@@ -1,1 +1,1 @@
-* Tufte theme header
+# [Tufte](#/)
