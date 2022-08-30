@@ -115,14 +115,6 @@ func assemble(c *config, filename string, article string) string {
 		article = parsedArticle
 	}
 
-	// If there are style tags in the theme's README,
-	// add and enclose in a <style> tag. Otherwise
-	// leave it empty.
-	themeExtraTemplateTags := c.theme.styleFileTemplateTags
-	if themeExtraTemplateTags != "" {
-		themeExtraTemplateTags = "\t" + tagSurround("style", themeExtraTemplateTags, "\n")
-	}
-
 	// If it's the home page, and a timestamp was requested,
 	// insert it in a paragraph at the top of the article.
 	timestamp := ""
@@ -132,9 +124,8 @@ func assemble(c *config, filename string, article string) string {
 	// If there are style tags in the current file,
 	// add and enclose in a <style> tag. Otherwise
 	// leave it empty.
-	extraStyleTags := c.styleTags()
-	if extraStyleTags != "" {
-		extraStyleTags = "\t" + tagSurround("style", extraStyleTags, "\n")
+	if c.theme.styleTags != "" {
+		c.theme.styleTags = "\t" + tagSurround("style", c.theme.styleTags, "\n")
 	}
 
 	// True if there's any script injected into this file
@@ -156,9 +147,9 @@ func assemble(c *config, filename string, article string) string {
 		c.metatags() +
 		c.linktags() +
 		c.stylesheets() +
-		themeExtraTemplateTags +
-		extraStyleTags +
+		c.styleTags() +
 		"</head>\n<body>\n" +
+    // xxx assemble()
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
     "\t" + c.theme.header +
@@ -417,11 +408,10 @@ func (c *config) loadTheme() { // old loadTheme xxx
 	// to the webroot.
 
 	// Read each stylesheet into a string, then appened
-	// it into the theme file's styleFilesEmbedded
+	// it into the theme file's stylesheetsEmbedded
 	// member. It will then be injected into the
 	// HTML file directly, in order requested.
 	stylesheetList := themeFm.frontMatterStrSlice("stylesheets")
-	// nc.theme.dir = themeDir
 	c.styleFiles(stylesheetList)
 	// Theme loaded. Now get additional style tags.
 	c.styleTags()
@@ -438,7 +428,7 @@ func (c *config) styleFiles(stylesheetList []string) {
 		// - "~/Users/tom/tufte.min.css"
 		// - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 		s = c.getWebOrLocalFileStr(filename)
-		c.theme.styleFilesEmbedded = c.theme.styleFilesEmbedded + s
+		c.theme.stylesheetsEmbedded = c.theme.stylesheetsEmbedded + s
 	}
 }
 
@@ -539,37 +529,29 @@ func (c *config) styleTags() string {
 	return tags
 }
 
+
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
-func (c *config) stylesheets() string {
-
+// Pre: 
+func (c *config) stylesheets() string { // stylesheets()
+  slice := c.globalTheme.stylesheets
+  c.globalTheme.stylesheetsEmbedded = sliceToStylesheetStr(slice)
+  
+  slice = c.theme.stylesheets
+  c.theme.stylesheetsEmbedded = sliceToStylesheetStr(slice)
+  return c.globalTheme.stylesheetsEmbedded  + c.theme.stylesheetsEmbedded
+  /*
+  // Return value
+  var s string
 	// Handle case of theme specified
 	// This is how you tell if a theme is present
 	if c.theme.dir != "" && c.frontMatterStr("theme") != "SUPPRESS" {
 		// TODO: minify these mofos
-		return "<!-- " + c.theme.dir + " --><style>" + c.theme.styleFilesEmbedded + "</style>\n"
+    s = "<!-- " + c.theme.dir + " --><style>" + 
+      c.globalTheme.stylesheetsEmbedded + 
+      c.theme.stylesheetsEmbedded + 
+      "</style>\n"
 	}
-
-	/*
-		if sheets != "" {
-			// Build a string from stylesheets named on the command line.
-			globalSlice = strings.Split(sheets, " ")
-			globals = sliceToStylesheetStr(globalSlice)
-		}
-	*/
-	// Build a string from stylesheets named in the
-	//templates := ""
-	// Build a string from stylesheets named in the
-	// Stylesheets: front matter for this page
-	localSlice := c.frontMatterStrSlice("stylesheets")
-	locals := sliceToStylesheetStr(localSlice)
-
-	// Stylesheets named in the front matter takes priority,
-	// so they goes last. This allows you to have stylesheets
-	// on the command line that act as templates, but that
-	// you can override using stylesheets named in
-	// the front matter.
-	return /*globals +*/ locals
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -620,6 +602,9 @@ type theme struct {
 	// Names of stylesheets
 	stylesheets []string
 
+  // Extra tags added right there on the Markdown page
+  styleTags string
+
 	// Names of style tags FROM THE CURRENT MARKDOWN FILE,
 	// not the theme's README.md.
 	// Scenario: You've developed a light theme.
@@ -632,7 +617,7 @@ type theme struct {
 	// The stylesheets for each theme are concantenated, then read
 	// into this string. It's injected straight into the HTML for
 	// each file using this theme.
-	styleFilesEmbedded string
+	stylesheetsEmbedded string
 }
 
 // there are no configuration files (yet) but this holds
@@ -703,6 +688,7 @@ type config struct {
 
   // Contents of a theme directory: the theme for the current page
 	theme theme
+
   // Contents of the global (default) theme directory
   globalTheme theme
 
@@ -934,6 +920,7 @@ func (c *config) layoutEl(theme theme, element string, sourcefile string) string
 }
 
 
+// TODO: rename to articleEl or something
 // t.header, t.footer and so on start out as filenames.
 // tagFile is the full path to the page layout file,
 // for example, "/Users/tom/mysite/themes/foo/header.md"
@@ -948,8 +935,18 @@ func (c *config) layoutEl(theme theme, element string, sourcefile string) string
 func (t *theme) layoutFiles(tag string, themeDir string, c *config) { // xxx
  	// Return value: the tag will be converted to HTML,
 	// executed against templates, and surrounded with tags
-  tagFile := fmt.Sprintf("%s", c.fm[tag])
-  filename := regularize(themeDir, tagFile)
+  filename := fmt.Sprintf("%s", c.fm[tag])
+  // If filename is "SUPPRESS" ignore everything else
+  var suppress bool
+  if filename == "SUPPRESS" {
+    suppress = true
+  }
+
+  // If some kind of file path or URL designator, get it into canonical
+  // full path form.
+  if !suppress {
+    filename = regularize(themeDir, filename)
+  }
   // Contents of file after converting to HTML
   var s string
 
@@ -959,10 +956,18 @@ func (t *theme) layoutFiles(tag string, themeDir string, c *config) { // xxx
       s = c.fileToString(filename)
     }
   } else {
-    s = convertMdYAMLFileToHTMLStr(filename, c) 
-    if s != "" {
-      s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
+    // filename is something like "c:/Users/tom/mysite/themes/foo/header.md"
+    if !suppress {
+      s = convertMdYAMLFileToHTMLStr(filename, c) 
+      if s != "" {
+        s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
+      }
     }
+  }
+  
+  // Not necessary?
+  if suppress {
+    s = ""
   }
 	switch tag {
 	case "header":
@@ -1014,8 +1019,7 @@ func regularize(dir string, filename string) string {
 //   of page layout files containing the header, footer, etc.
 // - The page layout files specivied in the theme front matter
 // pre: c.getFrontMatter()
-func (c *config) loadPageTheme(themeDir string) theme { // xxx
-  // Return value
+func (c *config) loadPageTheme(themeDir string) theme {   // Return value
   var theme theme
   //debug("\t\tloadPageTheme for page %s", c.currentFile())
   // The theme is actually just a directory name.
@@ -1040,7 +1044,6 @@ func (c *config) loadPageTheme(themeDir string) theme { // xxx
 		quit(1, nil, c, "%s theme is missing a LICENSE file", c.theme.dir)
 	}
 
-
   dummyConfig := newConfig()
   dummyConfig.getFrontMatter(themeReadme)
   //debug("\t\t\ttheme front matter: %v", dummyConfig.fm)
@@ -1055,9 +1058,16 @@ func (c *config) loadPageTheme(themeDir string) theme { // xxx
   theme.layoutFiles("aside", theme.dir, dummyConfig)
   theme.layoutFiles("footer", theme.dir, dummyConfig)
 
+	// Build a string from stylesheets named in the
+	//templates := ""
+	// Build a string from stylesheets named in the
+	// Stylesheets: front matter for this page
+	theme.stylesheets = dummyConfig.frontMatterStrSlice("stylesheets")
+  theme.styleTags = dummyConfig.styleTags()
+
   return theme
 	
-}
+}// loadPageTheme() xxx
 
 // loadGlobalTheme() reads in the default theme, if one is requeted.
 // It only works on the home page
@@ -1067,11 +1077,11 @@ func (c *config) loadGlobalTheme() { // xxx
   // The theme name is a path to a directory
   //debug("\tloadGlobalTheme() fm.setup: %v", c.fm["setup.theme"])
   globalThemeFilename := fmt.Sprintf("%s", c.fm["setup.theme"])
-  debug("\tloadGlobalTheme filename: %s", globalThemeFilename)
+  debug("\tloadGlobalTheme filename: %v", globalThemeFilename)
   // Load (optional) theme specified in this page's front matter.
   // The theme name is a path to a directory
   c.globalTheme = c.loadPageTheme(globalThemeFilename)
-  debug("\t\tloadGlobalTheme front matter: %+v", c.globalTheme)
+  debug("\t\tGlobal theme: %+v", c.globalTheme)
 
 }
 
