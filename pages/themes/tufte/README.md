@@ -4,7 +4,7 @@ branding: The Tufte Theme
 header: header.md
 nav: nav.md
 aside: aside.md
-footer: footer.md
+footer: footer.html
 stylesheets:
   - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
   - layout-only.css

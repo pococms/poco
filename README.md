@@ -9,6 +9,10 @@ stylesheets:
 #theme: "pages/themes/informer"
 #theme: "pages/themes/simplicity"
 theme: "pages/themes/tufte"
+setup: [
+  theme: "pages/themes/pocodocs",
+  lang: "fr"
+]
 skip-publish:
 - "node_modules/" 
 - ".git/"
@@ -24,6 +28,7 @@ skip-publish:
 ---
 # Poco CMS, the world's easiest static site generator
 
+Setup: {{ .setup }}
 
 ![](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
