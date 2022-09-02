@@ -1,33 +1,5 @@
 package main
 
-// # Create a directory. It doesn't have to be here.
-// mkdir ~/pococms
-// # Navigate to that directory.
-// cd ~/pococms
-// # Clone the repo.
-// git clone https://github.com/pococms/poco
-// # The repo is now in ~/pococms/poco, so navigate there.
-// cd poco
-// And compile. There's only one file, so you can also use go run
-// go build # OR go run main.go
-//
-// Example invocations
-//
-// If there's at least one Markdown file named index.md or README.md
-// in the current directory, PocoCMS assumes it's a site and will
-// create one. All you have to do is type the name of the program:
-// poco
-//
-// Learn the command-line options:
-// poco -help
-//
-// Use the docs subdirectory as the root of the site.
-// ./poco --root "./docs"
-
-// Get CSS file from CDN
-// poco --styles "https://unpkg.com/spectre.css/dist/spectre.min.css"
-// poco --styles "//writ.cmcenroe.me/1.0.4/writ.min.css" foo.md
-
 import (
 	"bufio"
 	"bytes"
@@ -104,7 +76,7 @@ func (c *config) scriptAfter() string {
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func assemble(c *config, filename string, article string) string {
+func (c *config) assemble(filename string, article string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
@@ -137,6 +109,8 @@ func assemble(c *config, filename string, article string) string {
 		//hasScript = true
 		//debug(scriptAfterStr)
 	}
+  //wait("About to assemble" + c.currentFile())
+
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
@@ -149,7 +123,8 @@ func assemble(c *config, filename string, article string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>\n" +
-    // xxx assemble()
+    // xxxxx
+    article + 
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
     "\t" + c.theme.header +
@@ -303,6 +278,9 @@ func (c *config) oldlayoutEl(element string, sourcefile string) string {
 }
 
 
+// getFrontMatter() reads in a Markdown file solely
+// to obtain its front matter. Replaces  so the resultant
+// HTML is ignored.
 // TODO: document
 func (c *config) getFrontMatter(filename string) {
 	var rawHTML string
@@ -319,6 +297,26 @@ func (c *config) getFrontMatter(filename string) {
 	}
 
 	// And return a new front matter object
+}
+
+func (c *config) newgetFrontMatter(filename string) map[string]interface{} {
+	var rawHTML string
+	var err error
+
+  newC := newConfig()
+	// Convert a Markdown file, possibly with front matter, to HTML
+	if rawHTML, err = mdYAMLFileToHTMLString(newC, filename); err != nil {
+		quit(1, err, c, "%v: convert %s to HTML", filename)
+	}
+
+	// Execute its templates.
+	if _, err = doTemplate("", rawHTML, newC); err != nil {
+		quit(1, err, c, "%v: Unable to execute ", filename)
+	}
+
+  debug("\t\tnewgetFrontMatter %s: %+v", filename, newC.fm)
+	// And return a new front matter object
+  return newC.fm
 }
 
 
@@ -349,7 +347,6 @@ func (c *config) loadTheme() { // old loadTheme xxx
 
 	// Obtain home page prefs before loading theme, because
 	// if you don't have a theme stuff goes mising
-	themeFm.pagePrefs("NO-OP XXX")
 	//themeFm.getSkipPublish()
 
 	themeReadme := filepath.Join(themeDir, "README.md")
@@ -540,18 +537,6 @@ func (c *config) stylesheets() string { // stylesheets()
   slice = c.theme.stylesheets
   c.theme.stylesheetsEmbedded = sliceToStylesheetStr(slice)
   return c.globalTheme.stylesheetsEmbedded  + c.theme.stylesheetsEmbedded
-  /*
-  // Return value
-  var s string
-	// Handle case of theme specified
-	// This is how you tell if a theme is present
-	if c.theme.dir != "" && c.frontMatterStr("theme") != "SUPPRESS" {
-		// TODO: minify these mofos
-    s = "<!-- " + c.theme.dir + " --><style>" + 
-      c.globalTheme.stylesheetsEmbedded + 
-      c.theme.stylesheetsEmbedded + 
-      "</style>\n"
-	}
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -644,6 +629,7 @@ type config struct {
 
 	// Front matter
 	fm map[string]interface{}
+  globalFm map[string]interface{}
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -932,13 +918,14 @@ func (c *config) layoutEl(theme theme, element string, sourcefile string) string
 // For example, the contents of the file
 // might look like:
 //   <header id="header-poco">Welcome!</header>
-func (t *theme) layoutFiles(tag string, themeDir string, c *config) { // xxx
- 	// Return value: the tag will be converted to HTML,
-	// executed against templates, and surrounded with tags
-  filename := fmt.Sprintf("%s", c.fm[tag])
+func (t *theme) layoutFiles(tag string, themeDir string, c *config/*, fm map[string]interface{}*/) { // xxx
+  filename := fmStr(tag, c.fm)
+  //debug("\t\tlayoutFiles: %s", fmStr(tag, c.fm))
+  //debug("\t\tlayoutFiles tag: %s, filename: %s, c.fm: %+v", tag, filename, c.fm)
   // If filename is "SUPPRESS" ignore everything else
+
   var suppress bool
-  if filename == "SUPPRESS" {
+  if filename == "SUPPRESS" || filename == "" {
     suppress = true
   }
 
@@ -1012,18 +999,24 @@ func regularize(dir string, filename string) string {
   return ""
 }
 
+// TODO: Make sure it's doc'd right
 // loadPageTheme() reads in the theme requested for this page.
-// dir is the name of the themes directory
+// themeReadme is the requested theme, load in pagePrefs()
+// where the theme resides.
 // A theme is  directory containing:
 // - README.md file. Its front matter contains the names
 //   of page layout files containing the header, footer, etc.
 // - The page layout files specivied in the theme front matter
-// pre: c.getFrontMatter()
-func (c *config) loadPageTheme(themeDir string) theme {   // Return value
+// pre: c.getFrontMatter(), c.pagePrefs(), so 
+// c.theme.dir will have a theme if one was requested
+func (c *config) loadPageTheme(themeDir string) theme {   // xxx
+
+  //Return value
   var theme theme
-  //debug("\t\tloadPageTheme for page %s", c.currentFile())
+  debug("\t\tloadPageTheme for page %s requesting theme %s", c.currentFile(), themeDir)
   // The theme is actually just a directory name.
-	theme.dir = c.frontMatterStr("theme")
+  // layoutFiles will regularize it
+	theme.dir = themeDir
 	// Leave if no theme specified.
 	if theme.dir == "" {
     debug("\t\t\t%s does not specify a theme", c.currentFile())
@@ -1032,11 +1025,10 @@ func (c *config) loadPageTheme(themeDir string) theme {   // Return value
   // The theme's heart is its README.md file, which lists
   // assets required by the theme.
 	themeReadme := filepath.Join(theme.dir, "README.md")
-
 	if !fileExists(themeReadme) {
 		quit(1, nil, c, "Theme %s specified in %s can't be found", themeReadme, 
     c.currentFile())
-	}
+  }
 
 	// Make sure there's a LICENSE file
 	license := filepath.Join(theme.dir, "LICENSE")
@@ -1045,7 +1037,8 @@ func (c *config) loadPageTheme(themeDir string) theme {   // Return value
 	}
 
   dummyConfig := newConfig()
-  dummyConfig.getFrontMatter(themeReadme)
+  dummyConfig.fm = dummyConfig.newgetFrontMatter(themeReadme)
+  debug("\t\t\tnew front matter: %+v", dummyConfig.fm)
   //debug("\t\t\ttheme front matter: %v", dummyConfig.fm)
   // The theme's README.md file has been located.
   // A temporary config object has been created.
@@ -1053,10 +1046,10 @@ func (c *config) loadPageTheme(themeDir string) theme {   // Return value
   // header has the name of the header file, footer the name
   // of the footer file, and so on. Determine
   // their paths based on the theme's directory.
-  theme.layoutFiles("header", theme.dir,  dummyConfig)
-  theme.layoutFiles("nav", theme.dir,  dummyConfig)
-  theme.layoutFiles("aside", theme.dir, dummyConfig)
-  theme.layoutFiles("footer", theme.dir, dummyConfig)
+  theme.layoutFiles("header", theme.dir,  dummyConfig/*, dummyConfig.fm*/)
+  theme.layoutFiles("nav", theme.dir,  dummyConfig/*, dummyConfig.fm*/)
+  theme.layoutFiles("aside", theme.dir, dummyConfig/*, dummyConfig.fm*/)
+  theme.layoutFiles("footer", theme.dir, dummyConfig/*, dummyConfig.fm*/)
 
 	// Build a string from stylesheets named in the
 	//templates := ""
@@ -1069,24 +1062,38 @@ func (c *config) loadPageTheme(themeDir string) theme {   // Return value
 	
 }// loadPageTheme() xxx
 
+
+// fmStr is passed a front matter "type" and retrievs
+// the value for the value passed in as key. Value
+// is case-insensitive. So if
+// c.globalFm has a theme named "pages/themes/foo"
+// you'd pass in "theme" and get back "pages/themes/foo" 
+// TODO: Document this and reconcile with the less general
+// purpose frontMatterStr
+func fmStr(key string, fm map[string]interface{}) string {
+	v := fm[strings.ToLower(key)]
+	value, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
+
 // loadGlobalTheme() reads in the default theme, if one is requeted.
 // It only works on the home page
 func (c *config) loadGlobalTheme() { // xxx
+  debug("\tloadGlobalTheme. Home page is: %s", c.homePage)
 	c.getFrontMatter(c.homePage)
-  // Load (optional) theme specified in this page's front matter.
-  // The theme name is a path to a directory
-  //debug("\tloadGlobalTheme() fm.setup: %v", c.fm["setup.theme"])
-  globalThemeFilename := fmt.Sprintf("%s", c.fm["setup.theme"])
-  debug("\tloadGlobalTheme filename: %v", globalThemeFilename)
-  // Load (optional) theme specified in this page's front matter.
-  // The theme name is a path to a directory
-  c.globalTheme = c.loadPageTheme(globalThemeFilename)
+  c.globalFm = c.newgetFrontMatter(c.homePage)
+  debug("\t\tc.globalFm: %+v", c.globalFm)
+  c.globalTheme.dir = fmStr("theme", c.globalFm)
+  debug("\t\t\ttheme: %+v", c.globalTheme.dir)
+  c.globalTheme = c.loadPageTheme(c.globalTheme.dir)
   debug("\t\tGlobal theme: %+v", c.globalTheme)
-
 }
 
+/*
 
-// Pre: c.PagePrefs()
 // pagePrefs() obtains the page's front matter, then
 // loads the pages theme if requested, and sets other
 // variables named in the front matter.
@@ -1098,10 +1105,12 @@ func (c *config) pagePrefs(filename string) { // pagePrefs() xxx
   // The theme name is a path to a directory
   c.theme = c.loadPageTheme(c.frontMatterStr("theme"))
 }
+*/
 
 	
 // setupGlobals() sets sitewide values such as 
 // home page, language, underlying theme, etc.
+// Pre: parseCommandline()
 func (c *config) setupGlobals() { // 
 	debug("%s setupGlobals", c.currentFile()) 
 	  
@@ -1114,6 +1123,9 @@ func (c *config) setupGlobals() { //
 
 	// Set defaults for files and dirs to skip
 	c.skip = "node_modules .git .DS_Store .gitignore ignoreme"
+
+  // Create a list of files and dirs to skip when processing
+  c.getSkipPublish()
 
 	// Determine output directory for all HTML and assets (webroot)
 	c.setWebroot()
@@ -1138,21 +1150,21 @@ func (c *config) setupGlobals() { //
 
   // Load up the front matter for this page
   // and set preferencs for that page
-  c.pagePrefs(c.currentFile())
+  //c.pagePrefs(c.currentFile())
 
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
 } // setGlobals
 
-// setup() handles config for this site
+// startup() handles config for this site
 // Determines root directory and changes to it.
 // Obtains home page README.md or index.md.
 // Reads in the front matter to get its config information.
 // Sets values accordingly.
 // Deletes webroot directory
 // Pre: call c.parseCommandLine()
-func (c *config) setup() {
+func (c *config) startup() {
 
 	// Determine home page directory and filename
 	c.setRoot()
@@ -1262,7 +1274,6 @@ func main() {
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
-	//c.setup()
   c.setupGlobals()
 
 
@@ -1346,6 +1357,7 @@ func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile
 // Does not check if the input file is Markdown.
 // Returns the string and the filen:ame
 func buildFileToTemplatedString(c *config, filename string) (string, string) {
+  debug("\t\tbuildFileToTemplatedString(%s)", filename) 
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
 		return "", ""
@@ -1361,7 +1373,8 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := assemble(c, c.currentFile(), rawHTML)
+		finishedDocument := c.assemble(c.currentFile(), rawHTML)
+    wait("\t%s: buildFileToTemplatedString(): assemble() succeeded", filename)
 		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
@@ -1412,9 +1425,9 @@ func (c *config) buildSite() {
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
-	//debug("buildSite() files:\n%v", c.files)
+	debug("buildSite() files:\n%v", c.files)
 	for _, filename := range c.files {
-
+    debug("\tFILE %s", filename)
 		// Full pathmame of file to be copied (may be converted to HTML first)
 		source := filepath.Join(c.root, filename)
 
@@ -1794,8 +1807,12 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		// TODO: slow due to currDir()?
 		name := info.Name()
 
+    // Inside the Walk func called by getProjectTree
+
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
+    // xxxx
+    //wait("Checking %s to see if it's in %v", name, skipPublish.list)
 		if skipPublish.Found(name) && isDir {
 			return filepath.SkipDir
 		}
@@ -1819,6 +1836,7 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 // Ignore items in exclude.List
 func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
 	var files []string
+  debug("getProjectTree. skipPublish: %v", skipPublish.list)
 
 	err = filepath.Walk(path, visit(&files, skipPublish))
 	if err != nil {
