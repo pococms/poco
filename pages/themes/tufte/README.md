@@ -9,6 +9,8 @@ stylesheets:
   - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
   - layout-only.css
   - "overrides.css"
+style-tags:
+  - "article{color:green;}"
 ---
 # Tufte
 

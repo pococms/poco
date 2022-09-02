@@ -1,3 +1,7 @@
+---
+theme: "pages/themes/informer"
+---
+
 # Building PocoCMS from source
 
 Until 1 September 2022 PocoCMS must be built from source using Go.
