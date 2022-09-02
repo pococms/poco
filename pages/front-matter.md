@@ -20,6 +20,7 @@ front matter options PocoCMS provides.
 [description](#description)  
 [keywords](#keywords)  
 [key/value pairs](#keyvalue-pairs)  
+[lang](#lang)
 [robots](#robots)  
 [skip-publish](#skippublish)  
 [stylesheets](#stylesheets)  
@@ -45,7 +46,7 @@ It generates the following HTML document:
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Powered by PocoCMS</title>
 </header>
-	<article id="article">
+	<article id="article-poco">
   <p>hello, world.</p>
 	</article>
 </div><!-- content-wrap -->
@@ -85,7 +86,7 @@ previous example:
 	<title>Introducing PocoCMS</title>
   <meta name="keywords" content="static site generator, jamstack, cms">
 </header>
-	<article id="article">
+	<article id="article-poco">
   <p>hello, world.</p>
 	</article>
 </div><!-- content-wrap -->
@@ -269,6 +270,28 @@ stylesheets:
 ```
 
 This page details all front matter options.
+
+## lang
+
+Sets the code HTML uses for its `html lang=` tag.
+Defaults to `en` for English.
+
+### Example
+
+* Create a simple file with no Markdown at all, just this
+front matter, which changes the language to Icelandic:
+
+```
+    ---
+    lang: "is"
+    ---
+```
+
+* Run poco and then view source. You'll see this:
+
+
+<html lang="en">
+
 
 ## robots 
 
