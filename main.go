@@ -284,7 +284,7 @@ func (c *config) getFrontMatter(filename string) map[string]interface{} {
 		quit(1, err, c, "%v: Unable to execute ", filename)
 	}
 
-	debug("\t\tgetFrontMatter %s: %+v", filename, newC.fm)
+	debug("\t\t\tgetFrontMatter %s: %+v", filename, newC.fm)
 	// And return a new front matter object
 	return newC.fm
 }
@@ -935,7 +935,7 @@ func (c *config) loadPageTheme(themeDir string) theme { // xxx
 
 	// Return value
 	var theme theme
-	debug("\t\tloadPageTheme for page %s requesting theme %s", c.currentFile(), themeDir)
+	debug("\t\t\tloadPageTheme for page %s requesting theme %s", c.currentFile(), themeDir)
 	// The theme is actually just a directory name.
 	// layoutFiles will regularize it
 	theme.dir = themeDir
@@ -961,7 +961,7 @@ func (c *config) loadPageTheme(themeDir string) theme { // xxx
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
 	tmpConfig.fm = tmpConfig.getFrontMatter(themeReadme)
-	debug("\t\t\tnew front matter: %+v", tmpConfig.fm)
+	debug("\t\t\t\tnew front matter: %+v", tmpConfig.fm)
 
 	// The theme's README.md file has been located.
 	// A temporary config object has been created.
@@ -978,8 +978,9 @@ func (c *config) loadPageTheme(themeDir string) theme { // xxx
 	// stylesheets: front matter for this page
 	theme.stylesheets = tmpConfig.frontMatterStrSlice("stylesheets")
 	theme.styleTags = tmpConfig.styleTags()
-	debug("\t\t\tstylesheets: %+v", theme.stylesheets)
-	debug("\t\t\tstyle tags: %+v", theme.styleTags)
+	debug("\n\t\t\t\tstylesheets: %+v", theme.stylesheets)
+	debug("\n\t\t\t\tstyle tags: %+v", theme.styleTags)
+	debug("\n\t\t\t\tLoadPageTheme() returning: %+v", theme)
 
 	return theme
 
@@ -1018,7 +1019,7 @@ func (c *config) loadGlobalTheme() { // xxx
 	c.globalFm = c.getFrontMatter(c.homePage)
 	//debug("\t\tc.globalFm: %+v", c.globalFm)
 	c.globalTheme.dir = fmStr("theme", c.globalFm)
-	debug("\t\t\ttheme: %+v", c.globalTheme.dir)
+	debug("\t\ttheme: %+v", c.globalTheme.dir)
 	c.globalTheme = c.loadPageTheme(c.globalTheme.dir)
 	debug("\t\tGlobal theme: %+v", c.globalTheme)
   filename := regularize(c.globalTheme.dir, c.globalTheme.header)
