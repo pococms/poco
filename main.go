@@ -123,7 +123,7 @@ func (c *config) assemble(filename string, article string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>\n" +
-		// xxxxx
+		// xxx
 		article +
 		"<div id=\"page-container\">\n" +
 		"<div id=\"content-wrap\">\n" +
@@ -132,6 +132,7 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.theme.aside +
 		"<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
+		"\t" + c.theme.footer +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
 	return htmlFile
@@ -284,7 +285,7 @@ func (c *config) getFrontMatter(filename string) map[string]interface{} {
 		quit(1, err, c, "%v: Unable to execute ", filename)
 	}
 
-	debug("\t\t\tgetFrontMatter %s: %+v", filename, newC.fm)
+	//debug("\t\t\tgetFrontMatter %s: %+v", filename, newC.fm)
 	// And return a new front matter object
 	return newC.fm
 }
@@ -300,7 +301,7 @@ func (c *config) styleFiles(stylesheetList []string) {
 		// - "~/Users/tom/tufte.min.css"
 		// - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 		s = c.getWebOrLocalFileStr(filename)
-		c.theme.stylesheetsEmbedded = c.theme.stylesheetsEmbedded + s
+		c.theme.stylesheets = c.theme.stylesheets + s
 	}
 }
 
@@ -316,20 +317,20 @@ func (c *config) themeEl(tag string) string {
 	var s string
 	switch tag {
 	case "header":
-		if c.theme.header != "" {
-			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.header)
+		if c.theme.headerFilename != "" {
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.headerFilename)
 		}
 	case "nav":
-		if c.theme.nav != "" {
-			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.nav)
+		if c.theme.navFilename != "" {
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.navFilename)
 		}
 	case "aside":
-		if c.theme.aside != "" {
-			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.aside)
+		if c.theme.asideFilename != "" {
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.asideFilename)
 		}
 	case "footer":
-		if c.theme.footer != "" {
-			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.footer)
+		if c.theme.footerFilename != "" {
+			s = mdYAMLStringToTemplatedHTMLString(c, c.theme.footerFilename)
 		}
 	}
 	if s != "" {
@@ -405,12 +406,12 @@ func (c *config) styleTags() string {
 // priority.
 // Pre:
 func (c *config) stylesheets() string { // stylesheets()
-	slice := c.globalTheme.stylesheets
-	c.globalTheme.stylesheetsEmbedded = sliceToStylesheetStr(slice)
+	slice := c.globalTheme.stylesheetFilenames
+	c.globalTheme.stylesheets = sliceToStylesheetStr(slice)
 
-	slice = c.theme.stylesheets
-	c.theme.stylesheetsEmbedded = sliceToStylesheetStr(slice)
-	return c.globalTheme.stylesheetsEmbedded + c.theme.stylesheetsEmbedded
+	slice = c.theme.stylesheetFilenames
+	c.theme.stylesheets = sliceToStylesheetStr(slice)
+	return c.globalTheme.stylesheets + c.theme.stylesheets
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -419,9 +420,6 @@ type theme struct {
 
 	// READ ONLY: Full pathname to theme directory
 	dir string
-
-	// Contents of LICENSE file. Can't be empty
-	license string
 
 	// Who created it, natch
 	author string
@@ -434,49 +432,49 @@ type theme struct {
 	// One or more sentences selling the theme.
 	description string
 
-	// Contents of header.md
-	// Begins as a filename, ends as string containing
-	// the converted and template-parsed markdown source
-	// for the <header> tag
+	// Holds converted and template-parsed markdown source
+	// for the <header> tag.
 	header string
+	// Filename for header specified in front matter.
+	headerFilename string
 
-	// Contents of nav.md
-	// Begins as a filename, ends as string containing
-	// the converted and template-parsed markdown source
-	// for the <nav> tag
+	// Holds converted and template-parsed markdown source
+	// for the <nav> tag.
 	nav string
+	// Filename for nav specified in front matter.
+	navFilename string
 
-	// Contents of aside.md
-	// Begins as a filename, ends as string containing
-	// the converted and template-parsed markdown source
-	// for the <aside> tag
+	// Holds converted and template-parsed markdown source
+	// for the <aside> tag.
 	aside string
+	// Filename for aside specified in front matter.
+	asideFilename string
 
-	// Contents of footer.md
-	// Begins as a filename, ends as string containing
-	// the converted and template-parsed markdown source
-	// for the <footer> tag
+	// Holds converted and template-parsed markdown source
+	// for the <footer> tag.
 	footer string
+	// Filename for footer specified in front matter.
+	footerFilename string
+
+	// Contents of LICENSE file. Can't be empty
+	license string
+
+	// Contents of README.md for this theme.
+	readme string
 
 	// Names of stylesheets
-	stylesheets []string
-
-	// Extra tags added right there on the Markdown page
-	styleTags string
-
-	// Names of style tags FROM THE CURRENT MARKDOWN FILE,
-	// not the theme's README.md.
-	// Scenario: You've developed a light theme.
-	// You want to experiment with a dark theme.
-	// So you add IN THE CURRENT MARKDOWN FILE
-	// style-tags:
-	// - "article{background-color:black;color:black}"
-	styleFileTemplateTags string
-
+	stylesheetFilenames []string
 	// The stylesheets for each theme are concantenated, then read
 	// into this string. It's injected straight into the HTML for
 	// each file using this theme.
-	stylesheetsEmbedded string
+	stylesheets string
+
+	// Extra tags added right there on the Markdown page
+	styleTagNames []string
+	// The style tags for each theme are concantenated, then read
+	// into this string. It's injected straight into the HTML for
+	// each file using this theme.
+	styleTags string
 }
 
 // there are no configuration files (yet) but this holds
@@ -691,92 +689,6 @@ func (c *config) setWebroot() {
 // This function would read in the head.html file (or whatever
 // the file was named in the front matter) and insert it before the
 // body of the document.
-//
-// fm contains the YAML front matter.
-// element is the file containing the layout element, for example, head.html.
-// If element  ends in ".html" it must be a complete header tag, with
-// both tags included. If element doesn't end in ".html" it is considered
-// to be a Markdown file and is processed that way.
-// sourcefile is the fully qualified pathname of the .md file being processed
-// TODO: Code smell
-func (c *config) layoutEl(theme theme, element string, sourcefile string) string { // xxx new
-	// Force to lowercase for use as an HTML tag.
-	tag := strings.ToLower(element)
-
-	// Get the filename for this layout element. For example,
-	// if the front matter said Header: "foo.md" this would
-	// return "foo.md".
-	filename := c.frontMatterStr(element)
-
-	// Special case: if there's a theme using this element
-	// you can suppress its output by using the special value
-	// "SUPPRESS" after Header:, Nav:, Aside: or Footer: in
-	// the front matter, e.g. Header: "SUPPRESS"
-	if filename == "SUPPRESS" {
-		return ""
-	}
-
-	// If no filename, then use the theme layout element, if any.
-	if c.theme.dir != "" {
-		// No layout element specified in front matter.
-		// See if there's a theme and if it has that layout element.
-		// Convert to HTML and executetemplate.
-		// so just return it.
-		s := c.themeEl(tag)
-		return s
-	}
-	// A filename was specified
-	// Takes priority over theme.
-
-	isMarkdown := false
-
-	// Full path to layout element file. So the file 'layout/myheader.md'
-	// woud be transformed into /Users/tom/mysite/layout/myheader.md'
-	// or something similar.
-	fullPath := ""
-
-	// Get the name of the file. For example, the front
-	// matter my say Header: myheader.md so
-	// layoutElSource is 'myheader.md'
-	layoutElSource := c.frontMatterStr(element)
-
-	// TODO: Kludge. If there's no theme we shouldn't even be here
-	if layoutElSource == "" {
-		return ""
-	}
-	if filepath.IsAbs(layoutElSource) {
-		// Handle case of fully specified pathname
-		fullPath = layoutElSource
-	} else {
-		// TODO: Cache currDir()?
-		fullPath = filepath.Join(currDir(), c.theme.dir, layoutElSource)
-	}
-	if filepath.Ext(fullPath) != ".html" {
-		isMarkdown = true
-	}
-
-	convertedElement := ""
-	raw := ""
-	var err error
-	if isMarkdown {
-		if !fileExists(fullPath) {
-			quit(1, nil, c, "Theme \"%s\" %s specifies file %s but it's not available", c.theme.dir, element, fullPath)
-		}
-		raw = convertMdYAMLFileToHTMLStr(fullPath, c)
-		if convertedElement, err = doTemplate("", raw, c); err != nil {
-			quit(1, err, c, "%v: Unable to execute ", filename)
-		}
-		if convertedElement != "" {
-			wholeTag := "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + convertedElement + "</" + tag + ">\n"
-			//debug("\t\tConverted tag %s", wholeTag)
-			return wholeTag
-		}
-		return ""
-	}
-	return c.fileToString(fullPath)
-
-}
-
 // TODO: rename to articleEl or something
 // t.header, t.footer and so on start out as filenames.
 // tagFile is the full path to the page layout file,
@@ -789,109 +701,7 @@ func (c *config) layoutEl(theme theme, element string, sourcefile string) string
 // For example, the contents of the file
 // might look like:
 //
-//	<header id="header-poco">Welcome!</header>
-func (t *theme) layoutFiles(tag string, themeDir string, c *config /*, fm map[string]interface{}*/) { // xxx
-
-	// 4 possible states.
-	// SUPPRESS: The layout element should be disabled. It's given "SUPPRESS"
-	//         as the filename. Return with no additions to the HTML. So
-	//         if you normally use a navbar but don't want it on this pagek,
-	//         the front matter says Nav: "SUPPRESS"
-	// GLOBAL: No layout file specified, but a global theme is present.
-	//         This is the case where the home page has Theme: "foo" in the front matter.
-	//         The current page doesn't have a theme specified in its front Matter.
-	//         The global theme HTML is already in c.globalTheme.theme.header etc.
-	// LOCAL:  No global theme was specified, but a layout file was specified.
-	//         This is the case where there's a Theme: "foobar" on the current page
-	//         but the home page didn't contain a theme designation.
-	//         In case 2 the layout file needs to be read in from the (non-global)
-	//         theme specified on this page.
-  // HTML:  An HTML file. This should be included unchanged.
-	const (
-		SUPPRESS int = 1
-		GLOBAL       = 2
-		LOCAL        = 3
-		HTML         = 4
-	)
-
-  state := GLOBAL 
-	filename := fmStr(tag, c.fm)
-	//debug("\t\tlayoutFiles: %s", fmStr(tag, c.fm))
-	//debug("\t\tlayoutFiles tag: %s, filename: %s, c.fm: %+v", tag, filename, c.fm)
-	// If filename is "SUPPRESS" ignore everything else
-
-
-	// Handle case 1.
-	if filename == "SUPPRESS" {
-		state = SUPPRESS 
-	}
-
-	if filename == "" && c.globalThemePresent() {
-		// No file like header.md specified for this page, but
-		// there is a global theme present.
-    state = GLOBAL
-	}
-
-	// If some kind of file path or URL designator, get it into canonical
-	// full path form.
-	if state != SUPPRESS && state != GLOBAL {
-		filename = regularize(themeDir, filename)
-    state = LOCAL
-	}
-	// Contents of file after converting to HTML
-	var s string
-
-	// If HTML file return unchanged
-	if path.Ext(filename) == ".html" {
-		if fileExists(filename) {
-			s = c.fileToString(filename)
-      state = HTML
-		} else {
-      state = SUPPRESS
-    }
-	}
-
-	// filename is something like "c:/Users/tom/mysite/themes/foo/header.md"
-	if state == LOCAL {
-		s = convertMdYAMLFileToHTMLStr(filename, c)
-		if s != "" {
-			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
-		}
-	}
-
-  wait("\t\tlayoutFiles()\n\t\t\tFile: %s\n\t\t\ts: %s\n\t\t\tLocal Front matter: %+v\n\t\t\tGlobal front matter:%+v\n\t\t\tTheme: %+v\n\t\t\tGlobal theme: %+v", filename, s, c.fm, c.globalFm, c.theme, c.globalTheme)
-
-	switch tag {
-
-	case "header":
-    if state == LOCAL || state == HTML {
-		  t.header = s
-    } else {
-      t.header = c.globalTheme.header
-    }
-
-	case "nav":
-    if state == LOCAL || state == HTML {
-		  t.nav = s
-    } else {
-      t.nav = c.globalTheme.nav
-    }
-
-	case "aside":
-    if state == LOCAL || state == HTML {
-		  t.aside = s
-    } else {
-      t.aside = c.globalTheme.aside
-    }
-
-	case "footer":
-    if state == LOCAL || state == HTML {
-		  t.footer = s
-    } else {
-      t.footer = c.globalTheme.footer
-    }
-	}
-}
+// filename is something like "c:/Users/tom/mysite/themes/foo/header.md"
 
 // regularize() is given a root directory and a filename.
 // filename may be a URL. It may be a full pathname.
@@ -931,76 +741,24 @@ func regularize(dir string, filename string) string {
 //     of page layout files containing the header, footer, etc.
 //   - LICENSE file.
 //   - The page layout files specified in the theme front matter
-func (c *config) loadPageTheme(themeDir string) theme { // xxx
-
-	// Return value
-	var theme theme
-	debug("\t\t\tloadPageTheme for page %s requesting theme %s", c.currentFile(), themeDir)
-	// The theme is actually just a directory name.
-	// layoutFiles will regularize it
-	theme.dir = themeDir
-	// Leave if no theme specified.
-	if theme.dir == "" {
-		debug("\t\t\t%s does not specify a theme", c.currentFile())
-		return theme
-	}
-	// The theme's heart is its README.md file, which lists
-	// assets required by the theme.
-	themeReadme := filepath.Join(theme.dir, "README.md")
-	if !fileExists(themeReadme) {
-		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
-			c.currentFile())
-	}
-
-	// Make sure there's a LICENSE file
-	license := filepath.Join(theme.dir, "LICENSE")
-	if !fileExists(license) {
-		quit(1, nil, c, "%s theme is missing a LICENSE file", c.theme.dir)
-	}
-
-	// Get a new config object to avoid stepping on c.config
-	tmpConfig := newConfig()
-	tmpConfig.fm = tmpConfig.getFrontMatter(themeReadme)
-	debug("\t\t\t\tnew front matter: %+v", tmpConfig.fm)
-
-	// The theme's README.md file has been located.
-	// A temporary config object has been created.
-	// Its front matter is drawn from the theme's README.md.
-	// header has the name of the header file, footer the name
-	// of the footer file, and so on. Determine
-	// their paths based on the theme's directory.
-	theme.layoutFiles("header", theme.dir, tmpConfig)
-	theme.layoutFiles("nav", theme.dir, tmpConfig)
-	theme.layoutFiles("aside", theme.dir, tmpConfig)
-	theme.layoutFiles("footer", theme.dir, tmpConfig)
-
+func (c *config) loadPageTheme(themeDir string, theme *theme) { // xxx
+	/*
+		theme.layoutFiles("nav", theme.dir, tmpConfig)
+		theme.layoutFiles("aside", theme.dir, tmpConfig)
+		theme.layoutFiles("footer", theme.dir, tmpConfig)
+	*/
 	// Build a string from stylesheets named in the
 	// stylesheets: front matter for this page
-	theme.stylesheets = tmpConfig.frontMatterStrSlice("stylesheets")
-	theme.styleTags = tmpConfig.styleTags()
-	debug("\n\t\t\t\tstylesheets: %+v", theme.stylesheets)
-	debug("\n\t\t\t\tstyle tags: %+v", theme.styleTags)
-	debug("\n\t\t\t\tLoadPageTheme() returning: %+v", theme)
-
-	return theme
-
+	//theme.stylesheets = tmpConfig.frontMatterStrSlice("stylesheets")
+	//theme.styleTags = tmpConfig.styleTags()
+	//debug("\t\t\t\tAGAIN WITH THE theme.stylesheets: %+v", theme.stylesheets)
+	/*jlk0j
+	  debug("\t\t\t\tAGAIN WITH THE theme: %+v", theme)
+	  debug("\t\t\t\tAND THEN AGAIN WITH THE theme: %+v", theme)
+		debug("\n\t\t\t\tstyle tags: %+v", theme.styleTags)
+		debug("\n\t\t\t\tLoadPageTheme() returning: %+v", theme)
+	*/
 } // loadPageTheme() xxx
-
-// fmStr is passed a front matter "type" and retrievs
-// the value for the value passed in as key. Value
-// is case-insensitive. So if
-// c.globalFm has a theme named "pages/themes/foo"
-// you'd pass in "theme" and get back "pages/themes/foo"
-// TODO: Document this and reconcile with the less general
-// purpose frontMatterStr
-func fmStr(key string, fm map[string]interface{}) string {
-	v := fm[strings.ToLower(key)]
-	value, ok := v.(string)
-	if !ok {
-		return ""
-	}
-	return value
-}
 
 // globalThemePresent() returns true if a global theme
 // is available.
@@ -1012,19 +770,171 @@ func (c *config) globalThemePresent() bool {
 	return true
 }
 
-// loadGlobalTheme() reads in the default theme, if one is requeted.
+// getTheme() takes the name of a theme directory and returns
+// the name of the page layout files, stylesheets, style tags
+// in the theme object. It does not read any of those files in.
+// So at the end you know what the assets are but haven't done
+// anything with them.
+// Returns an empty theme object if themeDir is empty.
+func (c *config) getTheme(themeDir string) theme { // xxx
+	// Return value
+	var theme theme
+	debug("\t\t\tgetTheme for page %s requesting theme %s", c.currentFile(), themeDir)
+	// The theme is actually just a directory name.
+	theme.dir = themeDir
+	// Leave if no theme specified.
+	if theme.dir == "" {
+		return theme
+	}
+	// The theme's heart is its README.md file, which lists
+	// assets required by the theme.
+	themeReadme := filepath.Join(theme.dir, "README.md")
+	if !fileExists(themeReadme) {
+		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
+			c.currentFile())
+	} else {
+		theme.readme = c.fileToString(themeReadme)
+	}
+
+	// Make sure there's a LICENSE file
+	license := filepath.Join(theme.dir, "LICENSE")
+	if !fileExists(license) {
+		quit(1, nil, c, "%s theme is missing a LICENSE file", c.theme.dir)
+	} else {
+		theme.license = c.fileToString(license)
+	}
+
+	// Get a new config object to avoid stepping on c.config
+	tmpConfig := newConfig()
+	tmpConfig.fm = tmpConfig.getFrontMatter(themeReadme)
+	//debug("\t\t\t\tnew front matter: %+v", tmpConfig.fm)
+
+	// The theme's README.md file has been located.
+	// A temporary config object has been created.
+	// Its front matter is drawn from the theme's README.md.
+	// header has the name of the header file, footer the name
+	// of the footer file, and so on. Determine
+	// their paths based on the theme's directory.
+
+	theme.headerFilename = fmStr("header", tmpConfig.fm)
+	theme.navFilename = fmStr("nav", tmpConfig.fm)
+	theme.asideFilename = fmStr("aside", tmpConfig.fm)
+	theme.footerFilename = fmStr("footer", tmpConfig.fm)
+	theme.author = fmStr("author", tmpConfig.fm)
+	theme.branding = fmStr("branding", tmpConfig.fm)
+	theme.description = fmStr("description", tmpConfig.fm)
+	theme.stylesheetFilenames = c.fmStrSlice("stylesheetFilenames", tmpConfig.fm)
+	theme.styleTagNames = c.fmStrSlice("styleTagNames", tmpConfig.fm)
+	return theme
+} // getTheme()
+
+// hydrateTheme() reads layout elements, converts, executes
+// templates, and stores them into
+// strings. So theme.headerFilename myheader.md gets located and read into
+// theme.header, and so on.
+func (c *config) hydrateTheme(t *theme) {
+	c.newlayoutFiles("header", &c.globalTheme)
+	c.newlayoutFiles("nav", &c.globalTheme)
+	c.newlayoutFiles("aside", &c.globalTheme)
+	c.newlayoutFiles("footer", &c.globalTheme)
+}
+
+// loadGlobalTheme() reads in the default theme, if one is requested.
 // It only works on the home page
 func (c *config) loadGlobalTheme() { // xxx
-	debug("\tloadGlobalTheme. Home page is: %s", c.homePage)
+  //debug("\tloadGlobalTheme. Home page is: %s", c.homePage)
 	c.globalFm = c.getFrontMatter(c.homePage)
-	//debug("\t\tc.globalFm: %+v", c.globalFm)
 	c.globalTheme.dir = fmStr("theme", c.globalFm)
-	debug("\t\ttheme: %+v", c.globalTheme.dir)
-	c.globalTheme = c.loadPageTheme(c.globalTheme.dir)
-	debug("\t\tGlobal theme: %+v", c.globalTheme)
-  filename := regularize(c.globalTheme.dir, c.globalTheme.header)
-  debug("\n\t\t\t****** header: %s", filename)
-  // xxxx
+	c.globalTheme = c.getTheme(c.globalTheme.dir)
+  c.hydrateTheme(&c.globalTheme)
+	//wait("\t\tGlobal theme: %+v", c.globalTheme)
+	//c.loadPageTheme(c.globalTheme.dir, &c.globalTheme)
+}
+
+func (c *config) newlayoutFiles(tag string, t *theme) {
+	const (
+//		SUPPRESS int = 1
+		GLOBAL       = 2
+//		LOCAL        = 3
+		HTML         = 4
+	)
+
+	// Possible states.
+	// SUPPRESS: The layout element should be disabled. It was given "SUPPRESS"
+	//         as the filename. Return with no additions to the HTML. So
+	//         if you normally use a navbar but don't want it on this pagek,
+	//         the front matter says Nav: "SUPPRESS"
+	// GLOBAL: No layout file specified, but a global theme is present.
+	//         This is the case where the home page has Theme: "foo" in the front matter.
+	//         The current page doesn't have a theme specified in its front Matter.
+	//         The global theme HTML is already in c.globalTheme.theme.header etc.
+	// LOCAL:  No global theme was specified, but a layout file was specified.
+	//         This is the case where there's a Theme: "foobar" on the current page
+	//         but the home page didn't contain a theme designation.
+	//         In case 2 the layout file needs to be read in from the (non-global)
+	//         theme specified on this page.
+	// HTML:  An HTML file. This should be included unchanged.
+	state := GLOBAL
+	filename := ""
+
+	// Converted/templated HTML */
+	s := ""
+	switch tag {
+	case "header":
+		if t.headerFilename != "" {
+			t.headerFilename = regularize(t.dir, t.headerFilename)
+			filename = t.headerFilename
+		}
+	case "nav":
+		if t.navFilename != "" {
+			t.navFilename = regularize(t.dir, t.navFilename)
+			filename = t.navFilename
+		}
+	case "aside":
+		if t.asideFilename != "" {
+			t.asideFilename = regularize(t.dir, t.asideFilename)
+			filename = t.asideFilename
+		}
+	case "footer":
+		if t.footerFilename != "" {
+			t.footerFilename = regularize(t.dir, t.footerFilename)
+			filename = t.footerFilename
+		}
+	}
+
+	// Handle case 1.
+	if filename == "SUPPRESS" || filename == "" {
+		return
+	}
+
+	// If HTML file return unchanged
+	if path.Ext(filename) == ".html" {
+		if fileExists(filename) {
+			s = c.fileToString(filename)
+			state = HTML
+		} else {
+			quit(1, nil, c, "HTML theme layout file %s not found", filename)
+		}
+	}
+	// xxxxx
+	if state != HTML {
+		s = convertMdYAMLFileToHTMLStr(filename, c)
+		if s != "" {
+			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
+		}
+	}
+
+	switch tag {
+	case "header":
+		t.header = s
+	case "nav":
+		t.nav = s
+	case "aside":
+		t.aside = s
+	case "footer":
+		t.footer = s
+	}
+
 }
 
 // setupGlobals() sets sitewide values such as
@@ -1682,7 +1592,6 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 
 		// Skip any directory to be excluded, such as
 		// the pub and .git directores
-		// xxxx
 		//wait("Checking %s to see if it's in %v", name, skipPublish.list)
 		if skipPublish.Found(name) && isDir {
 			return filepath.SkipDir
@@ -2151,3 +2060,45 @@ func portBusy(port string) bool {
 }
 
 // MINIFY
+
+// METADATA UTILITIES/FRONT MATTER UTILITIES
+
+// fmStrSlice obtains a list of string values from the supplied front matter.
+// For example, if you had this code in your Markdown file:
+// ---
+// Stylesheets
+//   - 'https://cdn.jsdelivr.net/npm/holiday.css'
+//   - 'fonts.css'
+//
+// ---
+func (c *config) fmStrSlice(key string, fm map[string]interface{}) []string {
+	if key == "" {
+		return []string{}
+	}
+	v, ok := fm[strings.ToLower(key)].([]interface{})
+	if !ok {
+		return []string{}
+	}
+	s := make([]string, len(v))
+	for i, value := range v {
+		r := fmt.Sprintf("%s", value)
+		s[i] = r
+	}
+	return s
+}
+
+// fmStr is passed a front matter "type" and retrievs
+// the value for the value passed in as key. Value
+// is case-insensitive. So if
+// c.globalFm has a theme named "pages/themes/foo"
+// you'd pass in "theme" and get back "pages/themes/foo"
+// TODO: Document this and reconcile with the less general
+// purpose frontMatterStr
+func fmStr(key string, fm map[string]interface{}) string {
+	v := fm[strings.ToLower(key)]
+	value, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
