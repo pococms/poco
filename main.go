@@ -93,49 +93,37 @@ func (c *config) assemble(filename string, article string) string {
 	if c.timestamp && c.currentFilename == c.homePage {
 		timestamp = "\n<p>" + theTime() + "</p>\n"
 	}
-	// If there are style tags in the current file,
-	// add and enclose in a <style> tag. Otherwise
-	// leave it empty.
-	if c.theme.styleTags != "" {
-		c.theme.styleTags = "\t" + tagSurround("style", c.theme.styleTags, "\n")
-	}
-
-	// True if there's any script injected into this file
-	//hasScript := false
-
 	// Get Javascript that goes after the body
 	scriptAfterStr := c.scriptAfter()
 	if scriptAfterStr != "" {
 		//hasScript = true
 		//debug(scriptAfterStr)
 	}
-	//wait("About to assemble" + c.currentFile())
 
 	//debug("style tags: %v+\nextraStyleTags %v",c.styleTags, extraStyleTags)
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
-		"<head>\n" +
-		"\t<meta charset=\"utf-8\">\n" +
-		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+		"<head>" +
+		"\n\t<meta charset=\"utf-8\">" +
+		"\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
 		c.titleTag() +
 		c.metatags() +
 		c.linktags() +
 		c.stylesheets() +
 		c.styleTags() +
-		"</head>\n<body>\n" +
+		"</head>\n<body>" +
 		// xxx
-		article +
-		"<div id=\"page-container\">\n" +
-		"<div id=\"content-wrap\">\n" +
+		"\n<div id=\"page-container\">" +
+		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.theme.header +
-		"\t" + c.theme.nav +
-		"\t" + c.theme.aside +
-		"<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
+		"\n\t" + c.theme.nav +
+		"\n\t" + c.theme.aside +
+		"\n<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + c.theme.footer +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
-    wait("htmlFile: %s", htmlFile)
+    //kwait("htmlFile: %s", htmlFile)
 	return htmlFile
 } //   assemble
 
@@ -219,11 +207,18 @@ func (c *config) themeEl(tag string) string {
 // You can optionally include text after, because sometimes it
 // makes sense to include a newline after the closing tag.
 func tagSurround(tag string, txt string, extra ...string) string {
+  add := ""
+  if len(extra) < 1 {
+    add = ""
+  } else {
+    add = extra[0]
+  }
+
 	// TODO: Bit of a kludge. Point is I'm getting a newline at the
 	// end of txt and that's what I should be focusing on.
 	// It was creating tags like <header>hello\n<header>
 	txt = strings.TrimSpace(txt)
-	return "<" + tag + ">" + txt + "</" + tag + ">" + extra[0]
+	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
 
 // sliceToStylesheetStr takes a slice of simple stylesheet names, such as
@@ -260,17 +255,25 @@ func sliceToStylesheetStr(sheets []string) string {
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 func (c *config) styleTags() string {
-	tagSlice := c.frontMatterStrSlice("style-tags")
-	if tagSlice == nil {
-		return ""
-	}
-	// Return value
-	tags := ""
-	for _, value := range tagSlice {
-		s := fmt.Sprintf("\t\t%s\n", value)
-		tags = tags + s
-	}
-	return tags
+ // xxxxx 
+ 	tags := ""
+  s := ""
+  if c.globalTheme.styleTagNames != nil {
+    for _, tag := range c.globalTheme.styleTagNames {
+      s = fmt.Sprintf("\t\t%s\n", tag)
+      tags = tags + s
+    } 
+  }
+  if c.theme.styleTagNames != nil {
+    for _, tag := range c.theme.styleTagNames {
+      debug("LOCAL TAG: %s", tag)
+      s = fmt.Sprintf("\t\t%s\n", tag)
+      tags = tags + s
+    } 
+  }
+  c.theme.styleTags = tags
+  c.theme.styleTags = tagSurround("style", c.theme.styleTags)
+  return "\t" + c.theme.styleTags
 }
 
 // stylesheets() generates stylesheet tags requested in the front matter.
@@ -287,7 +290,6 @@ func (c *config) stylesheets() string { // stylesheets()
 	c.theme.stylesheets = sliceToStylesheetStr(slice)
 	return c.globalTheme.stylesheets + c.theme.stylesheets
   */
-  wait("%s", c.globalTheme.stylesheets)
 	return c.globalTheme.stylesheets
 }
 
@@ -626,6 +628,7 @@ func (c *config) globalThemePresent() bool {
 // So at the end you know what the assets are but haven't done
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
+// See also: hydrateTheme() which gets called after this
 func (c *config) getTheme(themeDir string) theme { 
 	// Return value
 	var theme theme
@@ -671,21 +674,43 @@ func (c *config) getTheme(themeDir string) theme {
 	theme.author = fmStr("author", tmpConfig.fm)
 	theme.branding = fmStr("branding", tmpConfig.fm)
 	theme.description = fmStr("description", tmpConfig.fm)
-	theme.styleTagNames = c.fmStrSlice("styletags", tmpConfig.fm)
+	theme.styleTagNames = c.fmStrSlice("style-tags", tmpConfig.fm)
 	theme.stylesheetFilenames = c.fmStrSlice("stylesheets", tmpConfig.fm)
-	theme.styleTagNames = c.fmStrSlice("styleTagNames", tmpConfig.fm)
 	return theme
 } // getTheme()
+
+
+/*
+func (c *config) header() {
+}
+*/
 
 // hydrateTheme() reads layout elements, converts, executes
 // templates, and stores them into
 // strings. So theme.headerFilename myheader.md gets located and read into
 // theme.header, and so on.
 func (c *config) hydrateTheme(t *theme) {
-	c.layoutFiles("header", &c.globalTheme)
-	c.layoutFiles("nav", &c.globalTheme)
-	c.layoutFiles("aside", &c.globalTheme)
-	c.layoutFiles("footer", &c.globalTheme)
+  if c.globalThemePresent() { 
+    c.layoutFiles("header", &c.globalTheme)
+    c.layoutFiles("nav", &c.globalTheme)
+    c.layoutFiles("aside", &c.globalTheme)
+    c.layoutFiles("footer", &c.globalTheme)
+    
+    // Copy to local theme. They'll overridden if local theme is loaded.
+    c.theme.header = c.globalTheme.header
+    c.theme.nav = c.globalTheme.nav
+    c.theme.aside= c.globalTheme.aside
+    c.theme.footer = c.globalTheme.footer
+  }
+  
+  c.layoutFiles("header", &c.theme)
+  c.layoutFiles("nav", &c.theme)
+  c.layoutFiles("aside", &c.theme)
+  c.layoutFiles("footer", &c.theme)
+  
+
+  // Get list of stylesheets. Combine them into a single file string,
+  // and inject it all into a style tag.
 
 	slice := t.stylesheetFilenames
   for _, filename := range slice {
@@ -696,7 +721,7 @@ func (c *config) hydrateTheme(t *theme) {
     s := c.fileToString(stylePath)
     c.globalTheme.stylesheets = c.globalTheme.stylesheets + s
   }
-  c.globalTheme.stylesheets = "\t<style>" + c.globalTheme.stylesheets + "</style>"
+  c.globalTheme.stylesheets = "\t<style>" + c.globalTheme.stylesheets + "</style>\n\n"
  
 }
 
@@ -783,7 +808,7 @@ func (c *config) layoutFiles(tag string, t *theme) {
 	if state != HTML {
 		s = convertMdYAMLFileToHTMLStr(filename, c)
 		if s != "" {
-			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">\n"
+			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
 		}
 	}
 
