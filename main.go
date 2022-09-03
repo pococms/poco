@@ -823,7 +823,10 @@ func (c *config) getTheme(themeDir string) theme { // xxx
 	theme.author = fmStr("author", tmpConfig.fm)
 	theme.branding = fmStr("branding", tmpConfig.fm)
 	theme.description = fmStr("description", tmpConfig.fm)
-	theme.stylesheetFilenames = c.fmStrSlice("stylesheetFilenames", tmpConfig.fm)
+	theme.styleTagNames = c.fmStrSlice("styletags", tmpConfig.fm)
+	theme.stylesheetFilenames = c.fmStrSlice("stylesheets", tmpConfig.fm)
+  wait("theme.stylesheetFilenames: %+v theme.styleTagNames %+v", theme.stylesheetFilenames,theme.styleTagNames )
+
 	theme.styleTagNames = c.fmStrSlice("styleTagNames", tmpConfig.fm)
 	return theme
 } // getTheme()
@@ -842,13 +845,15 @@ func (c *config) hydrateTheme(t *theme) {
 // loadGlobalTheme() reads in the default theme, if one is requested.
 // It only works on the home page
 func (c *config) loadGlobalTheme() { // xxx
-  //debug("\tloadGlobalTheme. Home page is: %s", c.homePage)
+  // Load up front matter for the home page, which is distinguished.
 	c.globalFm = c.getFrontMatter(c.homePage)
 	c.globalTheme.dir = fmStr("theme", c.globalFm)
+  // Obtain the theme filenames, overriding style sheets, styletags
 	c.globalTheme = c.getTheme(c.globalTheme.dir)
+  // this is the global theme, so read all page elments into strings:
+  // The file named in FrontMatter: header is stored in theme.headerFilename,
+  // but its contents are then stored in theme.header.
   c.hydrateTheme(&c.globalTheme)
-	//wait("\t\tGlobal theme: %+v", c.globalTheme)
-	//c.loadPageTheme(c.globalTheme.dir, &c.globalTheme)
 }
 
 func (c *config) newlayoutFiles(tag string, t *theme) {
