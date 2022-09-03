@@ -2,7 +2,7 @@
 
 
 ## code fence
-A [code fences](highlighting.html) surrounds arbitrary text with lines
+A [code fence](highlighting.html) surrounds arbitrary text with lines
 consisting of 3 tickmarks: \`\`\` so that the text displays
 in a monospace font. It's good for distinguishing blocks
 of code in an article. Here's an example.
