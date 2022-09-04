@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+	<meta name="keywords" content="static site generator, jamstack, cms">
+</head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+  <article id="article-tag">
+  <header id="header-tag">I am Joe's Header</header>
+  <nav id="nav-tag">I am Joe's navbar</nav>
+
+  <h1>Open up the console</h1>
+  <fieldset id="fieldset">
+   <legend>Show/hide these elements</legend>
+
+    <input checked type="checkbox" id="header" />
+    <label for="header">Header</label>
+    <br />
+
+    <input checked type="checkbox" id="nav"/>
+    <label for="nav">Nav</label>
+    <br />
+
+
+    <input checked type="checkbox" id="article"/>
+    <label for="article">Article</label>
+    <br />
+
+
+    <input checked type="checkbox" id="aside"/>
+    <label for="aside">Aside</label>
+    <br />
+
+    <input checked type="checkbox" id="footer"/>
+    <label for="footer">Footer</label>
+    <br />
+
+  </fieldset>
+<button id="reset-button"
+        type="button"
+        onclick="reset()">
+   Reset 
+</button>
+
+	</article>
+  <aside id="aside-tag">
+    <h3>And in other news</h3>
+    <p>This is an aside</p>
+  </aside>
+</div><!-- content-wrap -->
+	</div><!-- page-container -->
+<script>
+// Event Listener:
+document.addEventListener('change', function(event) {
+    //console.log("event.target: " + event.target)
+    //console.log(event.target.id + " checked? " + event.target.checked)
+    //console.log(event.target.id + "-tag")
+    t = event.target
+    if (t.checked == true) {
+        console.log(t.id + " is checked")
+        document.getElementById(event.target.id + "-tag").style.display = "none";
+    } else {
+        document.getElementById(event.target.id + "-tag").style.display = "block";
+    }
+});
+
+// reset() makes all page elements visible
+function reset() {
+  document.getElementById("fieldset").style.display = "block";
+  document.getElementById("header-tag").style.display = "block";
+  document.getElementById("nav-tag").style.display = "block";
+  document.getElementById("article-tag").style.display = "block";
+  document.getElementById("aside-tag").style.display = "block";
+  document.getElementById("footer-tag").style.display = "block";
+
+  document.getElementsByTagName("fieldset")[0].style.display = "block" 
+  document.getElementsByTagName("fieldset")[0].checked = true
+  //el = document.getElementsByTagName("fieldset")[0].checked 
+  /* 
+  0console.log(el.id + " checked? " + el)
+ document.getElementsByTagName("fieldset")[0].checked = true
+ */
+
+}
+
+
+function loadCheckboxes() {
+  document.getElementsByTagName("fieldset")[0].addEventListener("change",function(e) {
+
+  tag = document.getElementById(e.target.id)
+  console.log(tag)
+  if(e.target.checked) {
+      // Checkbox is checked..
+      document.getElementById(tag.id + "-tag").style.display = "none";
+      // console.log (e.target.id + " checked");
+  } else {
+      // Checkbox is not checked..
+      document.getElementById(tag.id + "-tag").style.display = "block";
+      // console.log (e.target.id + " unchecked");
+  }
+  });
+
+
+}</script>
+<footer id="footer-tag">footer, brah<footer>
+
+</body>
+
+</html>
