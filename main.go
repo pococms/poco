@@ -231,12 +231,11 @@ func (c *config) styleTags() string {
 	return c.theme.styleTags
 }
 
-
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
 // Pre:
 func (c *config) stylesheets() string {
-  // TODO: Refactor
+	// TODO: Refactor
 	slice := c.theme.stylesheetFilenames
 	allFiles := ""
 	if len(slice) > 0 {
@@ -669,15 +668,11 @@ func (c *config) hydrateGlobalTheme(t *theme) {
 }
 
 func (t *theme) sheets() string {
-  return ""
+	return ""
 }
 
 func (c *config) loadPageTheme() { // xxx
 
-  // Home page loads only its theme
-	if c.currentFile() == c.homePage {
-		return
-	}
 	// Load up front matter for this page
 	c.fm = c.getFrontMatter(c.currentFile())
 
@@ -686,6 +681,15 @@ func (c *config) loadPageTheme() { // xxx
 
 	// Obtain the theme filenames, overriding style sheets, styletags
 	c.theme = c.getTheme(c.theme.dir)
+
+	// If this is the home page, a global theme was defined, and not
+	// theme was defined for this page, just assume the user wants
+	// to use the global theme
+	if c.currentFile() == c.homePage {
+		if !c.theme.present() && c.globalTheme.present() {
+			c.theme = c.getTheme(c.globalTheme.dir)
+		}
+	}
 
 	// Add page layout elements present.
 	c.layoutElement("header", &c.theme)
@@ -702,7 +706,7 @@ func (c *config) loadGlobalTheme() { // xxx
 	c.globalFm = c.getFrontMatter(c.homePage)
 
 	// Get the theme name, which is a directory.
-	c.globalTheme.dir = fmStr("theme", c.globalFm)
+	c.globalTheme.dir = fmStr("global-theme", c.globalFm)
 
 	// Obtain the theme filenames, overriding style sheets, styletags
 	c.globalTheme = c.getTheme(c.globalTheme.dir)
@@ -784,29 +788,29 @@ func (c *config) layoutElement(tag string, t *theme) {
 	s := ""
 	switch tag {
 	case "header":
-		if t.headerFilename != "" {
+		if t.headerFilename != "" && t.headerFilename != "SUPPRESS" {
 			t.headerFilename = regularize(t.dir, t.headerFilename)
 			filename = t.headerFilename
 		}
 	case "nav":
-		if t.navFilename != "" {
+		if t.navFilename != "" && t.navFilename != "SUPPRESS" {
 			t.navFilename = regularize(t.dir, t.navFilename)
 			filename = t.navFilename
 		}
 	case "aside":
-		if t.asideFilename != "" {
+		if t.asideFilename != "" && t.asideFilename != "SUPPRESS" {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
 		}
 	case "footer":
-		if t.footerFilename != "" {
+		if t.footerFilename != "" && t.footerFilename != "SUPPRESS" {
 			t.footerFilename = regularize(t.dir, t.footerFilename)
 			filename = t.footerFilename
 		}
 	}
 
 	// Handle case 1.
-	if filename == "SUPPRESS" || filename == "" {
+	if filename == "" {
 		return
 	}
 
@@ -881,14 +885,6 @@ func (c *config) setupGlobals() { //
 
 	// Display name of file being processed
 	c.verbose(c.currentFile())
-
-	//HTML, _ := buildFileToTemplatedString(c, c.currentFile())
-	//target := regularize(c.webroot, c.currentFile())
-  //debug("c.webroot: %s. currentFile(): %s target: %s", c.webroot, c.currentFile(), target)
-	//target = replaceExtension(target, "html")
-	//debug("Writing home page to %s", target)
-	//writeStringToFile(c, target, HTML)
-	c.skipPublish.AddStr(c.homePage)
 
 	// xxxxx
 } // setupGlobals
