@@ -12,6 +12,7 @@ stylesheets:
 #  - ../informer/dark.css
 style-tags:
   - "article > p{color:green}"
+  - "h1{color:blue;}"
 ---
 
 PocoDocs is a cheerful, colorful theme for reference documentation.

@@ -231,11 +231,12 @@ func (c *config) styleTags() string {
 	return c.theme.styleTags
 }
 
+
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
 // Pre:
-func (c *config) stylesheets() string { // stylesheets()
-	// xxxxx
+func (c *config) stylesheets() string {
+  // TODO: Refactor
 	slice := c.theme.stylesheetFilenames
 	allFiles := ""
 	if len(slice) > 0 {
@@ -648,10 +649,10 @@ func (c *config) hydrateGlobalTheme(t *theme) {
 	if !t.present() {
 		return
 	}
-	c.layoutFiles("header", &c.globalTheme)
-	c.layoutFiles("nav", &c.globalTheme)
-	c.layoutFiles("aside", &c.globalTheme)
-	c.layoutFiles("footer", &c.globalTheme)
+	c.layoutElement("header", &c.globalTheme)
+	c.layoutElement("nav", &c.globalTheme)
+	c.layoutElement("aside", &c.globalTheme)
+	c.layoutElement("footer", &c.globalTheme)
 
 	// Get list of stylesheets. Combine them into a single file string,
 	// and inject it all into a style tag.
@@ -665,9 +666,15 @@ func (c *config) hydrateGlobalTheme(t *theme) {
 		t.stylesheets = t.stylesheets + s
 	}
 	t.stylesheets = "\t<style>" + t.stylesheets + "</style>\n\n"
-} // xxxxx
+}
+
+func (t *theme) sheets() string {
+  return ""
+}
 
 func (c *config) loadPageTheme() { // xxx
+
+  // Home page loads only its theme
 	if c.currentFile() == c.homePage {
 		return
 	}
@@ -681,10 +688,10 @@ func (c *config) loadPageTheme() { // xxx
 	c.theme = c.getTheme(c.theme.dir)
 
 	// Add page layout elements present.
-	c.layoutFiles("header", &c.theme)
-	c.layoutFiles("nav", &c.theme)
-	c.layoutFiles("aside", &c.theme)
-	c.layoutFiles("footer", &c.theme)
+	c.layoutElement("header", &c.theme)
+	c.layoutElement("nav", &c.theme)
+	c.layoutElement("aside", &c.theme)
+	c.layoutElement("footer", &c.theme)
 
 }
 
@@ -706,7 +713,7 @@ func (c *config) loadGlobalTheme() { // xxx
 	c.hydrateGlobalTheme(&c.globalTheme)
 }
 
-// layoutFiles() takes a layout element file named in the front matter
+// layoutElement() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
 // A layout element is one of the HTML tags such
 // as header, nav, aside, article, and a few others
@@ -754,7 +761,7 @@ func (c *config) loadGlobalTheme() { // xxx
 // This function would read in the head.html file (or whatever
 // the file was named in the front matter) and insert it before the
 // body of the document.
-func (c *config) layoutFiles(tag string, t *theme) {
+func (c *config) layoutElement(tag string, t *theme) {
 	// Possible states.
 	// GLOBAL: No layout file specified, but a global theme is present.
 	//         This is the case where the home page has Theme: "foo" in the front matter.
@@ -872,20 +879,16 @@ func (c *config) setupGlobals() { //
 	// Get theme used as default for all pages (if requested)
 	c.loadGlobalTheme()
 
-	// Load up the front matter for this page
-	// and set preferencs for that page
-	//c.pagePrefs(c.currentFile())
-
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
-	HTML, _ := buildFileToTemplatedString(c, c.currentFile())
-	//debug("HTML: %s. new filename: %s", HTML, fname)
-	target := regularize(c.webroot, c.currentFile())
-	target = replaceExtension(target, "html")
-	debug("Writing home page to %s", target)
-	writeStringToFile(c, target, HTML)
-	c.skipPublish.AddStr(c.currentFile())
+	//HTML, _ := buildFileToTemplatedString(c, c.currentFile())
+	//target := regularize(c.webroot, c.currentFile())
+  //debug("c.webroot: %s. currentFile(): %s target: %s", c.webroot, c.currentFile(), target)
+	//target = replaceExtension(target, "html")
+	//debug("Writing home page to %s", target)
+	//writeStringToFile(c, target, HTML)
+	c.skipPublish.AddStr(c.homePage)
 
 	// xxxxx
 } // setupGlobals
@@ -1722,7 +1725,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
-	print("Theme: %s", c.theme.dir)
+	print("Global Theme: %s", c.globalTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
 	print("skip-publish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)

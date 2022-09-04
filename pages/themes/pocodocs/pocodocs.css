@@ -8,6 +8,5 @@ article>p>code,article>p>pre,article>p>kbd{font-size:smaller;overflow:auto;paddi
 article{width:50rem;padding:auto 4rem auto 4rem;}
 article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;}
 article>h2{padding-top:2.5rem;}
-article>p{font-familiy:serif; !important}
 pre{border:1px solid gray;padding:1rem;/* background-color:ghostwhite;*/ margin:1rem 0 1rem 0 !important} /* block, not inline */
 

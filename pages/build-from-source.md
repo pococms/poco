@@ -1,5 +1,5 @@
 ---
-theme: "pages/themes/informer"
+theme: "pages/themes/probot"
 ---
 
 # Building PocoCMS from source

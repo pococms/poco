@@ -1,9 +1,8 @@
 ---
-title:  PocoCMS
+title: "PocoCMS: start here"
 description: PocoCMS builds documentation websites fast, with zero learning or configuration required
 keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
 theme: "pages/themes/pocodocs"
-title: "YO MAM"
 stylesheets:
 - ../informer/dark.css
 #theme: "pages/themes/informer"
@@ -16,8 +15,8 @@ skip-publish:
 - ".gitignore"
 - "beat me"
 - "foo.xls"
-#style-tags:
-#- "article>p{color:green;}"
+style-tags:
+- "article>p{color:green;}"
 #stylesheets:
 #- "foundinREADME.md"
 #theme: "pages/themes/informer"

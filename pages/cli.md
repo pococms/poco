@@ -1,3 +1,7 @@
+---
+theme: pages/themes/probot
+aside: "SUPPRESS"
+---
 # PocoCMS command-line options
 
 {{- /* TODO: screenshots of both kinds of output for timestamp */ -}}
