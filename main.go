@@ -239,12 +239,14 @@ func (c *config) stylesheets() string {
 	slice := c.theme.stylesheetFilenames
 	allFiles := ""
 	if len(slice) > 0 {
+    // Collect all the stylesheets mentioned.
+    // Concatenate them into a big-ass string.
 		for _, filename := range slice {
+      // Get full pathname or URL of file.
 			fullPath := regularize(c.theme.dir, filename)
-			if !fileExists(fullPath) {
-				quit(1, nil, c, "%s: Unable to find stylesheet at %s", c.currentFile(), fullPath)
-			}
-			s := c.fileToString(fullPath)
+      // If the file is local, read it in.
+      // If it's at a URL, download it.
+			s := c.getWebOrLocalFileStr(fullPath)
 			allFiles = allFiles + s + "\n"
 		}
 		allFiles = tagSurround("style", allFiles)
@@ -655,16 +657,21 @@ func (c *config) hydrateGlobalTheme(t *theme) {
 
 	// Get list of stylesheets. Combine them into a single file string,
 	// and inject it all into a style tag.
+
 	slice := t.stylesheetFilenames
-	for _, filename := range slice {
-		stylePath := regularize(t.dir, filename)
-		if !fileExists(stylePath) {
-			quit(1, nil, c, "Unable to find stylesheet %s", stylePath)
+	if len(slice) > 0 {
+    // Collect all the stylesheets mentioned.
+    // Concatenate them into a big-ass string.
+		for _, filename := range slice {
+      // Get full pathname or URL of file.
+			fullPath := regularize(t.dir, filename)
+      // If the file is local, read it in.
+      // If it's at a URL, download it.
+			s := c.getWebOrLocalFileStr(fullPath)
+			t.stylesheets = t.stylesheets + s + "\n"
 		}
-		s := c.fileToString(stylePath)
-		t.stylesheets = t.stylesheets + s
+		t.stylesheets = tagSurround("style", t.stylesheets)
 	}
-	t.stylesheets = "\t<style>" + t.stylesheets + "</style>\n\n"
 }
 
 func (t *theme) sheets() string {
