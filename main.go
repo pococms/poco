@@ -115,7 +115,7 @@ func (c *config) assemble(filename string, article string) string {
 		// xxx
 		"\n<div id=\"page-container\">" +
 		"\n<div id=\"content-wrap\">\n" +
-		"\t" + c.theme.header +
+		"\t" + c.header() +
 		"\n\t" + c.theme.nav +
 		"\n\t" + c.theme.aside +
 		"\n<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
@@ -123,7 +123,6 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.theme.footer +
 		"</div><!-- page-container -->\n" +
 		"</body>\n</html>\n"
-    //kwait("htmlFile: %s", htmlFile)
 	return htmlFile
 } //   assemble
 
@@ -207,12 +206,12 @@ func (c *config) themeEl(tag string) string {
 // You can optionally include text after, because sometimes it
 // makes sense to include a newline after the closing tag.
 func tagSurround(tag string, txt string, extra ...string) string {
-  add := ""
-  if len(extra) < 1 {
-    add = ""
-  } else {
-    add = extra[0]
-  }
+	add := ""
+	if len(extra) < 1 {
+		add = ""
+	} else {
+		add = extra[0]
+	}
 
 	// TODO: Bit of a kludge. Point is I'm getting a newline at the
 	// end of txt and that's what I should be focusing on.
@@ -255,41 +254,44 @@ func sliceToStylesheetStr(sheets []string) string {
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 func (c *config) styleTags() string {
- // xxxxx 
- 	tags := ""
-  s := ""
-  if c.globalTheme.styleTagNames != nil {
-    for _, tag := range c.globalTheme.styleTagNames {
-      s = fmt.Sprintf("\t\t%s\n", tag)
-      tags = tags + s
-    } 
-  }
-  if c.theme.styleTagNames != nil {
-    for _, tag := range c.theme.styleTagNames {
-      debug("LOCAL TAG: %s", tag)
-      s = fmt.Sprintf("\t\t%s\n", tag)
-      tags = tags + s
-    } 
-  }
-  c.theme.styleTags = tags
-  c.theme.styleTags = tagSurround("style", c.theme.styleTags)
-  return "\t" + c.theme.styleTags
+	// xxxxx
+	s := ""
+	c.globalTheme.styleTags = ""
+	c.theme.styleTags = ""
+	// TODO: Refactor this + next one
+	if c.globalTheme.styleTagNames != nil {
+		for _, tag := range c.globalTheme.styleTagNames {
+			debug("GLOBAL TAG: %s", tag)
+			s = fmt.Sprintf("\t\t%s\n", tag)
+			c.globalTheme.styleTags = c.globalTheme.styleTags + s
+		}
+	}
+	if c.theme.styleTagNames != nil {
+		for _, tag := range c.theme.styleTagNames {
+			debug("LOCAL TAG: %s", tag)
+			s = fmt.Sprintf("\t\t%s\n", tag)
+			c.theme.styleTags = c.theme.styleTags + s
+		}
+	}
+	c.theme.styleTags = tagSurround("style", c.theme.styleTags+c.globalTheme.styleTags, "\n")
+	debug("%s: %s", c.currentFile(), c.theme.styleTags)
+	return "\t" + c.theme.styleTags
 }
 
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
 // Pre:
 func (c *config) stylesheets() string { // stylesheets()
-  debug("stylesheets() doesn't hanle local stylesheets, only global")
-  // xxxxx
+	debug("stylesheets() doesn't hanle local stylesheets, only global")
+	// xxxxx
 
 	//c.globalTheme.stylesheets = sliceToStylesheetStr(slice)
 
-  /*
-  slice := c.theme.stylesheetFilenames
-	c.theme.stylesheets = sliceToStylesheetStr(slice)
-	return c.globalTheme.stylesheets + c.theme.stylesheets
-  */
+	/*
+	  slice := c.theme.stylesheetFilenames
+		c.theme.stylesheets = sliceToStylesheetStr(slice)
+		return c.globalTheme.stylesheets + c.theme.stylesheets
+	*/
 	return c.globalTheme.stylesheets
 }
 
@@ -612,11 +614,10 @@ func regularize(dir string, filename string) string {
 	return ""
 }
 
-// globalThemePresent() returns true if a global theme
-// is available.
+// present() returns true if the theme has been loaded
 // Pre: loadGlobalTheme()
-func (c *config) globalThemePresent() bool {
-	if c.globalTheme.dir == "" {
+func (t *theme) present() bool {
+	if t.dir == "" {
 		return false
 	}
 	return true
@@ -628,8 +629,8 @@ func (c *config) globalThemePresent() bool {
 // So at the end you know what the assets are but haven't done
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
-// See also: hydrateTheme() which gets called after this
-func (c *config) getTheme(themeDir string) theme { 
+// See also: hydrateGlobalTheme() which gets called after this
+func (c *config) getTheme(themeDir string) theme {
 	// Return value
 	var theme theme
 	// The theme is actually just a directory name.
@@ -680,78 +681,84 @@ func (c *config) getTheme(themeDir string) theme {
 } // getTheme()
 
 
-/*
-func (c *config) header() {
+// If there's a local header, return it.
+// If not and there's a global header, return it.
+func (c *config) header() string {
+  debug("**** header()")
+  if c.theme.present() {
+    debug("\t*******header: returning LOCAL header %s", c.theme.header)
+    return c.theme.header
+  } 
+  if c.globalTheme.present() {
+    debug("\t*******header: returning GLBOAL header %s", c.globalTheme.header)
+    return c.globalTheme.header
+  }
+  return ""
 }
-*/
 
-// hydrateTheme() reads layout elements, converts, executes
+// hydrateGlobalTheme() reads layout elements, converts, executes
 // templates, and stores them into
 // strings. So theme.headerFilename myheader.md gets located and read into
 // theme.header, and so on.
-func (c *config) hydrateTheme(t *theme) {
-  if c.globalThemePresent() { 
-    c.layoutFiles("header", &c.globalTheme)
-    c.layoutFiles("nav", &c.globalTheme)
-    c.layoutFiles("aside", &c.globalTheme)
-    c.layoutFiles("footer", &c.globalTheme)
-    
-    // Copy to local theme. They'll overridden if local theme is loaded.
-    c.theme.header = c.globalTheme.header
-    c.theme.nav = c.globalTheme.nav
-    c.theme.aside= c.globalTheme.aside
-    c.theme.footer = c.globalTheme.footer
-  }
-  
-  c.layoutFiles("header", &c.theme)
-  c.layoutFiles("nav", &c.theme)
-  c.layoutFiles("aside", &c.theme)
-  c.layoutFiles("footer", &c.theme)
-  
+func (c *config) hydrateGlobalTheme(t *theme) {
+	if !t.present() {
+		return
+	}
+	c.layoutFiles("header", &c.globalTheme)
+	c.layoutFiles("nav", &c.globalTheme)
+	c.layoutFiles("aside", &c.globalTheme)
+	c.layoutFiles("footer", &c.globalTheme)
+  //wait("**** hydrateGlobalTheme(): after layoutFiles c.globalTheme is %v", c.globalTheme)
 
-  // Get list of stylesheets. Combine them into a single file string,
-  // and inject it all into a style tag.
-
+	// Get list of stylesheets. Combine them into a single file string,
+	// and inject it all into a style tag.
 	slice := t.stylesheetFilenames
-  for _, filename := range slice {
-    stylePath := regularize(t.dir, filename)
-    if !fileExists(stylePath) {
-      quit(1, nil, c, "Unable to find stylesheet %s", stylePath)
-    }
-    s := c.fileToString(stylePath)
-    c.globalTheme.stylesheets = c.globalTheme.stylesheets + s
-  }
-  c.globalTheme.stylesheets = "\t<style>" + c.globalTheme.stylesheets + "</style>\n\n"
- 
+	for _, filename := range slice {
+		stylePath := regularize(t.dir, filename)
+		if !fileExists(stylePath) {
+			quit(1, nil, c, "Unable to find stylesheet %s", stylePath)
+		}
+		s := c.fileToString(stylePath)
+		t.stylesheets = t.stylesheets + s
+	}
+	t.stylesheets = "\t<style>" + t.stylesheets + "</style>\n\n"
+} // xxxxx
+
+func (c *config) loadPageTheme() { // xxx
+	// Load up front matter for the home page, which is distinguished.
+	c.fm = c.getFrontMatter(c.currentFile())
+
+	// Get the theme name, which is a directory.
+	c.theme.dir = fmStr("theme", c.fm)
+
+	// Obtain the theme filenames, overriding style sheets, styletags
+	c.theme = c.getTheme(c.theme.dir)
+
+	// The file named in FrontMatter: header is stored in theme.headerFilename,
+	// but its contents are then stored in theme.header.
+	c.hydrateGlobalTheme(&c.theme)
 }
 
 // loadGlobalTheme() reads in the default theme, if one is requested.
 // It only works on the home page
 func (c *config) loadGlobalTheme() { // xxx
-  // Load up front matter for the home page, which is distinguished.
+	// Load up front matter for the home page, which is distinguished.
 	c.globalFm = c.getFrontMatter(c.homePage)
+
+	// Get the theme name, which is a directory.
 	c.globalTheme.dir = fmStr("theme", c.globalFm)
-  // Obtain the theme filenames, overriding style sheets, styletags
+
+	// Obtain the theme filenames, overriding style sheets, styletags
 	c.globalTheme = c.getTheme(c.globalTheme.dir)
-  // this is the global theme, so read all page elments into strings:
-  // The file named in FrontMatter: header is stored in theme.headerFilename,
-  // but its contents are then stored in theme.header.
-  c.hydrateTheme(&c.globalTheme)
+
+	// this is the global theme, so read all page elments into strings:
+	// The file named in FrontMatter: header is stored in theme.headerFilename,
+	// but its contents are then stored in theme.header.
+	c.hydrateGlobalTheme(&c.globalTheme)
 }
 
 func (c *config) layoutFiles(tag string, t *theme) {
-	const (
-//		SUPPRESS int = 1
-		GLOBAL       = 2
-//		LOCAL        = 3
-		HTML         = 4
-	)
-
 	// Possible states.
-	// SUPPRESS: The layout element should be disabled. It was given "SUPPRESS"
-	//         as the filename. Return with no additions to the HTML. So
-	//         if you normally use a navbar but don't want it on this pagek,
-	//         the front matter says Nav: "SUPPRESS"
 	// GLOBAL: No layout file specified, but a global theme is present.
 	//         This is the case where the home page has Theme: "foo" in the front matter.
 	//         The current page doesn't have a theme specified in its front Matter.
@@ -761,7 +768,11 @@ func (c *config) layoutFiles(tag string, t *theme) {
 	//         but the home page didn't contain a theme designation.
 	//         In case 2 the layout file needs to be read in from the (non-global)
 	//         theme specified on this page.
-	// HTML:  An HTML file. This should be included unchanged.
+	const (
+		GLOBAL = 1
+		HTML   = 2
+	)
+
 	state := GLOBAL
 	filename := ""
 
@@ -871,7 +882,7 @@ func (c *config) setupGlobals() { //
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
-} // setGlobals
+} // setupGlobals
 
 // newConfig allocates a config object.
 // sitewide configuration info.
@@ -1028,6 +1039,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	if filename == "" || !fileExists(filename) {
 		return "", ""
 	}
+	c.loadPageTheme()
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
@@ -1041,6 +1053,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
 		finishedDocument := c.assemble(c.currentFile(), rawHTML)
 		// Return the finishled document and its filename
+    wait(finishedDocument)
 		return finishedDocument, dest
 	}
 }
@@ -1091,10 +1104,10 @@ func (c *config) buildSite() {
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
 	for _, filename := range c.files {
-		debug("\tFILE %s", filename)
 		// Full pathmame of file to be copied (may be converted to HTML first)
 		source := filepath.Join(c.root, filename)
 
+		c.currentFilename = source
 		// Full pathname of location of copied file in webroot
 		target := filepath.Join(c.webroot, filename)
 
