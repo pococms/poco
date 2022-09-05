@@ -1,15 +1,15 @@
 
 # CSS tips
 
-# TODO: write Downloadable Fonts section, StyleTags section
+# TODO: Downloadable Fonts, StyleTags 
 
 In case you're new to CSS, here's some handy code
 you can drop right into your own themes.
 
 ## Contents
-[Centering old-school](#centering)
+[Centering old-school](#centering)  
 [Font stacks](#font-stacks)  
-[Downloadable fonts](#downloadble-fonts)
+[Downloadable fonts](#downloadble-fonts)  
 
 ## Centering
 
@@ -32,7 +32,7 @@ Over the years browser and operating system have accreted their own
 make better fonts available to a wide audience.
 
 Since there's no way to know exactly what fonts are on your system, you 
-can specifiy a `font-family` that specifies the order in which you want
+can specify a `font-family` that specifies the order in which you want
 these fonts to be used if they're available. The great thing about `font-family`
 is that you're always guaranteed some kind of useful minimum.
 
@@ -57,11 +57,11 @@ Standard CSS for a sans-serif font stack:
 article{font-family:"system-ui","-apple-system","LucidaGrandeUI","HelveticaNeueDeskInterface-Regular","HelveticaNeueDeskInterface-Light","DroidSans","Ubuntu Light","Arial","Roboto-Light","Segoe UI Light","Tahoma","sans-serif";}
 ```
 
-As a [StyleTag](styletag.html):
+As a [style tag](style-tags.html):
  
       ---
-      StyleTags:
-        - article{font-family:'system-ui','-apple-system','LucidaGrandeUI','HelveticaNeueDeskInterface-Regular','HelveticaNeueDeskInterface-Light','DroidSans','Ubuntu Light','Arial','Roboto-Light','Segoe UI Light','Tahoma','sans-serif';}
+      style-tags:
+        - "article{font-family:'system-ui','-apple-system','LucidaGrandeUI','HelveticaNeueDeskInterface-Regular','HelveticaNeueDeskInterface-Light','DroidSans','Ubuntu Light','Arial','Roboto-Light','Segoe UI Light','Tahoma','sans-serif';}"
       ---
 
 ### Font stack for a more elegant `serif`
@@ -80,10 +80,11 @@ Standard CSS for Palatino-style font stack:
 article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}
 ```
 
-As a [StyleTag](styletag.html):
+As a [style-tag](style-tags.html):
 
       ---
-        - article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}
+      style-tags:
+       - "article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}"
       ---
  
 ### Font stack for `monospace`
@@ -102,10 +103,11 @@ Standard CSS for monospace font stack:
 article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}
 ```
 
-As a [StyleTag](styletag.html):
+As a [style tag](style-tags.html):
 
       ---
-        - article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}
+      style-tags:
+        - "article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}"
       ---
  
 ## Downloadable Fonts 

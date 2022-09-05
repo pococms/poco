@@ -18,6 +18,7 @@ front matter options PocoCMS provides.
 
 [author](#author)  
 [description](#description)  
+[global-theme](#global-theme)
 [keywords](#keywords)  
 [key/value pairs](#keyvalue-pairs)  
 [lang](#lang)
@@ -25,6 +26,7 @@ front matter options PocoCMS provides.
 [skip-publish](#skippublish)  
 [stylesheets](#stylesheets)  
 [style-tags](#styletags)  
+[theme](#theme)
 [title](#title)  
 
 Return to [top](#front-matter)
@@ -214,62 +216,18 @@ Causes this metatag to be generated:
 <meta name="description" content="PocoCMS is the easiest static site generator available">
 ```
 
+## global-theme 
 
-## keywords
+Defines a [theme](glossary.html#theme) to be used as 
+the default for all pages in the site. 
+It is optional.  The global theme can be overridden 
+on a per-page basis using [theme](#theme).
 
-Causes a `keywords` metatag to be inserted into the file.
-
-### Example
-
-Using these `Keywords` in the front matter:
-```yaml
----
-keywords: "static site generator, jamstack, cms"
----
-```
-
-Causes this metatag to be generated:
-
-```html
-<meta name="keywords" content="static site generator, jamstack, cms">
-```
-
-
-## key/value pairs 
-
-* The front matter contents always start with a key name,
-such as `Title` immediately followed by a colon.
-* The value associated with it must follow. It's best to use
-quotes around the value because stylesheets use characters
-that confuse the YAML processing.
-* In the YAML below, `Title` is the key, and `Welcome to PocoCMS`
-is the value:
-
-```yaml
----
-title: "Welcome to PocoCMS"
----
-```
-
-* One enormously powerful feature of YAML is that while every key 
-must have exactly one value, that value can consist of more than one item,
-a compound structure like a database record, or even an entire database
-consisting of multiple records.
-
-In the YAML below, `Stylesheets` is the key. The mutliple
-itmes below it are considered a YAML [list](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html#yaml-basics). The list
-has one name (`Stylesheets`) but the value  has multiple items in it.
-The value in this case is the list consisting of `["poquito.css", "pococms.css"]`.
-
-```yaml
----
-stylesheets: 
-- poquito.css
-- pococms.css
----
-```
-
-This page details all front matter options.
+    ```
+    ---
+    global-theme: /Users/blake/pocothemes/informer
+    ---
+    ```
 
 ## lang
 

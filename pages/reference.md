@@ -1,10 +1,13 @@
 # Poco CMS Reference
 
+[Technical overview](technical-overview.html)  
+[Using themes](themes-using.html)  
+[Creating themes](themes-creating.html)  
 [PocoCMS command line options](cli.html)  
 [PocoCMS glossary](glossary.html)  
 [Code highlighting](highlighting.html)  
 [Front matter](front-matter.html)  
-[Technical overview](technical-overview.html)  
+[CSS tips](css-tips.html)
 
 
 ## HTML references

@@ -50,17 +50,28 @@ separate `<style>` tags in the finished HTML document.
 
 See [Front matter](front-matter.html) for more details.
 
+## global theme
+
+A global [theme](#theme) creates 
+default styling for every page
+in your site. 
+
+See also [page theme](#page-theme)
+
+
 ## home page
+
 The home page is a file named either `index.md` or `README.md`
 in the root directory of your project. It has some special
 qualities, for example, it's the only file you can use to 
-set a theme for the site overall.
+`global-theme` to set a theme for the site overall.
 
 *README.md vs index.md*
 
-If you have two home page files, one named `README.md` and
-another named `index.md`, the one named `README.md` takes
-priority. It is renamed `index.html` in the [webroot](#webroot)
+If you have two home page files in the root directory, 
+one named `README.md` and another named `index.md`, 
+the one named `README.md` takes priority. 
+It is renamed `index.html` in the [webroot](#webroot)
 directory when your site is generated.
 
 *Why index.html is important*
@@ -73,12 +84,63 @@ The reason `README.md` takes priority over `index.md` is that's how many
 previous site generators roll, such as the one on GitHub.
 
 ## Layout element
-The structure of a  
-[complete HTML document](https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#HTML_layout_elements_in_more_detail) 
-is based on these tags: `<header>`, `<nav>`, `<aside>`, `<article>`, and `<footer>`. They are also known as *layout elements*.
-PocoCMS takes their corresponding tags from the
-[front matter](#front-matter)
-and uses those rules to generate the contents of each tag.
+
+A finished PocoCMS web page includes the following
+layout elements: [header](#header), [nav](#nav),
+[article](#article), [aside](#aside), and [footer](#footer). 
+Each layout element directly corresponds
+to an HTML tag. Most of them can be disabled on a per-page
+basis, overriding the theme definition.
+
+### header
+
+The `<header>` element, normally referred to simply as the *header*,
+appears at the top of the page. It is likely to look similar on
+most pages of your site. It usually makes your site easily
+identifiable, normally has a clickable logo that brings
+users back to the home page, and may have some common navigation
+elements.
+
+### nav
+
+The `<nav>` element, normally called the *nav* or *navbar*, 
+is sandwiched between the header and the article. It should
+look similar on most pages of your site. It usually has
+some common navigation elements.
+
+### article
+* The `<article>` element contains the text of your 
+Markdown page after conversion to HTML. It appears under the navbar. It is normally unique on each page of your site. Search engines
+don't like to see articles or [title tags](front-matter#title)
+repeated.
+
+### aside 
+* The `<aside>` element acts as a sidebar. It normally appears to the
+left or right of the article. HTML recognizes only one aside
+per page.
+
+### footer
+
+* The `<footer>` appears at the bottom of the page right after
+the article. It should look similar on most pages of your site.
+It usually has identifying information for the company and
+some common navigation elements such as links to contact,
+terms and conditions, privacy policy, and sitemap.
+
+Layout elements appear on the page only if the theme has defined
+theme. Most of them can be omitted one page at a time
+by using "SUPPRESS" as their value in the front matter
+
+For example, to prevent a sidebar from appearing on the
+current page, you'd add this to the [front matter](#front-matter).
+
+     ---
+     Aside: "SUPPRESS"
+     ---
+
+For more on layout elements, read about the structure of a  
+[complete HTML document](https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#HTML_layout_elements_in_more_detail) on MDN.
+
 
 ## Markdown
 Markdown is a sensible way to represent text files so that they read easily as plain text if printed out as is, but which also carry enough semantic meaning that they can be converted into HTML. Markdown is technically known as a *markup langauge*, which means that it contains both text, e.g. hello, world, and easily distinguishable annotations about how the text is used, e.g. marking up *hello* to emphasize the word in italics--its markup. The name markdown is a play on the term markup. The name markdown is a play on the term markup. 
@@ -108,8 +170,16 @@ The term *markup* generally refers to the [Markdown](#markdown) text formatting
 conventions used to generate your web pages. In these help pages it is synonomous with 
 Markdown, markup, and [CommonMark](#commonmark).
 
-Technically speaking HTML is also a markup language(https://en.wikipedia.org/wiki/Markup_language) but in the context of static site generators
+Technically speaking HTML is also a [markup language](https://en.wikipedia.org/wiki/Markup_language) but in the context of static site generators
 such as PocoCMS the term normally refers to Markdown.
+
+
+## page theme
+
+A page [theme](#theme) controls the appearance of a single page. 
+It overrides the [global theme](#global-theme), if any
+
+
 
 ## project
 A PocoCMS *project* is a directory tree with th
@@ -131,9 +201,11 @@ is the default location web servers look when users navigate to a
 website
 
 ## theme
-A  PocoCMS site can have an optional theme, which is a collection of stylesheets and Markdown files structured in a particular way. A theme has its own folder, which is used as the name of the theme. The theme can specify stylesheets
+
+A PocoCMS theme is a collection of stylesheets and Markdown files 
+contained in a directory (folder). The directory is used as the name of the theme. The theme can specify styles
 to include on every page of the site. The theme can also specify 
-a header, nav bar, footer, or aside to include on each page.
+[layout elements](#layout-elements): a [header](#header), [nav bar](#nav), [footer](#footer), or [aside](#aside) to include on each page.
 
 ## web root
 Synonymous with [webroot](#web-root).
