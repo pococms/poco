@@ -3,10 +3,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
-	embed "github.com/13rac1/goldmark-embed"
+	//"github.com/13rac1/goldmark-embed"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -16,6 +17,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -27,6 +29,14 @@ import (
 	"text/template"
 	"time"
 )
+
+//go:embed .poco
+var pocofiles embed.FS
+
+/*
+//go:embed .mb
+var mbfiles embed.FS
+*/
 
 // If javascript files are included, need this to avoid
 // starting before doc has loaded.
@@ -239,13 +249,13 @@ func (c *config) stylesheets() string {
 	slice := c.theme.stylesheetFilenames
 	allFiles := ""
 	if len(slice) > 0 {
-    // Collect all the stylesheets mentioned.
-    // Concatenate them into a big-ass string.
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
-      // Get full pathname or URL of file.
+			// Get full pathname or URL of file.
 			fullPath := regularize(c.theme.dir, filename)
-      // If the file is local, read it in.
-      // If it's at a URL, download it.
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
 			s := c.getWebOrLocalFileStr(fullPath)
 			allFiles = allFiles + s + "\n"
 		}
@@ -660,13 +670,13 @@ func (c *config) hydrateGlobalTheme(t *theme) {
 
 	slice := t.stylesheetFilenames
 	if len(slice) > 0 {
-    // Collect all the stylesheets mentioned.
-    // Concatenate them into a big-ass string.
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
-      // Get full pathname or URL of file.
+			// Get full pathname or URL of file.
 			fullPath := regularize(t.dir, filename)
-      // If the file is local, read it in.
-      // If it's at a URL, download it.
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
 			s := c.getWebOrLocalFileStr(fullPath)
 			t.stylesheets = t.stylesheets + s + "\n"
 		}
@@ -893,7 +903,6 @@ func (c *config) setupGlobals() { //
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
-	// xxxxx
 } // setupGlobals
 
 // newConfig allocates a config object.
@@ -1113,6 +1122,12 @@ func (c *config) buildSite() {
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
 	// no processing.
+	// # of Markdown files processed
+	mdCopied := 0
+
+	// # of non-Markdown copied
+	assetsCopied := 0
+
 	for _, filename := range c.files {
 		// Full pathmame of file to be copied (may be converted to HTML first)
 		source := filepath.Join(c.root, filename)
@@ -1139,12 +1154,21 @@ func (c *config) buildSite() {
 			// It's a markdown file. Convert to HTML,
 			// then rename with HTML extensions.
 			HTML, _ := buildFileToTemplatedString(c, filename)
+			/*
+				s := fmStr("passthrough", c.fm)
+				if s == "true" {
+					debug("Passthrough for %s: %s", filename, s)
+				}
+			*/
+
 			target = filepath.Join(c.webroot, filename)
 			target = replaceExtension(target, "html")
 			writeStringToFile(c, target, HTML)
+			mdCopied++
 		} else {
 			// It's an asset. Just pass through.
 			copyFile(c, source, target)
+			assetsCopied++
 		}
 
 		c.copied += 1
@@ -1153,8 +1177,19 @@ func (c *config) buildSite() {
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-	c.verbose("%v file(s) copied", c.copied)
+  c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", mdCopied), fileCount("asset", assetsCopied), c.copied)
+  //c.copied, mdCopied, assetsCopied)
 } // buildSite()
+
+// fileCount returns a string containing
+// a number followed by " word" or " words".
+func fileCount(filetype string, count int) string {
+  s := fmt.Sprintf("%d %s files", count, filetype)
+  if count == 1 {
+    return fmt.Sprintf("%d %s file", count, filetype)
+  }
+  return s
+}
 
 // ensureIndexHTML makes sure there's an index.html file
 // in the webroot directory. It's required because some existing
@@ -1814,7 +1849,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.DefinitionList,
 		extension.Footnote,
 		extension.Linkify,
-		embed.New(),
+		//goldmark-embed.New(),
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 			highlighting.WithFormatOptions()),
@@ -2008,4 +2043,74 @@ func fmStr(key string, fm map[string]interface{}) string {
 		return ""
 	}
 	return value
+}
+
+// EMBED UTILITIES
+// then I need unique error codes
+func (c *config) embedDirCopy(source embed.FS, target string) {
+	// TODO: Can this whole thing be replaced with a copyDirAll()?
+	// Is there a perf benefit either way?
+	debug("\tembedDirCopy(%#v, %v)", source, target)
+	var dest string
+	fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			quit(1, nil, c, "Error reading directory to embed")
+		}
+		// Handle subdirectory.
+		// path is the relative path of the file, for example,
+		// it might be /en/products or something like that
+		if d.IsDir() {
+			c.verbose("\t\tFound dir %v", path)
+			if path == "." {
+				return nil
+			}
+			// Get name of destination directory.
+			dest = filepath.Join(target, path)
+			// Create the destination directory.
+			c.verbose("\t\t1. attemping to create directory %v", dest)
+			// TODO: Check this permission
+			err := os.MkdirAll(dest, 0644)
+			if err != nil {
+				// TODO: Handle error properly & and document error code
+				c.verbose("\t\tos.MkdirAll() error: %v", err.Error())
+				quit(1, err, c, "Unable to create embedded directory %s", dest)
+			}
+			c.verbose("\t\t\tcreated embedded directory %v", dest)
+		}
+		// It's a file, not a directory
+		// Handle individual file
+		f, err := source.Open(path)
+		if err != nil {
+			// TODO: Handle error properly & and document error code
+			quit(1, err, c, "Internal error copying %d to embedded directory", path)
+		}
+		// Read the file into a byte array.
+		b, err := io.ReadAll(f)
+		if err != nil {
+			// TODO: Handle error properly & and document error code
+			quit(1, err, c, "Unable to read file %s into embedded dir", path)
+		}
+		// Copy the recently read file to its destination
+		dest = filepath.Join(target, path)
+		c.verbose("\t\t\tcopying %#v", dest)
+		err = ioutil.WriteFile(dest, b, 0644)
+		if err != nil {
+			// TODO: Handle error properly & and document error code
+			quit(1, err, c, "Couldn't copy file %s to embedded directory", dest)
+		}
+		return nil
+	})
+}
+
+// copyPocoDir() copies the .mb directory to the new site.
+// But you can pass in the name of a temp dir too.
+func (c *config) copyPocoDir(params ...string) {
+	var path string
+	if len(params) < 1 {
+		path = ".poco"
+	} else {
+		path = params[0]
+	}
+	c.verbose("\tcopyPocoDir to %v", path)
+	c.embedDirCopy(pocofiles, path)
 }
