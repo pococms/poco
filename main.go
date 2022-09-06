@@ -17,7 +17,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 	"io"
-	"io/fs"
+  "io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -32,11 +32,6 @@ import (
 
 //go:embed .poco
 var pocofiles embed.FS
-
-/*
-//go:embed .mb
-var mbfiles embed.FS
-*/
 
 // If javascript files are included, need this to avoid
 // starting before doc has loaded.
@@ -120,7 +115,6 @@ func (c *config) assemble(filename string, article string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		// xxx
 		"\n<div id=\"page-container\">" +
 		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
@@ -205,7 +199,8 @@ func sliceToStylesheetStr(sheets []string) string {
 	return tags
 }
 
-// tags() takes the slice containing each tag like "article{color:blue}"
+// tags() takes the slice containing one or more
+// tags like "article{color:blue}"
 // and returns a string with each tag on a separate line.
 func (t *theme) tags() string {
 	t.styleTags = ""
@@ -439,13 +434,14 @@ func (c *config) findHomePage() {
 		// Directory has files.
 		// User may not wish to create a new project.
 		if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
-			writeDefaultHomePage(c, c.root)
+			c.newSite()
 		} else {
-			quit(1, nil, c, "Can't build a project with an index.md or README.md")
+			quit(1, nil, c, "Can't build a project without an index.md or README.md")
 		}
 	} else {
 		// Empty dir, so create home page
-		writeDefaultHomePage(c, c.root)
+		c.newSite()
+		//writeDefaultHomePage(c, c.root)
 	}
 	c.currentFilename = c.homePage
 }
@@ -688,7 +684,7 @@ func (t *theme) sheets() string {
 	return ""
 }
 
-func (c *config) loadPageTheme() { // xxx
+func (c *config) loadPageTheme() { 
 
 	// Load up front matter for this page
 	c.fm = c.getFrontMatter(c.currentFile())
@@ -718,7 +714,7 @@ func (c *config) loadPageTheme() { // xxx
 
 // loadGlobalTheme() reads in the default theme, if one is requested.
 // It only works on the home page
-func (c *config) loadGlobalTheme() { // xxx
+func (c *config) loadGlobalTheme() { 
 	// Load up front matter for the home page, which is distinguished.
 	c.globalFm = c.getFrontMatter(c.homePage)
 
@@ -1177,18 +1173,18 @@ func (c *config) buildSite() {
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-  c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", mdCopied), fileCount("asset", assetsCopied), c.copied)
-  //c.copied, mdCopied, assetsCopied)
+	c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", mdCopied), fileCount("asset", assetsCopied), c.copied)
+	//c.copied, mdCopied, assetsCopied)
 } // buildSite()
 
 // fileCount returns a string containing
 // a number followed by " word" or " words".
 func fileCount(filetype string, count int) string {
-  s := fmt.Sprintf("%d %s files", count, filetype)
-  if count == 1 {
-    return fmt.Sprintf("%d %s file", count, filetype)
-  }
-  return s
+	s := fmt.Sprintf("%d %s files", count, filetype)
+	if count == 1 {
+		return fmt.Sprintf("%d %s file", count, filetype)
+	}
+	return s
 }
 
 // ensureIndexHTML makes sure there's an index.html file
@@ -1403,16 +1399,25 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 	return s
 }
 
+// newSite() creates a default home page
+// based in the root directory name,
+// then copies the .poco directory in
+func (c *config) newSite() {
+	writeDefaultHomePage(c, c.root)
+  c.copyPocoDir(pocofiles, "") 
+
+}// xxx 
+
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
 // segment of dir as the the H1 title.
 // Returns the full pathname of the file.
-func writeDefaultHomePage(c *config, dir string) string {
+func writeDefaultHomePage(c *config, dir string) {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
 	writeStringToFile(c, pathname, html)
 	c.homePage = pathname
-	return pathname
+	//return pathname
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -2045,72 +2050,71 @@ func fmStr(key string, fm map[string]interface{}) string {
 	return value
 }
 
-// EMBED UTILITIES
-// then I need unique error codes
-func (c *config) embedDirCopy(source embed.FS, target string) {
-	// TODO: Can this whole thing be replaced with a copyDirAll()?
-	// Is there a perf benefit either way?
-	debug("\tembedDirCopy(%#v, %v)", source, target)
-	var dest string
-	fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+
+
+func run() error {
+	return fs.WalkDir(pocofiles, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			quit(1, nil, c, "Error reading directory to embed")
+			return err
 		}
-		// Handle subdirectory.
-		// path is the relative path of the file, for example,
-		// it might be /en/products or something like that
-		if d.IsDir() {
-			c.verbose("\t\tFound dir %v", path)
-			if path == "." {
-				return nil
-			}
-			// Get name of destination directory.
-			dest = filepath.Join(target, path)
-			// Create the destination directory.
-			c.verbose("\t\t1. attemping to create directory %v", dest)
-			// TODO: Check this permission
-			err := os.MkdirAll(dest, 0644)
-			if err != nil {
-				// TODO: Handle error properly & and document error code
-				c.verbose("\t\tos.MkdirAll() error: %v", err.Error())
-				quit(1, err, c, "Unable to create embedded directory %s", dest)
-			}
-			c.verbose("\t\t\tcreated embedded directory %v", dest)
-		}
-		// It's a file, not a directory
-		// Handle individual file
-		f, err := source.Open(path)
+		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
+		return nil
+	})
+}
+func (c *config) runWORKS() error {
+	return fs.WalkDir(pocofiles, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			// TODO: Handle error properly & and document error code
-			quit(1, err, c, "Internal error copying %d to embedded directory", path)
+			return err
 		}
-		// Read the file into a byte array.
-		b, err := io.ReadAll(f)
-		if err != nil {
-			// TODO: Handle error properly & and document error code
-			quit(1, err, c, "Unable to read file %s into embedded dir", path)
-		}
-		// Copy the recently read file to its destination
-		dest = filepath.Join(target, path)
-		c.verbose("\t\t\tcopying %#v", dest)
-		err = ioutil.WriteFile(dest, b, 0644)
-		if err != nil {
-			// TODO: Handle error properly & and document error code
-			quit(1, err, c, "Couldn't copy file %s to embedded directory", dest)
-		}
+		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
 		return nil
 	})
 }
 
-// copyPocoDir() copies the .mb directory to the new site.
-// But you can pass in the name of a temp dir too.
-func (c *config) copyPocoDir(params ...string) {
-	var path string
-	if len(params) < 1 {
-		path = ".poco"
-	} else {
-		path = params[0]
-	}
-	c.verbose("\tcopyPocoDir to %v", path)
-	c.embedDirCopy(pocofiles, path)
+func (c *config) run(f embed.FS) error {
+	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
+		return nil
+	})
 }
+
+
+func (c *config) copyPocoDir(f embed.FS, dir string) error {
+  if dir == "" {
+    dir = currDir()
+  }
+	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			quit(1, err, c, "Problem walking .poco dir")
+		}
+    if d.IsDir() {
+      // It's a directory. Create it in the target location.
+      // Easy to do because we're guaranteed inside the project dir.
+		  err := os.MkdirAll(path, os.ModePerm)
+      if err != nil && !os.IsExist(err) {
+        quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
+      }
+    } else {
+      // Get full address of executable, which contains
+      // the .poco directory.
+      ex, err := os.Executable()
+      if err != nil {
+        quit(1, err, c, "Can't figure out PocoCMS pathname??")
+      }
+      // Amputate the actual filename
+      ex = filepath.Dir(ex)
+      // Build a full path for the source file to copy
+      source := filepath.Join(ex, path)
+      // Destination is just path, which is guaranteed to
+      // be a subdirectory of the current directory.
+ 			copyFile(c, source, path)
+   }
+		return nil
+	})
+}
+
+
+
