@@ -196,6 +196,7 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 		indexMdBody
 	return page
 }
+
 // tagSurround takes text and surrounds it with
 // opening and closing tags, so
 // tagSurround("header","WELCOME","\n") returns "<header>WELCOME</header>\n"
@@ -433,6 +434,9 @@ type config struct {
 
 	// Contents of a theme directory: the theme for the current page
 	theme theme
+
+	// Command-line flag -themes shows installed themes
+	themeList bool
 
 	// Contents of the global (default) theme directory
 	globalTheme theme
@@ -997,6 +1001,9 @@ func (c *config) parseCommandLine() {
 	// after processing files
 	flag.BoolVar(&c.settingsAfter, "settings-after", false, "Shows configuration values after processing site")
 
+	// Command-line flag -themes lists themes in the poco directory
+	flag.BoolVar(&c.themeList, "themes", false, "Show themes in "+pocoDir+" directory")
+
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
@@ -1050,6 +1057,11 @@ func main() {
 	// If -settings flag just show config values and quit
 	if c.settings {
 		c.dumpSettings()
+		os.Exit(0)
+	}
+
+	if c.themeList  {
+		print(c.themeDirContents())
 		os.Exit(0)
 	}
 
@@ -1314,11 +1326,11 @@ func isProject(path string) bool {
 // or README.md. Returns that filename if it exists.
 // If it has both, README.md takes priority.
 func indexFile(path string) string {
-  readmeMd := filepath.Join(path, "README.md")
+	readmeMd := filepath.Join(path, "README.md")
 	if fileExists(readmeMd) {
 		return readmeMd
 	}
-  indexMd := filepath.Join(path, "index.md")
+	indexMd := filepath.Join(path, "index.md")
 	if fileExists(indexMd) {
 		return indexMd
 	}
@@ -1345,14 +1357,12 @@ func dirEmpty(name string) bool {
 	}
 	defer f.Close()
 
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	_, err = f.Readdirnames(1)
 	if err == io.EOF {
 		return true
 	}
 	return false // Either not empty or error, suits both cases
 }
-
-
 
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
@@ -1425,7 +1435,7 @@ func fileToBuf(filename string) []byte {
 func (c *config) fileToString(filename string) string {
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
-		quit(1, err, c, "Unable to convert file %s into a string", filename)
+		quit(1, err, c, "")
 	}
 	return string(input)
 }
@@ -1450,7 +1460,6 @@ func writeStringToFile(c *config, filename, contents string) {
 		quit(1, err, c, "Error writing to file %s", filename)
 	}
 }
-
 
 // downloadFile() tries to read in the named URL as text and return
 // its contents as a string.
@@ -1509,7 +1518,7 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 func (c *config) newSite() {
 	writeDefaultHomePage(c, c.root)
 	c.copyPocoDir(pocoFiles, "")
-} 
+}
 
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
@@ -2155,4 +2164,21 @@ func (c *config) newProject(dir string) {
 			}
 		}
 	}
+}
+
+// themeDirContents() returns a list of all installed themes
+// separated by newlines
+func (c *config) themeDirContents() string {
+	files, err := ioutil.ReadDir(filepath.Join(pocoDir, "themes"))
+	if err != nil {
+		return ""
+	}
+
+  // Return value: the list of files
+  var s string
+	for _, f := range files {
+    file := f.Name()
+		s = s + fmt.Sprintf("%s\n", file)
+	}
+  return s
 }
