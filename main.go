@@ -30,8 +30,10 @@ import (
 	"time"
 )
 
+// Ensure this is the same name as used in the go:embed directive
+const pocoDir = ".poco"
 //go:embed .poco
-var pocofiles embed.FS
+var pocoFiles embed.FS
 
 // If javascript files are included, need this to avoid
 // starting before doc has loaded.
@@ -1404,7 +1406,7 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 // then copies the .poco directory in
 func (c *config) newSite() {
 	writeDefaultHomePage(c, c.root)
-  c.copyPocoDir(pocofiles, "") 
+  c.copyPocoDir(pocoFiles, "") 
 
 }// xxx 
 
@@ -1773,6 +1775,7 @@ func (c *config) dumpSettings() {
 	print("skip-publish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
+  print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
 
@@ -2050,38 +2053,20 @@ func fmStr(key string, fm map[string]interface{}) string {
 	return value
 }
 
-
-
-func run() error {
-	return fs.WalkDir(pocofiles, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
-		return nil
-	})
-}
-func (c *config) runWORKS() error {
-	return fs.WalkDir(pocofiles, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
-		return nil
-	})
+// Get full path where executable lives, 
+// minus the name of the executable itself.
+func executableDir() string {
+      ex, err := os.Executable()
+      if err != nil {
+        quit(1, err, nil, "Can't figure out PocoCMS pathname")
+      }
+      // Amputate the actual filename
+      return filepath.Dir(ex)
 }
 
-func (c *config) run(f embed.FS) error {
-	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		fmt.Printf("path=%q, isDir=%v\n", path, d.IsDir())
-		return nil
-	})
-}
-
-
+// copyPocoDir copies the embedded .poco directory into
+// the current directory, which is expected to be 
+// a new project directory.
 func (c *config) copyPocoDir(f embed.FS, dir string) error {
   if dir == "" {
     dir = currDir()
@@ -2098,23 +2083,16 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
         quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
       }
     } else {
-      // Get full address of executable, which contains
-      // the .poco directory.
-      ex, err := os.Executable()
-      if err != nil {
-        quit(1, err, c, "Can't figure out PocoCMS pathname??")
-      }
-      // Amputate the actual filename
-      ex = filepath.Dir(ex)
-      // Build a full path for the source file to copy
-      source := filepath.Join(ex, path)
+      // Build a full path for the source file to copy.
+      // The source file is in the same directory as
+      // the poco executable.
+      source := filepath.Join(executableDir(), path)
       // Destination is just path, which is guaranteed to
-      // be a subdirectory of the current directory.
+      // be a subdirectory of the current (new project) directory.
  			copyFile(c, source, path)
    }
 		return nil
 	})
 }
-
 
 
