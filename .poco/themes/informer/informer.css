@@ -1,0 +1,23 @@
+/* informer.css */
+html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
+header > ul {list-style-type:none;display:inline;}
+header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
+header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
+nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+header{margin-left:0}
+nav{padding:1rem 0 1rem 0;/* border-top: 1px solid gray;border-bottom: 1px dotted gray */ background-color:black;color:white;height:auto}
+nav > p > a {color:white; text-decoration:none;padding:none;padding-right:1em;}
+header > ul,nav > ul{text-decoration:none}
+header > ul > li:first-child > a {color:red;padding:0 1em 0 1em;text-align:left}
+article,body{margin:0}
+article {width:70rem}
+article > img, article > p > img {width:70%}
+aside{border-left:1px dotted gray;padding-right:1rem;}
+article > h2{padding-bottom:0}
+article > h2 > strong {color:red}
+article > h3{color:dimgray}
+article > p, article > ul, article > ol {font-size:x-large;font-family:Cambria, "Hoefler Text", Utopia, "Liberation Serif", "Nimbus Roman No9 L Regular", Times, "Times New Roman", serif;}
+article > ul, article > ol {padding-left:1rem;}
+aside > h3 {color:blue;font-height:smaller;font-weight:lighter;}

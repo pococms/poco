@@ -1,0 +1,8 @@
+article,header,nav,footer,aside{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;padding:2em;}
+body{margin:15%;}
+aside{float:right;padding-top:4rem}
+body{background-color:black;color:white}
+article > h1{font-size:2rem;font-weight:bold;}
+code,kbd,pre{color:navy}
+article > ul > li > a,article > p > a{color:white}
+article > p > code {color:white;background-color:navy;padding:.25rem}
