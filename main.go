@@ -172,6 +172,30 @@ func (c *config) styleFiles(stylesheetList []string) {
 
 // HTML UTILITIES
 
+// defaultHomePage() Generates a simple home page as an HTML string
+// Uses the file segment of dir as the the H1 title.
+// Uses current directory if "." or "" are passed
+func defaultHomePage(dir string) string {
+
+	var indexMdFront = `---
+stylesheets:
+    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
+---
+`
+	var indexMdBody = `
+hello, world.
+
+Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html) 
+`
+	if dir == "" || dir == "." {
+		dir, _ = os.Getwd()
+	}
+	h1 := "Welcome to " + filepath.Base(dir)
+	page := indexMdFront +
+		"# " + h1 + "\n" +
+		indexMdBody
+	return page
+}
 // tagSurround takes text and surrounds it with
 // opening and closing tags, so
 // tagSurround("header","WELCOME","\n") returns "<header>WELCOME</header>\n"
@@ -552,6 +576,35 @@ func (t *theme) present() bool {
 	return false
 }
 
+func fmStrSlice(key string, fm map[string]interface{}) []string {
+	if key == "" {
+		return []string{}
+	}
+	v, ok := fm[strings.ToLower(key)].([]interface{})
+	if !ok {
+		return []string{}
+	}
+	s := make([]string, len(v))
+	for i, value := range v {
+		r := fmt.Sprintf("%s", value)
+		s[i] = r
+	}
+	return s
+}
+
+// xxx
+func (t *theme) readFm(fm map[string]interface{}) {
+	t.author = fmStr("author", fm)
+	t.branding = fmStr("branding", fm)
+	t.description = fmStr("description", fm)
+	t.headerFilename = fmStr("header", fm)
+	t.navFilename = fmStr("nav", fm)
+	t.asideFilename = fmStr("aside", fm)
+	t.footerFilename = fmStr("footer", fm)
+	t.styleTagNames = fmStrSlice("style-tags", fm)
+	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
+}
+
 // getTheme() takes the name of a theme directory and returns
 // the name of the page layout files, stylesheets, style tags
 // in the theme object. It does not read any of those files in.
@@ -596,16 +649,7 @@ func (c *config) getTheme(themeDir string) theme {
 	// header has the name of the header file, footer the name
 	// of the footer file, and so on. Determine
 	// their paths based on the theme's directory.
-
-	theme.author = fmStr("author", tmpConfig.fm)
-	theme.branding = fmStr("branding", tmpConfig.fm)
-	theme.description = fmStr("description", tmpConfig.fm)
-	theme.headerFilename = fmStr("header", tmpConfig.fm)
-	theme.navFilename = fmStr("nav", tmpConfig.fm)
-	theme.asideFilename = fmStr("aside", tmpConfig.fm)
-	theme.footerFilename = fmStr("footer", tmpConfig.fm)
-	theme.styleTagNames = c.fmStrSlice("style-tags", tmpConfig.fm)
-	theme.stylesheetFilenames = c.fmStrSlice("stylesheets", tmpConfig.fm)
+	theme.readFm(tmpConfig.fm)
 	return theme
 } // getTheme()
 
@@ -879,7 +923,7 @@ func (c *config) setupGlobals() { //
 	c.markdownExtensions.list = []string{".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown"}
 
 	// Set defaults for files and dirs to skip
-	c.skip = "node_modules .git .DS_Store .gitignore ignoreme"
+	c.skip = "node_modules .git .DS_Store .gitignore " + pocoDir
 
 	// Create a list of files and dirs to skip when processing
 	c.getSkipPublish()
@@ -1268,16 +1312,15 @@ func isProject(path string) bool {
 
 // indexFile looks in the specified path for either index.md
 // or README.md. Returns that filename if it exists.
-// If it has both README.md,  takes priority.
+// If it has both, README.md takes priority.
 func indexFile(path string) string {
-	var indexMd, readmeMd string
-	indexMd = filepath.Join(path, "index.md")
-	if fileExists(indexMd) {
-		return indexMd
-	}
-	readmeMd = filepath.Join(path, "README.md")
+  readmeMd := filepath.Join(path, "README.md")
 	if fileExists(readmeMd) {
 		return readmeMd
+	}
+  indexMd := filepath.Join(path, "index.md")
+	if fileExists(indexMd) {
+		return indexMd
 	}
 	return ""
 }
@@ -1291,6 +1334,25 @@ func currDir() string {
 		return path
 	}
 }
+
+// dirEmpty() returns true if the specified directory is empty.
+// Gratefully stolen from:
+// https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
+func dirEmpty(name string) bool {
+	f, err := os.Open(name)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true
+	}
+	return false // Either not empty or error, suits both cases
+}
+
+
 
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
@@ -1319,120 +1381,6 @@ func copyFile(c *config, source string, target string) {
 		quit(1, err, c, "Error copying file %s to %s", source, target)
 	}
 
-}
-
-// defaultHomePage() Generates a simple home page as an HTML string
-// Uses the file segment of dir as the the H1 title.
-// Uses current directory if "." or "" are passed
-func defaultHomePage(dir string) string {
-
-	var indexMdFront = `---
-stylesheets:
-    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
----
-`
-	var indexMdBody = `
-hello, world.
-
-Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html) 
-`
-	if dir == "" || dir == "." {
-		dir, _ = os.Getwd()
-	}
-	h1 := "Welcome to " + filepath.Base(dir)
-	page := indexMdFront +
-		"# " + h1 + "\n" +
-		indexMdBody
-	return page
-}
-
-// dirEmpty() returns true if the specified directory is empty.
-// Gratefully stolen from:
-// https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
-func dirEmpty(name string) bool {
-	f, err := os.Open(name)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
-	if err == io.EOF {
-		return true
-	}
-	return false // Either not empty or error, suits both cases
-}
-
-// downloadFile() tries to read in the named URL as text and return
-// its contents as a string.
-func (c *config) downloadTextFile(url string) string {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		quit(1, err, c, "Unable setting up to GET file %s", url)
-	}
-	req.Header.Set("Accept", "application/text")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		quit(1, err, c, "Unable to download file %s", url)
-	}
-	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		quit(1, err, c, "Unable to read reponse body for %s", url)
-	}
-
-	return string(b)
-
-}
-
-// getWebOrLocalFileStr reads filename and returns it as a string.
-// If string starts with http or https fetches it from the web.
-func (c *config) getWebOrLocalFileStr(filename string) string {
-	// Return value: contents of file are stored here
-	s := ""
-
-	// Handle case of URLs as opposed to local file
-	if strings.HasPrefix(filename, "http") {
-		// TODO: Check for redirect?
-		// https://golangdocs.com/golang-download-files
-		s = c.downloadTextFile(filename)
-		return s
-		//
-	}
-
-	// Handle case of local file with relative path
-	if !filepath.IsAbs(filename) {
-		// TODO: Try replacing with filepath.Abs
-		fullPath := filepath.Join(c.theme.dir, filename)
-		s = c.fileToString(fullPath)
-		return s
-	}
-
-	// Handle case of local file with absolute path
-	s = c.fileToString(filename)
-	return s
-}
-
-// newSite() creates a default home page
-// based in the root directory name,
-// then copies the .poco directory in
-func (c *config) newSite() {
-	writeDefaultHomePage(c, c.root)
-	c.copyPocoDir(pocoFiles, "")
-
-} // xxx
-
-// Generates a simple home page
-// and writes it to index.md in dir. Uses the file
-// segment of dir as the the H1 title.
-// Returns the full pathname of the file.
-func writeDefaultHomePage(c *config, dir string) {
-	html := defaultHomePage(dir)
-	pathname := filepath.Join(dir, "index.md")
-	writeStringToFile(c, pathname, html)
-	c.homePage = pathname
-	//return pathname
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -1501,6 +1449,76 @@ func writeStringToFile(c *config, filename, contents string) {
 	if _, err = out.WriteString(contents); err != nil {
 		quit(1, err, c, "Error writing to file %s", filename)
 	}
+}
+
+
+// downloadFile() tries to read in the named URL as text and return
+// its contents as a string.
+func (c *config) downloadTextFile(url string) string {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		quit(1, err, c, "Unable setting up to GET file %s", url)
+	}
+	req.Header.Set("Accept", "application/text")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		quit(1, err, c, "Unable to download file %s", url)
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		quit(1, err, c, "Unable to read reponse body for %s", url)
+	}
+
+	return string(b)
+
+}
+
+// getWebOrLocalFileStr reads filename and returns it as a string.
+// If string starts with http or https fetches it from the web.
+func (c *config) getWebOrLocalFileStr(filename string) string {
+	// Return value: contents of file are stored here
+	s := ""
+
+	// Handle case of URLs as opposed to local file
+	if strings.HasPrefix(filename, "http") {
+		// TODO: Check for redirect?
+		// https://golangdocs.com/golang-download-files
+		s = c.downloadTextFile(filename)
+		return s
+		//
+	}
+
+	// Handle case of local file with relative path
+	if !filepath.IsAbs(filename) {
+		// TODO: Try replacing with filepath.Abs
+		fullPath := filepath.Join(c.theme.dir, filename)
+		s = c.fileToString(fullPath)
+		return s
+	}
+
+	// Handle case of local file with absolute path
+	s = c.fileToString(filename)
+	return s
+}
+
+// newSite() creates a default home page
+// based in the root directory name,
+// then copies the .poco directory in
+func (c *config) newSite() {
+	writeDefaultHomePage(c, c.root)
+	c.copyPocoDir(pocoFiles, "")
+} 
+
+// Generates a simple home page
+// and writes it to index.md in dir. Uses the file
+// segment of dir as the the H1 title.
+func writeDefaultHomePage(c *config, dir string) {
+	html := defaultHomePage(dir)
+	pathname := filepath.Join(dir, "index.md")
+	writeStringToFile(c, pathname, html)
+	c.homePage = pathname
 }
 
 // SLICE UTILITIES
