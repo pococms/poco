@@ -17,7 +17,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 	"io"
-  "io/fs"
+	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -30,8 +30,12 @@ import (
 	"time"
 )
 
-// Ensure this is the same name as used in the go:embed directive
+// IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
+
+// This directory gets embedded into the executable. It's
+// then copied into every new project.
+//
 //go:embed .poco
 var pocoFiles embed.FS
 
@@ -371,6 +375,9 @@ type config struct {
 	// it gets converted to HTML.
 	markdownExtensions searchInfo
 
+	// Command-line flag -new generates a new project by this name
+	newProjectStr string
+
 	// Port localhost server runs on
 	port string
 
@@ -475,7 +482,7 @@ func (c *config) setRoot() {
 	}
 	// c.root finally established. Does it even exist?
 	if !dirExists(c.root) {
-		quit(1, nil, c, "Can't find the directory %v", c.root)
+		quit(1, nil, c, "Can't find the directory %v. You may want to create a new site by running %s -new %s.", c.root, filepath.Base(os.Args[0]), flag.Arg(0))
 	}
 }
 
@@ -686,7 +693,7 @@ func (t *theme) sheets() string {
 	return ""
 }
 
-func (c *config) loadPageTheme() { 
+func (c *config) loadPageTheme() {
 
 	// Load up front matter for this page
 	c.fm = c.getFrontMatter(c.currentFile())
@@ -716,7 +723,7 @@ func (c *config) loadPageTheme() {
 
 // loadGlobalTheme() reads in the default theme, if one is requested.
 // It only works on the home page
-func (c *config) loadGlobalTheme() { 
+func (c *config) loadGlobalTheme() {
 	// Load up front matter for the home page, which is distinguished.
 	c.globalFm = c.getFrontMatter(c.homePage)
 
@@ -924,6 +931,9 @@ func (c *config) parseCommandLine() {
 	// for all files
 	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
 
+	// new creates a directory, sample index.md, and pocoDir
+	flag.StringVar(&c.newProjectStr, "new", "", "Create a new site")
+
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
 
@@ -971,6 +981,10 @@ func main() {
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 
+	// New project requested?
+	if c.newProjectStr != "" {
+		c.newProject(c.newProjectStr)
+	}
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
@@ -1271,7 +1285,6 @@ func indexFile(path string) string {
 // SYSTEM UTILITIES
 // curDir() returns the current directory name.
 func currDir() string {
-	// if path, err := os.Executable(); err != nil {
 	if path, err := os.Getwd(); err != nil {
 		return "unknown directory"
 	} else {
@@ -1406,9 +1419,9 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 // then copies the .poco directory in
 func (c *config) newSite() {
 	writeDefaultHomePage(c, c.root)
-  c.copyPocoDir(pocoFiles, "") 
+	c.copyPocoDir(pocoFiles, "")
 
-}// xxx 
+} // xxx
 
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
@@ -1706,7 +1719,9 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 		// Prints name of source file being processed.
 		if exitCode != 0 {
 			if c != nil {
-				(fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg))
+				fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg)
+			} else {
+				fmt.Printf("PocoCMS %s\n \t%s\n", msg, errmsg)
 			}
 		}
 	} else {
@@ -1775,7 +1790,7 @@ func (c *config) dumpSettings() {
 	print("skip-publish: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
-  print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
+	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
 
@@ -2053,46 +2068,73 @@ func fmStr(key string, fm map[string]interface{}) string {
 	return value
 }
 
-// Get full path where executable lives, 
+// Get full path where executable lives,
 // minus the name of the executable itself.
 func executableDir() string {
-      ex, err := os.Executable()
-      if err != nil {
-        quit(1, err, nil, "Can't figure out PocoCMS pathname")
-      }
-      // Amputate the actual filename
-      return filepath.Dir(ex)
+	ex, err := os.Executable()
+	if err != nil {
+		quit(1, err, nil, "Can't figure out PocoCMS pathname")
+	}
+	// Amputate the actual filename
+	return filepath.Dir(ex)
 }
 
 // copyPocoDir copies the embedded .poco directory into
-// the current directory, which is expected to be 
+// the current directory, which is expected to be
 // a new project directory.
 func (c *config) copyPocoDir(f embed.FS, dir string) error {
-  if dir == "" {
-    dir = currDir()
-  }
+	if dir == "" {
+		dir = currDir()
+	}
 	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			quit(1, err, c, "Problem walking .poco dir")
 		}
-    if d.IsDir() {
-      // It's a directory. Create it in the target location.
-      // Easy to do because we're guaranteed inside the project dir.
-		  err := os.MkdirAll(path, os.ModePerm)
-      if err != nil && !os.IsExist(err) {
-        quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
-      }
-    } else {
-      // Build a full path for the source file to copy.
-      // The source file is in the same directory as
-      // the poco executable.
-      source := filepath.Join(executableDir(), path)
-      // Destination is just path, which is guaranteed to
-      // be a subdirectory of the current (new project) directory.
- 			copyFile(c, source, path)
-   }
+		if d.IsDir() {
+			// It's a directory. Create it in the target location.
+			// Easy to do because we're guaranteed inside the project dir.
+			err := os.MkdirAll(path, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
+			}
+		} else {
+			// Build a full path for the source file to copy.
+			// The source file is in the same directory as
+			// the poco executable.
+			source := filepath.Join(executableDir(), path)
+			// Destination is just path, which is guaranteed to
+			// be a subdirectory of the current (new project) directory.
+			copyFile(c, source, path)
+		}
 		return nil
 	})
 }
 
+// newProject() takes a directory name and generates a
+// site there.
+// Pre: parseCommandLine()
 
+// newProject is same as newSite(), except that
+// newSite() can do its thing because it
+// knows it's in a new dir. newProject sets
+// up that condition and helps stop you from
+// putting this project where it shouldn't be.
+func (c *config) newProject(dir string) {
+	c.root = dir
+	if !dirExists(c.root) {
+		// We're good. No directory by that name. Create it.
+		err := os.MkdirAll(c.root, os.ModePerm)
+		if err != nil && !os.IsExist(err) {
+			quit(1, err, c, "Unable to create new project directory %s", c.root)
+		}
+	} else {
+		// Existing directory by that name. No need to continue.
+		if isProject(c.root) {
+			if promptYes("Project at " + c.root + "exists. This will replace index.md, add a " + pocoDir + " directory, and replace any directory named " + c.webroot + ". Continue?") {
+				c.newSite()
+			} else {
+				quit(1, nil, c, "Leaving project at %s intact. Quitting.", c.root)
+			}
+		}
+	}
+}
