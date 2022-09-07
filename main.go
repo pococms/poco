@@ -261,6 +261,8 @@ func (t *theme) tags() string {
 func (c *config) styleTags() string {
 	c.globalTheme.tags()
 	c.theme.tags()
+  debug("styleTags() page theme.styleTags: %v", c.theme.styleTags)
+  debug("styleTags() global theme.styleTags: %v", c.globalTheme.styleTags)
 	t := c.theme.styleTags + c.globalTheme.styleTags
 	if t != "" {
 		c.theme.styleTags = tagSurround("style", t, "\n")
@@ -910,7 +912,6 @@ func (c *config) loadTheme(filename string) {
 		fm, theme := c.readThemeAndFrontMatter(filename)
 		if theme.dir == "" && c.globalTheme.dir != "" {
 			theme = &c.globalTheme
-		} else {
 		}
 		c.theme.readFm(*fm)
 		c.layout(theme)
@@ -918,7 +919,7 @@ func (c *config) loadTheme(filename string) {
 		c.fm = *fm
 	}
 
-	// TODO: FAILS
+	// TODO: test
 	if c.currentFile() == c.homePage {
 		if !c.theme.present() && c.globalTheme.present() {
 			c.theme = c.getTheme(c.globalTheme.dir)
@@ -1290,7 +1291,7 @@ func (c *config) getSkipPublish() {
 	c.skipPublish.AddStr(".backup")
 
 	// Get what's specified in the home page front matter
-	localSlice := fmStrSlice("skip-publish", c.fm)
+	localSlice := fmStrSlice("ignore", c.fm)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1730,7 +1731,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 func (c *config) dumpSettings() {
 	print("Global Theme: %s", c.globalTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
-	print("skip-publish: %v", c.skipPublish.list)
+	print("ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
 	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))

@@ -7,7 +7,9 @@
 [PocoCMS glossary](glossary.html)  
 [Code highlighting](highlighting.html)  
 [Front matter](front-matter.html)  
-[CSS tips](css-tips.html)
+[Resources](resources.html)  
+[Markdown extensions](markdown-extensions.html)  
+[CSS tips](css-tips.html)  
 
 
 ## HTML references

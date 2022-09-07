@@ -1,13 +1,19 @@
 ---
 global-theme: ".poco/themes/pocodocs"
-#theme: ".poco/themes/probot"
+theme: ".poco/themes/test"
 title: "PocoCMS: start here"
 description: "PocoCMS builds documentation websites fast, with zero learning or configuration required"
 keywords: "static site generator,ssg,jamstack,cms,ghost.org,hugo,ghost,gohugo.io"
+style-tags:
+- "article>p{color:yellow}"
 stylesheets:
 - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 ---
 # Poco CMS, the world's easiest static site generator
+
+Title should be PocoCMS: start here. It is actually "{{ .title }}"
+
+Theme:{{ .theme }} 
 
 
 ![](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
