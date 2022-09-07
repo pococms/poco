@@ -1,6 +1,5 @@
 ---
-theme: pages/themes/probot
-aside: "SUPPRESS"
+theme: ".poco/themes/probot"
 ---
 # PocoCMS command-line options
 
@@ -24,7 +23,7 @@ poco -timestamp
 
 Upon completion you'll see the timestamp before the completion message:
 
-```bash
+```
 25 Aug 2023 18:33:29 Site published to WWW/index.html
 ```
 

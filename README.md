@@ -1,32 +1,18 @@
 ---
+global-theme: ".poco/themes/pocodocs"
+#theme: ".poco/themes/probot"
 title: "PocoCMS: start here"
-description: PocoCMS builds documentation websites fast, with zero learning or configuration required
-keywords: static site generator,ssg,jamstack,cms,ghost.org,gohugo.io
-theme: "pages/themes/pocodocs"
+description: "PocoCMS builds documentation websites fast, with zero learning or configuration required"
+keywords: "static site generator,ssg,jamstack,cms,ghost.org,hugo,ghost,gohugo.io"
 stylesheets:
-- ../informer/dark.css
-#theme: "pages/themes/informer"
-#theme: "pages/themes/simplicity"
-#theme: "pages/themes/tufte"
-skip-publish:
-- "node_modules/" 
-- ".git/"
-- ".DS_Store/" 
-- ".gitignore"
-- "beat me"
-- "foo.xls"
-style-tags:
-- "article>p{color:green;}"
-#stylesheets:
-#- "foundinREADME.md"
-#theme: "pages/themes/informer"
+- "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 ---
 # Poco CMS, the world's easiest static site generator
 
 
 ![](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
-*25 August 2022* 23:45 Many bugs to go. Soft opening on 1 September 2022.
+*6 September 2022* 03:57 Soft opening revised to 15 September 2022.
 
 [Report an issue](https://github.com/pococms/poco/issues)
 

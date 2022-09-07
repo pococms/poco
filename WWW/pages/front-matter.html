@@ -4,13 +4,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Powered by PocoCMS</title>
-<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+<style>html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 
 /* Make touch interaction faster */
 a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
 
-/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
 p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
 
 /* HTML5 display-role reset for older browsers */
@@ -24,63 +24,7 @@ table {
 	border-collapse: collapse;
 }
  
-#page-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#content-wrap {
-  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
-}
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
-header{height:10vh;}
-nav{height:10vh;}
-article{padding-left:10vh}
-aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  height:100vh;
-  width:20rem;
-  padding:1rem 10rem 1rem 1rem;
-}
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid;
-}
-code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-}
-pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
-}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid LightGray;
-}
-@media (max-width:1080px){
-  aside{display:none}
- article{padding:1rem;}
-}
-@media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
-}
- 
+
 /* pococms.css */
 html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
 header > ul {list-style-type:none;display:inline;}
@@ -92,40 +36,34 @@ header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;m
 article > h1 {color:red;}
 article > p,article > dl{line-height:1.75rem;font-size:large}
 article > {width:20rem;}
+
+header,footer{width:50rem;margin-left:8rem;margin-right:8rem;text-align:left;padding-bottom:4rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
 article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
 article > ul > li {font-size:larger;line-height:1.75rem;}
 article{margin:0 8rem 0 8rem}
-header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
-article>p>code,article>p>pre,article>p>kbd{background-color:ghostwhite;font-size:smaller;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
-article{width:50rem;}
-article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem}
+article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
+article{width:50rem;padding:auto 4rem auto 4rem;}
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;padding-bottom:2rem;color:blue;}
 article>h2{padding-top:2.5rem;}
-pre{border:1px solid gray;padding:1rem;background-color:ghostwhite;margin:1rem 0 1rem 0 !important} /* block, not inline */
-article>p{font-familiy:serif; !important}
+pre{border:1px solid gray;padding:1rem;width:50rem;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
 
-/* FAILED
- *
- * article>pre>code{background-color:yellow}
- * article>pre{background-color:yellow}
- *
- * article>p>pre>code{background-color:yellow}
- *
- * */
-</style>
-</head>
+
+</style></head>
 <body>
 <div id="page-container">
 <div id="content-wrap">
-	<header><ul>
+	<header id="header-poco"><ul>
 <li><a href="/#">poco<del>CMS</del></a></li>
 <li><a href="../pages/build-from-source.html">Download</a></li>
 <li><a href="../pages/reference.html">Documentation</a></li>
-<li><a href="../pages/tutorials.html">Tutorials</a></li>
-<li><a href="../pages/technical-overview.html">Technical Overview</a></li>
-</ul></header>
-			<article id="article"><h1 id="front-matter">Front Matter</h1>
+<li><a href="https://github.com/pococms/poco">GitHub</a></li>
+</ul>
+</header>
+	
+	
+<article id="article"><h1 id="front-matter">Front Matter</h1>
 <p><em>Front matter</em> optionally starts your file. It contains
 instructions for things Markdown can't do for you,
 for example, choosing a theme, inserting Javascript
@@ -137,15 +75,18 @@ front matter options PocoCMS provides.</p>
 <p><a href="#formatting-rules">Formatting rules</a><br />
 <a href="#front-matter-basics">Front matter basics</a></p>
 <h2 id="alphabetical-list-of-front-matter-options">Alphabetical list of front matter options</h2>
-<p><a href="#author">Author</a><br />
-<a href="#description">Description</a><br />
-<a href="#keywords">Keywords</a><br />
-<a href="#keyvalue-pairs">Key/value pairs</a><br />
-<a href="#robots">Robots</a><br />
-<a href="#skippublish">Skippublish</a><br />
-<a href="#stylesheets">Stylesheets</a><br />
-<a href="#styletags">Styletags</a><br />
-<a href="#title">Title</a></p>
+<p><a href="#author">author</a><br />
+<a href="#description">description</a><br />
+<a href="#global-theme">global-theme</a>
+<a href="#keywords">keywords</a><br />
+<a href="#keyvalue-pairs">key/value pairs</a><br />
+<a href="#lang">lang</a>
+<a href="#robots">robots</a><br />
+<a href="#skippublish">skip-publish</a><br />
+<a href="#stylesheets">stylesheets</a><br />
+<a href="#styletags">style-tags</a><br />
+<a href="#theme">theme</a>
+<a href="#title">title</a></p>
 <p>Return to <a href="#front-matter">top</a></p>
 <h2 id="front-matter-basics">Front Matter basics</h2>
 <p>The simplest PocoCMS Markdown document looks something
@@ -153,26 +94,26 @@ like this:</p>
 <pre><code>hello, world.
 </code></pre>
 <p>It generates the following HTML document:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#999;font-weight:bold;font-style:italic">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">html</span> <span style="color:#008080">lang</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">head</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">meta</span> <span style="color:#008080">charset</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;utf-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;viewport&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">title</span>&gt;Powered by PocoCMS&lt;/<span style="color:#000080">title</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">header</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">article</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;article&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>  &lt;<span style="color:#000080">p</span>&gt;hello, world.&lt;/<span style="color:#000080">p</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#000080">article</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">div</span>&gt;<span style="color:#998;font-style:italic">&lt;!-- content-wrap --&gt;</span>
-</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#000080">div</span>&gt;<span style="color:#998;font-style:italic">&lt;!-- page-container --&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">html</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#4c8317">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">html</span> <span style="color:#1e90ff">lang</span>=<span style="color:#a50">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">head</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">charset</span>=<span style="color:#a50">&#34;utf-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;viewport&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">title</span>&gt;Powered by PocoCMS&lt;/<span style="color:#1e90ff;font-weight:bold">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">header</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">article</span> <span style="color:#1e90ff">id</span>=<span style="color:#a50">&#34;article-poco&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>  &lt;<span style="color:#1e90ff;font-weight:bold">p</span>&gt;hello, world.&lt;/<span style="color:#1e90ff;font-weight:bold">p</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#1e90ff;font-weight:bold">article</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">div</span>&gt;<span style="color:#aaa;font-style:italic">&lt;!-- content-wrap --&gt;</span>
+</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#1e90ff;font-weight:bold">div</span>&gt;<span style="color:#aaa;font-style:italic">&lt;!-- page-container --&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">html</span>&gt;
 </span></span></code></pre><p>You will normally see a more complex structure, with
 nonprinting commands that start the file:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Title</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;Introducing PocoCMS&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Keywords</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;static site generator, jamstack, cms&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">title</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;Introducing PocoCMS&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">keywords</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;static site generator, jamstack, cms&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>hello, world. <span style="color:#bbb">
 </span></span></span></code></pre><p>The text between the two <code>---</code> lines is considered a separate
 document with no direct relation to the remainder of the
@@ -183,38 +124,38 @@ format.  This data is used to control the format and
 output of the HTML files PocoCMS produces.</p>
 <p>Here's what happens when PocoCMS generates HTML for the
 previous example:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#999;font-weight:bold;font-style:italic">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">html</span> <span style="color:#008080">lang</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">head</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">meta</span> <span style="color:#008080">charset</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;utf-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;viewport&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">title</span>&gt;Introducing PocoCMS&lt;/<span style="color:#000080">title</span>&gt;
-</span></span><span style="display:flex;"><span>  &lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;keywords&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;static site generator, jamstack, cms&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">header</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;<span style="color:#000080">article</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;article&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>  &lt;<span style="color:#000080">p</span>&gt;hello, world.&lt;/<span style="color:#000080">p</span>&gt;
-</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#000080">article</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">div</span>&gt;<span style="color:#998;font-style:italic">&lt;!-- content-wrap --&gt;</span>
-</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#000080">div</span>&gt;<span style="color:#998;font-style:italic">&lt;!-- page-container --&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#000080">html</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#4c8317">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">html</span> <span style="color:#1e90ff">lang</span>=<span style="color:#a50">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">head</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">charset</span>=<span style="color:#a50">&#34;utf-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;viewport&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">title</span>&gt;Introducing PocoCMS&lt;/<span style="color:#1e90ff;font-weight:bold">title</span>&gt;
+</span></span><span style="display:flex;"><span>  &lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;keywords&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;static site generator, jamstack, cms&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">header</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;<span style="color:#1e90ff;font-weight:bold">article</span> <span style="color:#1e90ff">id</span>=<span style="color:#a50">&#34;article-poco&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>  &lt;<span style="color:#1e90ff;font-weight:bold">p</span>&gt;hello, world.&lt;/<span style="color:#1e90ff;font-weight:bold">p</span>&gt;
+</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#1e90ff;font-weight:bold">article</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">div</span>&gt;<span style="color:#aaa;font-style:italic">&lt;!-- content-wrap --&gt;</span>
+</span></span><span style="display:flex;"><span>	&lt;/<span style="color:#1e90ff;font-weight:bold">div</span>&gt;<span style="color:#aaa;font-style:italic">&lt;!-- page-container --&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#1e90ff;font-weight:bold">html</span>&gt;
 </span></span><span style="display:flex;"><span>
 </span></span></code></pre><p>In the first example PocoCMS inserted this shamelessly
 self-promoting <code>&lt;title&gt;</code> tag:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">title</span>&gt;Powered by PocoCMS&lt;/<span style="color:#000080">title</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">title</span>&gt;Powered by PocoCMS&lt;/<span style="color:#1e90ff;font-weight:bold">title</span>&gt;
 </span></span></code></pre><p>That's because an HTML file is not considered valid without a title.
 As you've already surmised, this portion of the front matter</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Title</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;Introducing PocoCMS&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">title</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;Introducing PocoCMS&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Is responsible for this line of HTML:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">title</span>&gt;Introducing PocoCMS&lt;/<span style="color:#000080">title</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">title</span>&gt;Introducing PocoCMS&lt;/<span style="color:#1e90ff;font-weight:bold">title</span>&gt;
 </span></span></code></pre><p>And obviously this line of front matter</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Keywords</span>:<span style="color:#bbb"> </span>static site generator, jamstack, cms<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">keywords</span>:<span style="color:#bbb"> </span>static site generator, jamstack, cms<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Caused a <code>keywords</code> metatag to be inserted into the file:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;keywords&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;static site generator, jamstack, cms&#34;</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;keywords&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;static site generator, jamstack, cms&#34;</span>&gt;
 </span></span></code></pre><p>Return to <a href="#front-matter">top</a></p>
 <h2 id="formatting-rules">Formatting rules</h2>
 <ul>
@@ -235,90 +176,79 @@ the key precedes a colon and the value comes after the colon.</li>
 case sensitive. So while this will create a <code>&lt;title&gt;</code>
 tag in your HTML document:</li>
 </ul>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Title</span>:<span style="color:#bbb"> </span>PocoCMS makes cry out with joy<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">title</span>:<span style="color:#bbb"> </span>PocoCMS makes cry out with joy<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>This will not:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">title</span>:<span style="color:#bbb"> </span>I&#39;m totally invisible<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">Title</span>:<span style="color:#bbb"> </span>I&#39;m totally invisible<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><ul>
 <li>YAML documents usually can't be empty. Don't start a file
 with empty front matter like this:</li>
 </ul>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span></code></pre><h2 id="author">Author</h2>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span></code></pre><h2 id="author">author</h2>
 <p>Causes an <code>author</code> metatag to be inserted into the file.</p>
 <h3 id="example">Example</h3>
 <p>Using this <code>Author</code> declaration in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Author</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;Tom Campbell&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">author</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;Tom Campbell&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Causes this metatag to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;author&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;Tom Campbell&#34;</span>&gt;
-</span></span></code></pre><h2 id="description">Description</h2>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;author&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;Tom Campbell&#34;</span>&gt;
+</span></span></code></pre><h2 id="description">description</h2>
 <p>Causes a <code>description</code> metatag to be inserted into the file.</p>
 <h3 id="example-1">Example</h3>
 <p>Using this <code>Description</code> in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Description</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;PocoCMS is the easiest static site generator available&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">description</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;PocoCMS is the easiest static site generator available&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Causes this metatag to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;description&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;PocoCMS is the easiest static site generator available&#34;</span>&gt;
-</span></span></code></pre><h2 id="keywords">Keywords</h2>
-<p>Causes a <code>keywords</code> metatag to be inserted into the file.</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;description&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;PocoCMS is the easiest static site generator available&#34;</span>&gt;
+</span></span></code></pre><h2 id="global-theme">global-theme</h2>
+<p>Defines a <a href="glossary.html#theme">theme</a> to be used as
+the default for all pages in the site.
+It is optional.  The global theme can be overridden
+on a per-page basis using <a href="#theme">theme</a>.</p>
+<pre><code>```
+---
+global-theme: /Users/blake/pocothemes/informer
+---
+```
+</code></pre>
+<h2 id="lang">lang</h2>
+<p>Sets the code HTML uses for its <code>html lang=</code> tag.
+Defaults to <code>en</code> for English.</p>
 <h3 id="example-2">Example</h3>
-<p>Using these <code>Keywords</code> in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Keywords</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;static site generator, jamstack, cms&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span></code></pre><p>Causes this metatag to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;keywords&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;static site generator, jamstack, cms&#34;</span>&gt;
-</span></span></code></pre><h2 id="keyvalue-pairs">key/value pairs</h2>
 <ul>
-<li>The front matter contents always start with a key name,
-such as <code>Title</code> immediately followed by a colon.</li>
-<li>The value associated with it must follow. It's best to use
-quotes around the value because stylesheets use characters
-that confuse the YAML processing.</li>
-<li>In the YAML below, <code>Title</code> is the key, and <code>Welcome to PocoCMS</code>
-is the value:</li>
+<li>Create a simple file with no Markdown at all, just this
+front matter, which changes the language to Icelandic:</li>
 </ul>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Title</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;Welcome to PocoCMS&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span></code></pre><ul>
-<li>One enormously powerful feature of YAML is that while every key
-must have exactly one value, that value can consist of more than one item,
-a compound structure like a database record, or even an entire database
-consisting of multiple records.</li>
+<pre><code>    ---
+    lang: &quot;is&quot;
+    ---
+</code></pre>
+<ul>
+<li>Run poco and then view source. You'll see this:</li>
 </ul>
-<p>In the YAML below, <code>Stylesheets</code> is the key. The mutliple
-itmes below it are considered a YAML <a href="https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html#yaml-basics">list</a>. The list
-has one name (<code>Stylesheets</code>) but the value  has multiple items in it.
-The value in this case is the list consisting of <code>[&quot;poquito.css&quot;, &quot;pococms.css&quot;]</code>.</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Stylesheets</span>:<span style="color:#bbb"> 
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- poquito.css<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- pococms.css<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span></code></pre><p>This page details all front matter options.</p>
-<h2 id="robots">Robots</h2>
+<html lang="en">
+<h2 id="robots">robots</h2>
 <p>Causes a [<code>robots</code> metatag](<a href="https://moz.com/learn/seo/robots-meta-directives#:~:text=Robots%20meta%20directives%20(sometimes%20called,or%20index%20web%20page%20content.)">https://moz.com/learn/seo/robots-meta-directives#:~:text=Robots%20meta%20directives%20(sometimes%20called,or%20index%20web%20page%20content.)</a> to be inserted into the file.</p>
 <h3 id="example-3">Example</h3>
 <p>Using this <code>Robots</code> entry in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Robots</span>:<span style="color:#bbb"> </span><span style="color:#d14">&#34;NoIndex&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">robots</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;NoIndex&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Causes this metatag to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">meta</span> <span style="color:#008080">name</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;robots&#34;</span> <span style="color:#008080">content</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;noindex&#34;</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">meta</span> <span style="color:#1e90ff">name</span>=<span style="color:#a50">&#34;robots&#34;</span> <span style="color:#1e90ff">content</span>=<span style="color:#a50">&#34;noindex&#34;</span>&gt;
 </span></span></code></pre><p><strong>NOTE</strong></p>
 <p>Be careful following this example! It tells
 search engines <em>not</em> to index your page, which is
 the opposite of what you normally want.</p>
-<h2 id="skippublish">SkipPublish</h2>
-<p><code>SkipPublish</code> lists files and directories you don't want to be published.</p>
+<h2 id="skip-publish">skip-publish</h2>
+<p><code>skip-publish</code> lists files and directories you don't want to be published.</p>
 <p>Remember that if a directory contains the files <code>index.md</code>, <code>installation.md</code>,
 and <code>avatar.png</code>, and <code>401K-info.xls</code>, here's what will happen when you
 run PocoCMS:</p>
@@ -335,23 +265,23 @@ the personal spreadsheet with your 401K details published.</li>
 <code>.git</code> is included here for good form but
 PocoCMS treats directories with that name starts with <code>.</code> as hidden and
 doesn't publish them.</li>
-<li>The answer to these problems is to list what you don't want published in <code>SkipPublish</code>
+<li>The answer to these problems is to list what you don't want published in <code>skip-publish</code>
 as shown below.</li>
 </ul>
 <h3 id="example-4">Example</h3>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">SkipPublish</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">skip-publish</span>:<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- 401k-info.xls<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- node_modules<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- www<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .git<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .DS_Store<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .gitignore<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb">
 </span></span></span></code></pre><p>Here are some common items to skip:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">SkipPublish</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">skip-publish</span>:<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- node_modules<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- htdocs<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- public_html<span style="color:#bbb">
@@ -359,8 +289,8 @@ as shown below.</li>
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .git<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .DS_Store<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- .gitignore<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span></code></pre><h2 id="title">Title</h2>
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span></code></pre><h2 id="title">title</h2>
 <p>The <code>Title</code> key lets you set a title for your HTML page.
 This has a number of important benefits.</p>
 <ul>
@@ -374,7 +304,7 @@ in the USA</li>
 </ul>
 <p>Example:</p>
 <pre><code>---
-Title: &quot;Static generator overview&quot;
+title: &quot;Static generator overview&quot;
 ---
 
 Here's your <no value>.
@@ -384,21 +314,21 @@ Here's your <no value>.
 read as shown beloe in a web browser:</p>
 <pre><code>Here's your Static generator overview
 </code></pre>
-<h2 id="stylesheets">Stylesheets</h2>
+<h2 id="stylesheets">stylesheets</h2>
 <p>Causes a <code>&lt;style&gt;</code> to be inserted into the file
 for each file in the list.</p>
 <h3 id="example-5">Example</h3>
 <p>Using these <code>Stylesheets</code> in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Stylesheets</span>:<span style="color:#bbb"> 
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#d14">&#34;poquito.css&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#d14">&#34;https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">stylesheets</span>:<span style="color:#bbb"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#a50">&#34;poquito.css&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#a50">&#34;https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Causes this HTML to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">link</span> <span style="color:#008080">rel</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;stylesheet&#34;</span> <span style="color:#008080">href</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;poquito.css&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#000080">link</span> <span style="color:#008080">rel</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;stylesheet&#34;</span> <span style="color:#008080">href</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css&#34;</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">link</span> <span style="color:#1e90ff">rel</span>=<span style="color:#a50">&#34;stylesheet&#34;</span> <span style="color:#1e90ff">href</span>=<span style="color:#a50">&#34;poquito.css&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">link</span> <span style="color:#1e90ff">rel</span>=<span style="color:#a50">&#34;stylesheet&#34;</span> <span style="color:#1e90ff">href</span>=<span style="color:#a50">&#34;https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/pocodocs.css&#34;</span>&gt;
 </span></span></code></pre><p>xxxx</p>
-<h1 id="styletags">Styletags</h1>
+<h1 id="style-tags">style-tags</h1>
 <p>Causes a <code>&lt;style&gt;</code> tag to be inserted into the file
 for each line in the list. Because they
 are inserted after <a href="#stylesheets">Stylesheets</a> they
@@ -408,16 +338,17 @@ It's a good way to develop stylesheets slowly, or
 to override colors for a light them to make it
 dark, and vice versa.</p>
 <h3 id="example-6">Example</h3>
-<p>Using this <code>Styletags</code> entry in the front matter:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#555">---</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#000080">Styletags</span>:<span style="color:#bbb"> 
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#d14">&#34;article&gt;p{color:blue;}&#34;</span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#555">---</span><span style="color:#bbb">
+<p>Using this <code>style-tags</code> entry in the front matter:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#1e90ff;font-weight:bold">style-tags</span>:<span style="color:#bbb"> 
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#a50">&#34;article&gt;p{color:blue;}&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#0aa;text-decoration:underline">---</span><span style="color:#bbb">
 </span></span></span></code></pre><p>Will cause the text on this page to be blue.</p>
 <p>Causes this HTML to be generated:</p>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#000080">style</span>&gt;<span style="color:#000080">article</span><span style="color:#000;font-weight:bold">&gt;</span><span style="color:#000080">p</span>{<span style="color:#000;font-weight:bold">color</span>:<span style="color:#000;font-weight:bold">blue</span>;}&lt;/<span style="color:#000080">style</span>&gt;
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>&lt;<span style="color:#1e90ff;font-weight:bold">style</span>&gt;<span style="color:#1e90ff;font-weight:bold">article</span>&gt;<span style="color:#1e90ff;font-weight:bold">p</span>{<span style="color:#00a">color</span>:<span style="color:#00a">blue</span>;}&lt;/<span style="color:#1e90ff;font-weight:bold">style</span>&gt;
 </span></span></code></pre>	</article>
 </div><!-- content-wrap -->
-	</div><!-- page-container -->
+	<footer id="footer-poco"><p><em>Powered by <a href="https://pococms.com">PocoCMS</a></em> · Copyright 2022 by Tom Campbell</p>
+</footer></div><!-- page-container -->
 </body>
 </html>

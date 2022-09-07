@@ -5,7 +5,9 @@ aside: aside.md
 footer: footer.md
 
 stylesheets:
-- ../../assets/css/poquito.css
+- "../../css/poquito.css"
 - pococms.css
+
+
 ---
 

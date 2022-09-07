@@ -5,7 +5,7 @@ header: header.md
 
 stylesheets:
   - reset.css
-  - ../../assets/css/poquito.css
+  - ../../css/poquito.css
   - ../../assets/css/layout.css
   - informer.css
 #  - dark.css

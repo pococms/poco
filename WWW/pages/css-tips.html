@@ -4,13 +4,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Powered by PocoCMS</title>
-<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+<style>html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 
 /* Make touch interaction faster */
 a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
 
-/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
 p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
 
 /* HTML5 display-role reset for older browsers */
@@ -24,63 +24,7 @@ table {
 	border-collapse: collapse;
 }
  
-#page-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#content-wrap {
-  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
-}
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
-header{height:10vh;}
-nav{height:10vh;}
-article{padding-left:10vh}
-aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  height:100vh;
-  width:20rem;
-  padding:1rem 10rem 1rem 1rem;
-}
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid;
-}
-code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-}
-pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
-}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid LightGray;
-}
-@media (max-width:1080px){
-  aside{display:none}
- article{padding:1rem;}
-}
-@media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
-}
- 
+
 /* pococms.css */
 html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
 header > ul {list-style-type:none;display:inline;}
@@ -92,45 +36,39 @@ header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;m
 article > h1 {color:red;}
 article > p,article > dl{line-height:1.75rem;font-size:large}
 article > {width:20rem;}
+
+header,footer{width:50rem;margin-left:8rem;margin-right:8rem;text-align:left;padding-bottom:4rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
 article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
 article > ul > li {font-size:larger;line-height:1.75rem;}
 article{margin:0 8rem 0 8rem}
-header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
-article>p>code,article>p>pre,article>p>kbd{background-color:ghostwhite;font-size:smaller;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
-article{width:50rem;}
-article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem}
+article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
+article{width:50rem;padding:auto 4rem auto 4rem;}
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;padding-bottom:2rem;color:blue;}
 article>h2{padding-top:2.5rem;}
-pre{border:1px solid gray;padding:1rem;background-color:ghostwhite;margin:1rem 0 1rem 0 !important} /* block, not inline */
-article>p{font-familiy:serif; !important}
+pre{border:1px solid gray;padding:1rem;width:50rem;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
 
-/* FAILED
- *
- * article>pre>code{background-color:yellow}
- * article>pre{background-color:yellow}
- *
- * article>p>pre>code{background-color:yellow}
- *
- * */
-</style>
-</head>
+
+</style></head>
 <body>
 <div id="page-container">
 <div id="content-wrap">
-	<header><ul>
+	<header id="header-poco"><ul>
 <li><a href="/#">poco<del>CMS</del></a></li>
 <li><a href="../pages/build-from-source.html">Download</a></li>
 <li><a href="../pages/reference.html">Documentation</a></li>
-<li><a href="../pages/tutorials.html">Tutorials</a></li>
-<li><a href="../pages/technical-overview.html">Technical Overview</a></li>
-</ul></header>
-			<article id="article"><h1 id="css-tips">CSS tips</h1>
-<h1 id="todo-write-downloadable-fonts-section-styletags-section">TODO: write Downloadable Fonts section, StyleTags section</h1>
+<li><a href="https://github.com/pococms/poco">GitHub</a></li>
+</ul>
+</header>
+	
+	
+<article id="article"><h1 id="css-tips">CSS tips</h1>
+<h1 id="todo-downloadable-fonts-styletags">TODO: Downloadable Fonts, StyleTags</h1>
 <p>In case you're new to CSS, here's some handy code
 you can drop right into your own themes.</p>
 <h2 id="contents">Contents</h2>
-<p><a href="#centering">Centering old-school</a>
+<p><a href="#centering">Centering old-school</a><br />
 <a href="#font-stacks">Font stacks</a><br />
 <a href="#downloadble-fonts">Downloadable fonts</a></p>
 <h2 id="centering">Centering</h2>
@@ -139,7 +77,7 @@ old techniques that will work on any mobile browser.
 Replace <code>header</code> with whatever element you want centered.</p>
 <pre><code>header {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
 </code></pre>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="font-stacks"></a></p>
 <h2 id="font-stacks-for-sans-serif-serif-and-monospace">Font stacks for sans-serif, serif, and monospace</h2>
 <p>HTML defines <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font-family">font families</a> such as <code>sans-serif</code>, <code>serif</code>, and <code>monospace</code>.
 The standard doesn't go much beyond specifying their rough outlines.</p>
@@ -147,7 +85,7 @@ The standard doesn't go much beyond specifying their rough outlines.</p>
 <a href="https://en.wikipedia.org/wiki/Core_fonts_for_the_Web">contributions</a> to help
 make better fonts available to a wide audience.</p>
 <p>Since there's no way to know exactly what fonts are on your system, you
-can specifiy a <code>font-family</code> that specifies the order in which you want
+can specify a <code>font-family</code> that specifies the order in which you want
 these fonts to be used if they're available. The great thing about <code>font-family</code>
 is that you're always guaranteed some kind of useful minimum.</p>
 <p>Font families have page size overhead, unlike <a href="#downloadable-fonts">downloadable fonts</a>.</p>
@@ -163,10 +101,10 @@ but it could just as easily be replaced with
 <p>Standard CSS for a sans-serif font stack:</p>
 <pre><code>article{font-family:&quot;system-ui&quot;,&quot;-apple-system&quot;,&quot;LucidaGrandeUI&quot;,&quot;HelveticaNeueDeskInterface-Regular&quot;,&quot;HelveticaNeueDeskInterface-Light&quot;,&quot;DroidSans&quot;,&quot;Ubuntu Light&quot;,&quot;Arial&quot;,&quot;Roboto-Light&quot;,&quot;Segoe UI Light&quot;,&quot;Tahoma&quot;,&quot;sans-serif&quot;;}
 </code></pre>
-<p>As a <a href="styletag.html">StyleTag</a>:</p>
+<p>As a <a href="style-tags.html">style tag</a>:</p>
 <pre><code>  ---
-  StyleTags:
-    - article{font-family:'system-ui','-apple-system','LucidaGrandeUI','HelveticaNeueDeskInterface-Regular','HelveticaNeueDeskInterface-Light','DroidSans','Ubuntu Light','Arial','Roboto-Light','Segoe UI Light','Tahoma','sans-serif';}
+  style-tags:
+    - &quot;article{font-family:'system-ui','-apple-system','LucidaGrandeUI','HelveticaNeueDeskInterface-Regular','HelveticaNeueDeskInterface-Light','DroidSans','Ubuntu Light','Arial','Roboto-Light','Segoe UI Light','Tahoma','sans-serif';}&quot;
   ---
 </code></pre>
 <h3 id="font-stack-for-a-more-elegant-serif">Font stack for a more elegant <code>serif</code></h3>
@@ -179,9 +117,10 @@ but it could just as easily be replaced with
 <p>Standard CSS for Palatino-style font stack:</p>
 <pre><code>article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}
 </code></pre>
-<p>As a <a href="styletag.html">StyleTag</a>:</p>
+<p>As a <a href="style-tags.html">style-tag</a>:</p>
 <pre><code>  ---
-    - article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}
+  style-tags:
+   - &quot;article{'Palatino Linotype','Palatino','Georgia','Times','Times New Roman','New York','serif';}&quot;
   ---
 </code></pre>
 <h3 id="font-stack-for-monospace">Font stack for <code>monospace</code></h3>
@@ -194,15 +133,17 @@ but it could just as easily be replaced with
 <p>Standard CSS for monospace font stack:</p>
 <pre><code>article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}
 </code></pre>
-<p>As a <a href="styletag.html">StyleTag</a>:</p>
+<p>As a <a href="style-tags.html">style tag</a>:</p>
 <pre><code>  ---
-    - article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}
+  style-tags:
+    - &quot;article{font-family:Consolas,Monaco,Menlo,'DejaVue Sans Mono','Lucida Console',monospace;}&quot;
   ---
 </code></pre>
 <h2 id="downloadable-fonts">Downloadable Fonts</h2>
 <h3 id="todo-write-this-section-">TODO: Write this section ;)</h3>
 	</article>
 </div><!-- content-wrap -->
-	</div><!-- page-container -->
+	<footer id="footer-poco"><p><em>Powered by <a href="https://pococms.com">PocoCMS</a></em> · Copyright 2022 by Tom Campbell</p>
+</footer></div><!-- page-container -->
 </body>
 </html>

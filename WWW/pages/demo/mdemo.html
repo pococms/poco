@@ -4,13 +4,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Powered by PocoCMS</title>
-<!-- EMBEDDED STYLE --><style>html {box-sizing: border-box;}
+<style>html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 
 /* Make touch interaction faster */
 a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
 
-/* Largely undocumented and fails nvu validation. But removing it causesd subtle problems, for example, adding extra left padding in header. */
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
 p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
 
 /* HTML5 display-role reset for older browsers */
@@ -24,63 +24,7 @@ table {
 	border-collapse: collapse;
 }
  
-#page-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#content-wrap {
-  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
-}
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
-header{height:10vh;}
-nav{height:10vh;}
-article{padding-left:10vh}
-aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  height:100vh;
-  width:20rem;
-  padding:1rem 10rem 1rem 1rem;
-}
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid;
-}
-code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-}
-pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
-}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid LightGray;
-}
-@media (max-width:1080px){
-  aside{display:none}
- article{padding:1rem;}
-}
-@media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
-}
- 
+
 /* pococms.css */
 html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
 header > ul {list-style-type:none;display:inline;}
@@ -92,41 +36,38 @@ header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;m
 article > h1 {color:red;}
 article > p,article > dl{line-height:1.75rem;font-size:large}
 article > {width:20rem;}
+
+header,footer{width:50rem;margin-left:8rem;margin-right:8rem;text-align:left;padding-bottom:4rem;}
 article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
 article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
 article > ul > li {font-size:larger;line-height:1.75rem;}
 article{margin:0 8rem 0 8rem}
-header{margin-left:10rem;text-align:left;padding-bottom:4rem;}
-article>p>code,article>p>pre,article>p>kbd{background-color:ghostwhite;font-size:smaller;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
-article{width:50rem;}
-article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem}
+article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
+article{width:50rem;padding:auto 4rem auto 4rem;}
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;padding-bottom:2rem;color:blue;}
 article>h2{padding-top:2.5rem;}
-pre{border:1px solid gray;padding:1rem;background-color:ghostwhite;margin:1rem 0 1rem 0 !important} /* block, not inline */
-article>p{font-familiy:serif; !important}
+pre{border:1px solid gray;padding:1rem;width:50rem;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
 
-/* FAILED
- *
- * article>pre>code{background-color:yellow}
- * article>pre{background-color:yellow}
- *
- * article>p>pre>code{background-color:yellow}
- *
- * */
-</style>
-</head>
+
+</style></head>
 <body>
 <div id="page-container">
 <div id="content-wrap">
-	<header><ul>
+	<header id="header-poco"><ul>
 <li><a href="/#">poco<del>CMS</del></a></li>
 <li><a href="../pages/build-from-source.html">Download</a></li>
 <li><a href="../pages/reference.html">Documentation</a></li>
-<li><a href="../pages/tutorials.html">Tutorials</a></li>
-<li><a href="../pages/technical-overview.html">Technical Overview</a></li>
-</ul></header>
-			<article id="article"><h1 id="metabuzz-markdown-quick-reference">Metabuzz Markdown quick reference</h1>
-<p>When in the course of human events, it becomes necessary for one people to dissolve the political bands that connect one another</p>
+<li><a href="https://github.com/pococms/poco">GitHub</a></li>
+</ul>
+</header>
+	
+	
+<article id="article"><h1 id="pococms-markdown-quick-reference">PocoCMS Markdown quick reference</h1>
+<p>This page serves as a Markdown quick reference.
+It is also gives you a good idea of how a
+classless CSS framework can operate in the
+real world.</p>
 <h2 id="table-of-contents">Table of contents</h2>
 <ul>
 <li><a href="#common-text-formatting">Common text formatting</a></li>
@@ -175,6 +116,7 @@ article>p{font-familiy:serif; !important}
 </code></pre>
 <h4 id="it-shows-as-2">It shows as:</h4>
 <p><a href="https://htmlcolorcodes.com/color-names/">HTML color names</a></p>
+<p><a id="handmade-anchor"><a></p>
 <h2 id="bookmarks">Bookmarks</h2>
 <p>Suppose you want to link to a particular location inside a page. As long as there's an <code>id</code> attribute in the document's HTML you can cause a link to jump directly to that part of the page by specifing the link following a <code>#</code> character.</p>
 <h3 id="linking-inside-a-document">Linking inside a document</h3>
@@ -185,7 +127,7 @@ although the HTML specification simply calls it the <a href="https://html.spec.w
 </code></pre>
 <p>The result will be this (click the link, then use your browser's Back button to return here):</p>
 <p>Jump to the <a href="#tables">tables</a> section.</p>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="automatic-bookmarks"></a></p>
 <h3 id="all-headers-are-automatically-bookmarks-too">All headers are automatically bookmarks too</h3>
 <p>Metabuzz automatically generates an <code>id</code> attribute for each header from h1 to h6 by taking the text of the link itself, reducing it to lowercase, and either replacing spaces and other non-letter characters with hyphens, or removing them altogether. If you look at the HTML for this page you'll see the <code>Tables</code> header looks like this:</p>
 <pre><code>&lt;h2 id=&quot;tables&quot;&gt;Tables&lt;/h2&gt;
@@ -196,19 +138,19 @@ although the HTML specification simply calls it the <a href="https://html.spec.w
 <p>And the more complicated example of the header named &quot;The 'third' list type: definition lists&quot;:</p>
 <pre><code>&lt;h3 id=&quot;the-third-list-type-definition-lists&quot;&gt;The &quot;third&quot; list type: definition lists&lt;/h3&gt;
 </code></pre>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="bookmarks-unique"></a></p>
 <h3 id="bookmarks-must-be-unique-in-an-html-document">Bookmarks must be unique in an HTML document</h3>
 <p>The <code>id</code> attribute must be unique within a document. Notice how on this page there are many headers simply called <code>You type:</code>? Metabuzz keeps track of them and turns each of them into unique IDs by naming them <code>you-type-1</code>, <code>you-type-2</code>, and so forth.</p>
 <h3 id="how-to-create-bookmarks-manually">How to create bookmarks manually</h3>
 <p>Suppose you want a bookmark that's not a header? You can insert one anywhere by starting a Markdown line with the pure HTML code for anchors. (HTML is <a href="https://spec.commonmark.org/0.29/#html-blocks">allowed in Markdown with a few restrictions</a>).</p>
 <p>You type:</p>
-<pre><code>&lt;a name=&quot;jump-here&quot;&gt;&lt;/a&gt;
+<pre><code>&lt;a id=&quot;jump-here&quot;&gt;&lt;/a&gt;
 </code></pre>
 <p>Then you create a link to it by adding the <code>#jump-here</code> portion to a link, which is noted by the web browser but not displayed:</p>
 <pre><code>[Learn about blockquotes](#jump-here)
 </code></pre>
 <p>Try it now: <a href="#jump-here">Learn about blockquotes</a></p>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a id=linking-other-websites></a></p>
 <h3 id="linking-to-bookmarks-on-other-websites">Linking to bookmarks on other websites</h3>
 <p>You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:</p>
 <h4 id="you-type-3">You type:</h4>
@@ -236,7 +178,7 @@ although the HTML specification simply calls it the <a href="https://html.spec.w
 <p>You can format text inline as <code>code</code> by surrounding text with <code>`</code>tick marks<code>`</code>, or go block style by enclosing the lines of code in a &quot;fenced code block&quot;, which begin and end with 3 tickmarks:</p>
 <pre><code>You can format text inline as `code`, or go block style:
 </code></pre>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="choose-pl"></a></p>
 <h3 id="choosing-the-programming-language">Choosing the programming language</h3>
 <p>You can specify a color scheme for a particular programming language by including its name after the first 3 tick marks of the code block.</p>
 <h4 id="you-type-5">You type:</h4>
@@ -245,14 +187,14 @@ print (&quot;This is a code block&quot;)
 ```
 </code></pre>
 <h4 id="it-shows-as-4">It shows as:</h4>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0086b3">print</span> (<span style="color:#d14">&#34;This is a code block&#34;</span>)
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa">print</span> (<span style="color:#a50">&#34;This is a code block&#34;</span>)
 </span></span></code></pre><h4 id="if-youre-a-go-programmer-you-type">If you're a Go programmer, you type:</h4>
 <pre><code>```go
 fmt.Println(&quot;This is a code block&quot;)
 ```
 </code></pre>
 <h4 id="it-shows-as-5">It shows as:</h4>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>fmt.<span style="color:#900;font-weight:bold">Println</span>(<span style="color:#d14">&#34;This is a code block&#34;</span>)
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>fmt.<span style="color:#0a0">Println</span>(<span style="color:#a50">&#34;This is a code block&#34;</span>)
 </span></span></code></pre><h2 id="there-are-2-or-3-kinds-of-list-types">There are 2 or 3 kinds of list types</h2>
 <h4 id="you-type-6">You type:</h4>
 <pre><code>### Ordered lists
@@ -307,7 +249,7 @@ the same, whereas ordered lists show as automatically generated sequences of let
 </ul>
 </li>
 </ul>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="def-lists"></a></p>
 <h3 id="the-third-list-type-definition-lists">The &quot;third&quot; list type: definition lists</h3>
 <p>A definition list lets you display things like an item
 and its meaning in a distinct way:</p>
@@ -329,7 +271,7 @@ and an explanation for it</dd>
 <dd>A convention for generating HTML from a more human-readable
 source format.</dd>
 </dl>
-<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<p><a name="clickable-images"></a></p>
 <h3 id="creating-clickable-image-links-in-markdown">Creating clickable image links in Markdown</h3>
 <p>Remember that a Markdown link looks like this:</p>
 <pre><code>[Twitter](https://twitter.com)
@@ -386,10 +328,16 @@ Headers are always centered.</p>
 <p><a href="#bookmarks">Return to the bookmarks section</a></p>
 <h2 id="html-forms">HTML forms</h2>
 <p><strong>HTML form test: Search reddit.com</strong></p>
-<!-- raw HTML omitted -->
+<form action="https://www.google.com/search" class="searchform" method="get" name="searchform" target="_blank">
+<input name="sitesearch" type="hidden" value="reddit.com">
+<input autocomplete="on" name="q" placeholder="Search reddit.com" required="required"  type="text">
+<button class="button" type="submit">Search</button>
+</form>
 <h2 id="footer">Footer</h2>
+<p>Return to the <a href="#handmade-anchor">Bookmarks</a></p>
 	</article>
 </div><!-- content-wrap -->
-	</div><!-- page-container -->
+	<footer id="footer-poco"><p><em>Powered by <a href="https://pococms.com">PocoCMS</a></em> · Copyright 2022 by Tom Campbell</p>
+</footer></div><!-- page-container -->
 </body>
 </html>

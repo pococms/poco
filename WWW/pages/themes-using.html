@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Powered by PocoCMS</title>
+<style>html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
+table {
+  /* Cells in a table share borders */
+	border-collapse: collapse;
+}
+ 
+
+/* pococms.css */
+html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
+header > ul {list-style-type:none;display:inline;}
+header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
+header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
+header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
+article > h1 {color:red;}
+article > p,article > dl{line-height:1.75rem;font-size:large}
+article > {width:20rem;}
+
+header,footer{width:50rem;margin-left:8rem;margin-right:8rem;text-align:left;padding-bottom:4rem;}
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+article{margin:0 8rem 0 8rem}
+article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
+article{width:50rem;padding:auto 4rem auto 4rem;}
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;padding-bottom:2rem;color:blue;}
+article>h2{padding-top:2.5rem;}
+pre{border:1px solid gray;padding:1rem;width:50rem;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
+
+
+</style></head>
+<body>
+<div id="page-container">
+<div id="content-wrap">
+	<header id="header-poco"><ul>
+<li><a href="/#">poco<del>CMS</del></a></li>
+<li><a href="../pages/build-from-source.html">Download</a></li>
+<li><a href="../pages/reference.html">Documentation</a></li>
+<li><a href="https://github.com/pococms/poco">GitHub</a></li>
+</ul>
+</header>
+	
+	
+<article id="article"><h1 id="using-pococms-themes">Using PocoCMS themes</h1>
+<p>The easiest way to style the appearance of your site
+is to use themes. PocoCMS has two kinds of themes: global
+and page.</p>
+<p>A <a href="glossary.html#global-theme">global theme</a> creates
+default styling for every page
+in your site. A <a href="glossary.html#page-theme">page theme</a> applies only to
+that page, so if it's named in the front matter of your page,
+the global theme, if any, is ignored on that page.</p>
+<h2 id="global-theme">Global theme</h2>
+<p>A global <a href="glossary.htmle#theme">theme</a> creates
+default styling for every page
+in your site. It's specified using <code>global-theme</code>
+in the front matter. It can only be used on your
+<a href="glossary.html#home-page">home page</a>.</p>
+<p>To apply a global theme named &quot;pocodocs&quot; to
+all pages on your site by default:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#1e90ff;font-weight:bold">global-theme</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;pocodocs&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span></code></pre><p>See also <a href="#page-theme">page theme</a></p>
+<h2 id="special-rule">Special rule</h2>
+<p>A page theme overrides the global theme.
+The global theme is set on the <a href="glossary.html#home-page">home page</a></p>
+<p>So what happens if you use both <code>theme</code> and <code>global-theme</code> on
+the same page? In the case of the home page, the rule is clear.</p>
+<p>Although <code>global-theme</code> sets the default theme, it's overriden
+by <code>theme</code>. This special rule only applies to the home page,
+because only the home page lets you set the global theme.</p>
+<h2 id="page-theme">page theme</h2>
+<p>A page <a href="glossary.htmle#theme">theme</a> applies
+theme styling on a per-page basis. It overrides any <a href="#global-theme">global theme</a>
+It's specified using <code>theme</code> in the front matter.</p>
+<p>To apply a theme named <code>informer</code> to
+the currentpage:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#1e90ff;font-weight:bold">theme</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;informer&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span></code></pre><h3 id="can-a-page-have-both-global-and-page-themes">Can a page have both global and page themes?</h3>
+<p>You may be wondering what happens if you do this:</p>
+<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#1e90ff;font-weight:bold">global-theme</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;pocodocs&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#1e90ff;font-weight:bold">theme</span>:<span style="color:#bbb"> </span><span style="color:#a50">&#34;informer&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span>---<span style="color:#bbb">
+</span></span></span></code></pre><p>There is only one condition where this makes any kind of sense.</p>
+<p>Note this only cano only work on the <a href="glossary-html#home-page">home page</a>,
+because <code>global-theme</code> is ignored on all other pages. Since <code>global-theme</code>
+establishes a preset to be used if no other theme is mentioned on
+a page, and since <code>theme</code> overrides the global theme,
+the preceding example would cause the theme named &quot;informer&quot;
+to be used on the home page itself.</p>
+<p>PocoCMS has  a <a href="#special-rule">special rule</a> that the home page normally
+uses the global theme, but only if no page theme has been specified.</p>
+	</article>
+</div><!-- content-wrap -->
+	<footer id="footer-poco"><p><em>Powered by <a href="https://pococms.com">PocoCMS</a></em> · Copyright 2022 by Tom Campbell</p>
+</footer></div><!-- page-container -->
+</body>
+</html>

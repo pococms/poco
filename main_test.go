@@ -8,7 +8,7 @@ import (
 
 // All front matter keys that return strings
 var fmAllStr = `---
-Title: PocoCMS title
+title: PocoCMS title
 ---
 `
 
@@ -23,7 +23,7 @@ type stringTest struct {
 
 // Plan to get all string values here
 var stringTests = []stringTest{
-	{"Title", "PocoCMS title"},
+	{"title", "PocoCMS title"},
 }
 
 // fmtTest
@@ -62,8 +62,8 @@ func TestMissingTitleTag(t *testing.T) {
 
 	//value := fmTest("Title", fm)
 	expected := "\t<title>" + tagLine + "</title>\n"
-	actual := titleTag(fm)
+	actual := fmStr("title", fm)
 	if actual != expected {
-		t.Errorf("FrontMatter[\"Title\"]: expected \"%s\", actual \"%s\"", expected, actual)
+		t.Errorf("FrontMatter[\"title\"]: expected \"%s\", actual \"%s\"", expected, actual)
 	}
 }

@@ -1,10 +1,6 @@
----
-theme: "pages/themes/probot"
----
-
 # Building PocoCMS from source
 
-Until 1 September 2022 PocoCMS must be built from source using Go.
+Until 15 September 2022 PocoCMS must be built from source using Go.
 It's easy to install Go and even to build, because
 PocoCMS is a single file.
 
@@ -14,25 +10,25 @@ PocoCMS is a single file.
 * Install [git](https://git-scm.com/downloads) if necessary.
 * Create a directory or change to a directory to install PocoCMS.
 
-```
+```bash
 mkdir ~/pococms
 ```
 
 * Navigate to that directory.
 
-```
+```bash
 cd ~/pococms
 ```
 
 * Clone the PocoCMS repo
 
-```
+```bash
 git clone https://github.com/pococms/poco
 ```
 
 * The repo is now in ~/pococms/poco, (in this example) so navigate there.
 
-```
+```bash
 cd poco
 ```
 
@@ -40,7 +36,7 @@ cd poco
 
 * And compile: 
 
-```
+```bash
 go build 
 ```
 
@@ -51,7 +47,7 @@ go build
 That runs the go compiler on the single `main.go` 
 containing PocoCMS, then executes PocoCMS.
 
-```
+```bash
 go run main.go
 ```
 

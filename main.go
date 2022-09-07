@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	//"github.com/13rac1/goldmark-embed"
+	ytembed "github.com/13rac1/goldmark-embed"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -1838,6 +1838,8 @@ func mdYAMLFileToHTMLString(c *config, filename string) (string, error) {
 	}
 }
 
+// newGoldmark() allocates a Goldmark parser with a
+// raft of other options.
 func newGoldmark() goldmark.Markdown {
 	exts := []goldmark.Extender{
 		meta.New(
@@ -1849,9 +1851,10 @@ func newGoldmark() goldmark.Markdown {
 		extension.DefinitionList,
 		extension.Footnote,
 		extension.Linkify,
-		//goldmark-embed.New(),
+    // YouTube embedding
+		ytembed.New(),
 		highlighting.NewHighlighting(
-			highlighting.WithStyle("github"),
+			highlighting.WithStyle("autumn"),
 			highlighting.WithFormatOptions()),
 	}
 

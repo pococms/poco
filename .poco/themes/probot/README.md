@@ -2,7 +2,7 @@
 header: header.md
 aside: aside.md
 stylesheets:
-  - ../../assets/css/poquito.css
+  - ../../css/poquito.css
   - probot.css
 ---
 
