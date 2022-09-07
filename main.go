@@ -146,7 +146,7 @@ func (c *config) getFrontMatter(filename string) map[string]interface{} {
 		quit(1, err, c, "%v: convert %s to HTML", filename)
 	}
 
-  // TODO: Is this necessary when just getting the front matter?
+	// TODO: Is this necessary when just getting the front matter?
 	// Execute its templates.
 	if _, err = doTemplate("", rawHTML, newC); err != nil {
 		quit(1, err, c, "%v: Unable to execute ", filename)
@@ -268,36 +268,33 @@ func (c *config) styleTags() string {
 	return c.theme.styleTags
 }
 
+// TODO: Document
+func (c *config) gatherThemeStylesheets(t *theme) {
+	slice := t.stylesheetFilenames
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			debug(filename)
+			// Get full pathname or URL of file.
+			fullPath := regularize(t.dir, filename)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			s := c.getWebOrLocalFileStr(fullPath)
+			t.stylesheets = t.stylesheets + s + "\n"
+		}
+	}
+}
+
 // stylesheets() generates stylesheet tags requested in the front matter.
 // priority.
 // Pre:
 func (c *config) stylesheets() string {
 	// TODO: Refactor
-	slice := c.theme.stylesheetFilenames
-	allFiles := ""
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(c.theme.dir, filename)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			allFiles = allFiles + s + "\n"
-		}
-		allFiles = tagSurround("style", allFiles)
-	}
-	c.theme.stylesheets = allFiles
-	if c.theme.present() {
-		return c.theme.stylesheets
-	}
-
-	if c.globalTheme.present() {
-		return c.globalTheme.stylesheets
-	}
-	return ""
-	//return c.globalTheme.stylesheets + allFiles
+	c.gatherThemeStylesheets(&c.theme)
+	c.gatherThemeStylesheets(&c.globalTheme)
+	s := tagSurround("style", c.globalTheme.stylesheets+c.theme.stylesheets)
+	return s
 }
 
 // theme contains all the (lightweight) files needed for a theme:
@@ -439,8 +436,8 @@ type config struct {
 	themeList bool
 
 	// Contents of the global (default) theme directory
-	globalTheme theme
-  newglobalTheme *theme
+	globalTheme    theme
+	newglobalTheme *theme
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	timestamp bool
@@ -595,8 +592,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 	return s
 }
 
-
-
 // getTheme() takes the name of a theme directory and returns
 // the name of the page layout files, stylesheets, style tags
 // in the theme object. It does not read any of those files in.
@@ -700,7 +695,7 @@ func (c *config) loadPageTheme() {
 	// If this is the home page, a global theme was defined, and not
 	// theme was defined for this page, just assume the user wants
 	// to use the global theme
-  // TODO: FAILS
+	// TODO: FAILS
 	if c.currentFile() == c.homePage {
 		if !c.theme.present() && c.globalTheme.present() {
 			c.theme = c.getTheme(c.globalTheme.dir)
@@ -721,18 +716,17 @@ func (c *config) loadPageTheme() {
 
 }
 
-
 func (c *config) readThemeAndFrontMatter(filename string) (*map[string]interface{}, *theme) {
-  f := c.getFrontMatter(filename)  
-  themeDir := ""
-  if filename == c.homePage {
-    themeDir = fmStr("global-theme", f)
-  } else {
-    themeDir = fmStr("theme", f)
-  }
-  t := c.getTheme(themeDir)
-  //wait("readThemeAndFrontMatter: themeDir is %s, theme is %+v", themeDir, t)
-  return &f, &t
+	f := c.getFrontMatter(filename)
+	themeDir := ""
+	if filename == c.homePage {
+		themeDir = fmStr("global-theme", f)
+	} else {
+		themeDir = fmStr("theme", f)
+	}
+	t := c.getTheme(themeDir)
+	//wait("readThemeAndFrontMatter: themeDir is %s, theme is %+v", themeDir, t)
+	return &f, &t
 }
 
 // layoutElement() takes a layout element file named in the front matter
@@ -898,7 +892,7 @@ func (c *config) setupGlobals() { //
 	// Only read it through c.currentFile() after this
 	c.currentFilename = c.homePage
 
-  c.loadTheme(c.homePage)
+	c.loadTheme(c.homePage)
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
@@ -906,33 +900,30 @@ func (c *config) setupGlobals() { //
 
 func (c *config) loadTheme(filename string) {
 
-  if filename == c.homePage {
-    fm, theme := c.readThemeAndFrontMatter(filename)
-    c.globalTheme.readFm(*fm)
-    c.layout(theme)
-    c.globalTheme = *theme
-    c.globalFm = *fm
-    //wait("Global theme: %s, header: %+v, front matter: %+v", c.globalTheme.dir, c.globalTheme.header, c.globalFm)
-  } else {
-    fm, theme := c.readThemeAndFrontMatter(filename)
-    if theme.dir == "" && c.globalTheme.dir != "" {
-      theme = &c.globalTheme
-    } else {
-    }
-    c.theme.readFm(*fm)
-    c.layout(theme)
-    c.theme = *theme
-    c.fm = *fm
-    //wait("page theme: %s, header: %+v, front matter: %+v", c.theme.dir, c.theme.header, c.fm)
-  }
+	if filename == c.homePage {
+		fm, theme := c.readThemeAndFrontMatter(filename)
+		c.globalTheme.readFm(*fm)
+		c.layout(theme)
+		c.globalTheme = *theme
+		c.globalFm = *fm
+	} else {
+		fm, theme := c.readThemeAndFrontMatter(filename)
+		if theme.dir == "" && c.globalTheme.dir != "" {
+			theme = &c.globalTheme
+		} else {
+		}
+		c.theme.readFm(*fm)
+		c.layout(theme)
+		c.theme = *theme
+		c.fm = *fm
+	}
 
-  // TODO: FAILS
+	// TODO: FAILS
 	if c.currentFile() == c.homePage {
 		if !c.theme.present() && c.globalTheme.present() {
 			c.theme = c.getTheme(c.globalTheme.dir)
 		}
 	}
-
 
 }
 
@@ -943,8 +934,6 @@ func (c *config) layout(t *theme) {
 	c.layoutElement("footer", t)
 }
 
-
-// xxx
 func (t *theme) readFm(fm map[string]interface{}) {
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
@@ -956,36 +945,13 @@ func (t *theme) readFm(fm map[string]interface{}) {
 	t.styleTagNames = fmStrSlice("style-tags", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 }
-/// hydrate
-func (t *theme) hydrate() {
-  /*
-	slice := t.stylesheetFilenames
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(t.dir, filename)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			t.stylesheets = t.stylesheets + s + "\n"
-		}
-		t.stylesheets = tagSurround("style", t.stylesheets)
-	}
-  */
-}
-
 
 // newConfig allocates a config object.
 // sitewide configuration info.
 func newConfig() *config {
-	config := config{
-    // xxxxxx
-  }
-  //config.newglobalFm = make(map[string]interface{}) 
+	config := config{}
+	//config.newglobalFm = make(map[string]interface{})
 	return &config
-
 
 }
 
@@ -1084,7 +1050,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if c.themeList  {
+	if c.themeList {
 		print(c.themeDirContents())
 		os.Exit(0)
 	}
@@ -1153,7 +1119,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		return "", ""
 	}
 	///c.loadPageTheme()
-  c.loadTheme(filename)
+	c.loadTheme(filename)
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
 	// Convert the Markdown file to an HTML string
@@ -1320,11 +1286,11 @@ func (c *config) getSkipPublish() {
 	// Add anything from the -skip command line option
 	list := strings.Split(c.skip, " ")
 	c.skipPublish.list = append(c.skipPublish.list, list...)
-  debug("Adding .poco and .backup to skip list")
-  c.skipPublish.AddStr(".backup")
+	debug("Adding .poco and .backup to skip list")
+	c.skipPublish.AddStr(".backup")
 
 	// Get what's specified in the home page front matter
-  localSlice := fmStrSlice("skip-publish", c.fm)
+	localSlice := fmStrSlice("skip-publish", c.fm)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1664,7 +1630,7 @@ func metatag(tag string, content string) string {
 // Generate common metatags
 func (c *config) metatags() string {
 	return metatag("description", fmStr("description", c.fm)) +
-		metatag("keywords", fmStr("keywords", c.fm) ) +
+		metatag("keywords", fmStr("keywords", c.fm)) +
 		metatag("robots", fmStr("robots", c.fm)) +
 		metatag("author", fmStr("author", c.fm))
 }
@@ -1851,7 +1817,7 @@ func newGoldmark() goldmark.Markdown {
 		extension.DefinitionList,
 		extension.Footnote,
 		extension.Linkify,
-    // YouTube embedding
+		// YouTube embedding
 		ytembed.New(),
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("autumn"),
@@ -2125,11 +2091,11 @@ func (c *config) themeDirContents() string {
 		return ""
 	}
 
-  // Return value: the list of files
-  var s string
+	// Return value: the list of files
+	var s string
 	for _, f := range files {
-    file := f.Name()
+		file := f.Name()
 		s = s + fmt.Sprintf("%s\n", file)
 	}
-  return s
+	return s
 }
