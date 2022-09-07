@@ -67,7 +67,7 @@ func (c *config) scriptAfter() string {
 	// NOTE: Make sure the final } gets inserted
 	// before the closing </code> tag
 
-	slice := c.frontMatterStrSlice("script-after")
+	slice := fmStrSlice("script-after", c.fm)
 	if slice == nil {
 		return ""
 	}
@@ -572,7 +572,6 @@ func regularize(dir string, filename string) string {
 }
 
 // present() returns true if the theme has been loaded
-// Pre: loadGlobalTheme()
 func (t *theme) present() bool {
 	if t.readme != "" {
 		return true
@@ -604,7 +603,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 // So at the end you know what the assets are but haven't done
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
-// See also: hydrateGlobalTheme() which gets called after this
 func (c *config) getTheme(themeDir string) theme {
 	// Return value
 	var theme theme
@@ -694,42 +692,6 @@ func (c *config) header() string {
 	return ""
 }
 
-// hydrateGlobalTheme() reads layout elements, converts, executes
-// templates, and stores them into
-// strings. So theme.headerFilename myheader.md gets located and read into
-// theme.header, and so on.
-func (c *config) hydrateGlobalTheme(t *theme) {
-	if !t.present() {
-		return
-	}
-	c.layoutElement("header", &c.globalTheme)
-	c.layoutElement("nav", &c.globalTheme)
-	c.layoutElement("aside", &c.globalTheme)
-	c.layoutElement("footer", &c.globalTheme)
-
-	// Get list of stylesheets. Combine them into a single file string,
-	// and inject it all into a style tag.
-
-	slice := t.stylesheetFilenames
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(t.dir, filename)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			t.stylesheets = t.stylesheets + s + "\n"
-		}
-		t.stylesheets = tagSurround("style", t.stylesheets)
-	}
-}
-
-func (t *theme) sheets() string {
-	return ""
-}
-
 func (c *config) loadPageTheme() {
 
 	// Load up front matter for this page
@@ -771,24 +733,6 @@ func (c *config) readThemeAndFrontMatter(filename string) (*map[string]interface
   t := c.getTheme(themeDir)
   //wait("readThemeAndFrontMatter: themeDir is %s, theme is %+v", themeDir, t)
   return &f, &t
-}
-
-// loadGlobalTheme() reads in the default theme, if one is requested.
-// It only works on the home page
-func (c *config) loadGlobalTheme() {
-	// Load up front matter for the home page, which is distinguished.
-	c.globalFm = c.getFrontMatter(c.homePage)
-
-	// Get the theme name, which is a directory.
-	c.globalTheme.dir = fmStr("global-theme", c.globalFm)
-
-	// Obtain the theme filenames, overriding style sheets, styletags
-	c.globalTheme = c.getTheme(c.globalTheme.dir)
-
-	// this is the global theme, so read all page elments into strings:
-	// The file named in FrontMatter: header is stored in theme.headerFilename,
-	// but its contents are then stored in theme.header.
-	c.hydrateGlobalTheme(&c.globalTheme)
 }
 
 // layoutElement() takes a layout element file named in the front matter
@@ -1380,7 +1324,7 @@ func (c *config) getSkipPublish() {
   c.skipPublish.AddStr(".backup")
 
 	// Get what's specified in the home page front matter
-	localSlice := c.frontMatterStrSlice("skip-publish")
+  localSlice := fmStrSlice("skip-publish", c.fm)
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
@@ -1694,82 +1638,10 @@ func getProjectTree(path string, skipPublish searchInfo) (tree []string, err err
 
 // Generate HTML
 
-// Generate <link> tags
-
-// frontMatterStr obtains a string value from the front matter. For example,
-// if you had this code in your Markdown file:
-// ---
-// Title: yo mama
-// ---
-// I like {{ .Title }}
-//
-// It would render like this in the HTML:
-// I like yo mama
-func (c *config) frontMatterStr(key string) string {
-	v := c.fm[strings.ToLower(key)]
-	value, ok := v.(string)
-	if !ok {
-		return ""
-	}
-	return value
-}
-
-// frontMatterStrSlice obtains a list of string values from the front matter.
-// For example, if you had this code in your Markdown file:
-// ---
-// Stylesheets
-//   - 'https://cdn.jsdelivr.net/npm/holiday.css'
-//   - 'fonts.css'
-//
-// ---
-//
-// I like yo mama
-func (c *config) frontMatterStrSlice(key string) []string {
-	if key == "" {
-		return []string{}
-	}
-	v, ok := c.fm[strings.ToLower(key)].([]interface{})
-	if !ok {
-		return []string{}
-	}
-	s := make([]string, len(v))
-	for i, value := range v {
-		r := fmt.Sprintf("%s", value)
-		s[i] = r
-	}
-	return s
-}
-
-// frontMatterStrSliceStr obtains the front matter value at
-// key, which is presumed to be a string array/slice.
-// Returns these values concatenated into a string
-// (each string gets a newline appended for clarity)
-func frontMatterStrSliceStr(key string, c *config) string {
-
-	// Return empty string if no key provided.
-	if key == "" {
-		return ""
-	}
-
-	// Return empty string if requested key has no value
-	// associated with it.
-	v, ok := c.fm[key].([]interface{})
-	if !ok {
-		return ""
-	}
-	//s := make([]string, len(v))
-	var tags string
-	for _, value := range v {
-		tag := fmt.Sprintf("%s\n", value)
-		tags = tags + tag
-	}
-	return tags
-}
-
 // linkTags() obtains the list of link tags from the "LinkTags" front matter
 // and inserts them into the document.
 func (c *config) linktags() string {
-	linkTags := c.frontMatterStrSlice("linktags")
+	linkTags := fmStrSlice("linktags", c.fm)
 	if len(linkTags) < 1 {
 		return ""
 	}
@@ -1780,23 +1652,6 @@ func (c *config) linktags() string {
 	return tags
 }
 
-func (c *config) titleTag() string {
-	title := c.frontMatterStr("title")
-	if title == "" {
-		return "\t<title>" + poweredBy + "</title>\n"
-	} else {
-		return "\t<title>" + title + "</title>\n"
-	}
-}
-
-// Generate common metatags
-func (c *config) metatags() string {
-	return metatag("description", c.frontMatterStr("description")) +
-		metatag("keywords", c.frontMatterStr("keywords")) +
-		metatag("robots", c.frontMatterStr("robots")) +
-		metatag("author", c.frontMatterStr("author"))
-}
-
 // metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
 func metatag(tag string, content string) string {
 	if content == "" || tag == "" {
@@ -1804,6 +1659,25 @@ func metatag(tag string, content string) string {
 	}
 	return "\t<meta name=\"" + tag + "\"" +
 		" content=" + "\"" + content + "\">\n"
+}
+
+// Generate common metatags
+func (c *config) metatags() string {
+	return metatag("description", fmStr("description", c.fm)) +
+		metatag("keywords", fmStr("keywords", c.fm) ) +
+		metatag("robots", fmStr("robots", c.fm)) +
+		metatag("author", fmStr("author", c.fm))
+}
+
+// titleTag turns front matter "title:" value into the
+// all-important HTML <title> tag.
+func (c *config) titleTag() string {
+	title := fmStr("title", c.fm)
+	if title == "" {
+		return "\t<title>" + poweredBy + "</title>\n"
+	} else {
+		return "\t<title>" + title + "</title>\n"
+	}
 }
 
 // PRINTY utilities
@@ -2160,8 +2034,6 @@ func (c *config) fmStrSlice(key string, fm map[string]interface{}) []string {
 // is case-insensitive. So if
 // c.globalFm has a theme named "pages/themes/foo"
 // you'd pass in "theme" and get back "pages/themes/foo"
-// TODO: Document this and reconcile with the less general
-// purpose frontMatterStr
 func fmStr(key string, fm map[string]interface{}) string {
 	v := fm[strings.ToLower(key)]
 	value, ok := v.(string)
