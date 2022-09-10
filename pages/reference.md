@@ -2,6 +2,7 @@
 
 [Technical overview](technical-overview.html)  
 [Using themes](themes-using.html)  
+[Themes technical overview](themes-overview.html)  
 [Creating themes](themes-creating.html)  
 [PocoCMS command line options](cli.html)  
 [PocoCMS glossary](glossary.html)  
@@ -11,6 +12,9 @@
 [Markdown extensions](markdown-extensions.html)  
 [CSS tips](css-tips.html)  
 
+## Internal
+[Release checklist](release-checklist.html)  
+[Documentation conventions](documentation-conventions.html)  
 
 ## HTML references
 * [CSS validator](https://jigsaw.w3.org/css-validator/#validate_by_input)

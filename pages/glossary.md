@@ -1,21 +1,40 @@
 # Glossary
 
 
+## article
+
+The *article* is the main body text of a web page. In the
+example below, the article consists of the worlds `hello, world.`:
+
+```
+---
+theme: ".poco/themes/pocodocs"
+---
+hello, world.
+```
+
+When rendered as an HTML page using the PocoDocs theme, you'll also
+see a header, nav, aside, and footer. Those are *not* part of
+the article. They're known as page [layout elements](#layout-element).
+
+## code block
+
+Synonomous with [code fence](#code-fence)
+
 ## code fence
+
 A [code fence](highlighting.html) surrounds arbitrary text with lines
 consisting of 3 tickmarks: \`\`\` so that the text displays
 in a monospace font. It's good for distinguishing blocks
 of code in an article. Here's an example.
 
 ```
-    ```
     // Return the current time as a string
     func theTime() string {
       t := time.Now()
       s := fmt.Sprintf("%s", t.Format("02 Jan 2006 15:04:05"))
       return s
     }
-    ```
 ```
 
 ## CommmonMark
@@ -42,8 +61,9 @@ of multiple stylesheet names that will  be added as
 separate `<style>` tags in the finished HTML document. 
 
     ---
-    Title: "Introducing PocoCMS"
-    Stylesheets: 
+    title: "Introducing PocoCMS"
+    theme: ".poco/themes/probot"
+    stylesheets: 
     - poquito.css
     - pococms.css
     ---
@@ -63,7 +83,7 @@ See also [page theme](#page-theme)
 
 The home page is a file named either `index.md` or `README.md`
 in the root directory of your project. It has some special
-qualities, for example, it's the only file you can use to 
+properties, for example, it's the only file you can use to 
 `global-theme` to set a theme for the site overall.
 
 *README.md vs index.md*

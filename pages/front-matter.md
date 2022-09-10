@@ -1,5 +1,14 @@
 # Front Matter
 
+# TODO
+[aside](#aside)
+[branding](#branding)
+[header](#header)
+[footer](#footer)
+[nav](#nav)
+[script-after](#script-after)  
+
+
 *Front matter* optionally starts your file. It contains
 instructions for things Markdown can't do for you,
 for example, choosing a theme, inserting Javascript
@@ -16,16 +25,23 @@ front matter options PocoCMS provides.
 
 ## Alphabetical list of front matter options
 
+
+[aside](#aside)
 [author](#author)  
+[branding](#branding)
 [description](#description)  
+[footer](#footer)
 [global-theme](#global-theme)
+[header](#header)
 [keywords](#keywords)  
 [key/value pairs](#keyvalue-pairs)  
 [lang](#lang)
+[nav](#nav)
 [robots](#robots)  
+[script-after](#script-after)  
 [skip-publish](#skippublish)  
-[stylesheets](#stylesheets)  
 [style-tags](#styletags)  
+[stylesheets](#stylesheets)  
 [theme](#theme)
 [title](#title)  
 

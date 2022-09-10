@@ -9,8 +9,7 @@ theme: ".poco/themes/probot"
 
 The `-timestamp` command-line option lets you insert
 a timestamp before the rest of the article text on your
-home page. It also adds a timestamp at the end of 
-project creationg. It helps when server or browser caches are
+home page. Useful when server or browser caches are
 preventing you from changes to your site's output.
 
 ### timestamp example
