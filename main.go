@@ -142,7 +142,7 @@ func (c *config) getFm(filename string) map[string]interface{} {
 	newC := newConfig()
 	// Convert Markdown file, possibly with front matter, to HTML
 	if rawHTML, err = mdYAMLFileToHTMLString(newC, filename); err != nil {
-		quit(1, err, c, "%v: convert %s to HTML", filename)
+		quit(1, err, c, "Problem converting %s to HTML", filename)
 	}
 
 	// TODO: Is this necessary when just getting the front matter?
@@ -179,7 +179,7 @@ func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
 stylesheets:
-    - "https://cdn.jsdelivr.net/gh/pococms/poco/pages/assets/css/poquito.css"
+    - "https://cdn.jsdelivr.net/gh/pococms/poco/.poco/css/poquito.css"
 ---
 `
 	var indexMdBody = `
@@ -237,7 +237,6 @@ func sliceToStylesheetStr(sheets []string) string {
 func (t *theme) tags(fm map[string]interface{}) string {
 	styleTagNames := fmStrSlice("style-tags", fm)
 	t.styleTags = ""
-	// xxx
 	for _, tag := range styleTagNames {
 		s := fmt.Sprintf("\t\t%s\n", tag)
 		t.styleTags = t.styleTags + s
@@ -349,6 +348,16 @@ func (c *config) oldstylesheets() string {
 		}
 	}
 
+	slice = fmStrSlice("stylesheets", c.fm)
+	// xxx
+	if len(slice) > 0 {
+		for _, filename := range slice {
+			fullPath := regularize(c.theme.dir, filename)
+			s := c.getWebOrLocalFileStr(fullPath)
+			c.theme.stylesheets = c.theme.stylesheets + s + "\n"
+		}
+	}
+
 	//c.gatherThemeStylesheets(&c.theme, &c.fm)
 	// xxx
 	//c.gatherThemeStylesheets(&c.globalTheme, &c.globalFm)
@@ -436,7 +445,10 @@ type config struct {
 	cleanup bool
 
 	// # of files copied to webroot
+
 	copied int
+	// mdCopied tracks # of Markdown files converted and copied to webroot
+	mdCopied int
 
 	// Name of Markdown file being processed. NOTE: read it with currentFile() method.
 	currentFilename string
@@ -458,6 +470,9 @@ type config struct {
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
 	homePage string
+	// The finished home page has to be preserved here because it's generated
+	// before there's webroot directory.
+	homePageStr string
 
 	// Command-line flag -lang sets the language of the HTML files
 	lang string
@@ -639,22 +654,6 @@ func regularize(dir string, filename string) string {
 	return ""
 }
 
-func fmStrSlice(key string, fm map[string]interface{}) []string {
-	if key == "" {
-		return []string{}
-	}
-	v, ok := fm[strings.ToLower(key)].([]interface{})
-	if !ok {
-		return []string{}
-	}
-	s := make([]string, len(v))
-	for i, value := range v {
-		r := fmt.Sprintf("%s", value)
-		s[i] = r
-	}
-	return s
-}
-
 // themeDescription() takes the name of a theme directory and returns
 // the name of the page layout files, stylesheets, style tags
 // in the theme object. It does not read any of those files in.
@@ -764,27 +763,29 @@ func (c *config) header() string {
 // Distinguishes between home page and all others.
 // It returns the front matter and theme it found
 func (c *config) getFmTheme(filename string) (*map[string]interface{}, *theme) {
-  debug("\t\tgetFmTheme(%s)", filename)
+	debug("\t\tgetFmTheme(%s)", filename)
 	f := c.getFm(filename)
 
 	themeDir := ""
 	if filename == c.homePage {
 		themeDir = fmStr("theme", f)
-    if themeDir != "" {
-      debug("\t\t\tOverriding global theme")
-      // They want to override the global theme right 
-      // there on the home page
-      themeDir = fmStr("theme", f)
-    } else {
-      // No they don't plan to override the global theme on the home page.
-		  themeDir = fmStr("global-theme", f)
-      if themeDir == "" { 
-        debug("\t\t\tNo global theme specified")
-        c.globalTheme.present = false
-      }
-    } 
+		if themeDir != "" {
+			debug("\t\t\tOverriding global theme")
+			// They want to override the global theme right
+			// there on the home page
+			themeDir = fmStr("theme", f)
+		} else {
+			// No they don't plan to override the global theme on the home page.
+			themeDir = fmStr("global-theme", f)
+			if themeDir == "" {
+				debug("\t\t\tNo global theme specified")
+				c.globalTheme.present = false
+			} else {
+				//debug("\t\t\tglobal theme named: %s", c.globalTheme.dir)
+			}
+		}
 	} else {
-    // Not the home page. Look only
+		// Not the home page. Look only
 		themeDir = fmStr("theme", f)
 	}
 	t := c.themeDescription(themeDir)
@@ -957,10 +958,14 @@ func (c *config) setupGlobals() { //
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
-	c.loadTheme(c.currentFile())
-  // TODO: Fails
+	// Prevent the home page from being read and converted again.
 	c.skipPublish.AddStr(c.currentFile())
 
+	// Create the full HTML document.
+	// Convert the body text to HTML
+	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFile())
+	// xxx
+	// and keep track of how many Markdown files have been converted.
 
 } // setupGlobals
 
@@ -1011,8 +1016,25 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
-		//s := tagSurround(s, "style", "\n")
+	}
 
+	slice = fmStrSlice("stylesheets", c.globalFm)
+	stylesheets = ""
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+			fullPath := regularize(dir, filename)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
+			wait(s)
+			stylesheets = stylesheets + s + "\n"
+		}
+	}
+
+	if s != "" {
 		return "<style>" + s + "</style>" + "\n"
 	}
 	return ""
@@ -1023,22 +1045,19 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 func (c *config) stylesheets() string {
 	// Return value
 	s := ""
-	// Normally stylesheets are inlined.
-	// This allows them to be linked to as usual.
 	if c.externalStylesheets {
+		// Normally stylesheets are inlined.
+		// This allows them to be linked to as usual.
 		s = c.getStylesheets(c.overrideFm)
 	} else {
+		// Inline stylesheets as usual
 		s = c.gatherStylesheets(c.root, &c.overrideFm)
 	}
-	/*
-		  if s != "" {
-			  s = tagSurround("style", s, "\n")
-		  }
-	*/
 	return s
 }
 func (c *config) loadTheme(filename string) {
 	debug("\tloadTheme()")
+	return
 	// xxxx
 	// Get the front matter for this page and find
 	// out what theme it uses. Also works for global
@@ -1048,20 +1067,33 @@ func (c *config) loadTheme(filename string) {
 	c.overrideFm = *fm
 	c.overrideTheme = *theme
 	if theme.present {
+		debug("\t\tSome theme is present")
 		if filename == c.homePage {
-			c.globalTheme = *theme
-			c.globalFm = *fm
+			debug("\t\t\tAt thome page. Theme is: %+v", theme.dir)
+			// xxxx
 			if c.globalTheme.present {
-				debug("\t\tglobal theme is: %s", c.globalTheme.dir)
-			}
+				debug("\t\t\tglobal theme %+v is present", theme.dir)
 
-			c.layout(&c.globalTheme)
+				c.globalTheme = *theme
+				c.globalFm = *fm
+				c.layout(&c.globalTheme)
+				debug("\t\tglobal theme is: %s", c.globalTheme.dir)
+			} else {
+				debug("\t\t\tglobal theme not present")
+			}
 		} else {
- 			c.theme = *theme
+			c.theme = *theme
 			c.fm = *fm
 			c.layout(&c.theme)
 		}
-		//debug("\t********* THEME IS %+v\n************", c.theme)
+	}
+	// No theme present.
+	// If there's a global theme, apply it
+	if c.globalTheme.present {
+		debug("\t\t%s doesn't have a theme specified. Applying global theme to it.", filename)
+		c.theme = c.globalTheme
+		c.fm = c.globalFm
+		c.layout(&c.globalTheme)
 	}
 
 }
@@ -1215,9 +1247,6 @@ func main() {
 		if dirExists(c.webroot) {
 			c.serve()
 		} else {
-			//print("Can't find webroot directory %s", c.webroot)
-			//os.Exit(1)
-			// TODO: This code doesn't seem to execute?
 			// Or more likely it quits silently
 			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
 		}
@@ -1329,7 +1358,7 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
-	// Delete web root directory unless otherwise requested
+	// Delete webroot directory unless otherwise requested
 	if c.cleanup {
 		if err := os.RemoveAll(c.webroot); err != nil {
 			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
@@ -1344,7 +1373,6 @@ func (c *config) buildSite() {
 	}
 
 	// Create the webroot directory
-	// AFTER list of files in site have been obtained
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
@@ -1352,17 +1380,20 @@ func (c *config) buildSite() {
 		}
 	}
 
+	// no processing.
+	// # of non-Markdown copied
+	assetsCopied := 0
+	// First write out home page
+	target := filepath.Join(c.webroot, "index.html")
+	writeStringToFile(c, target, c.homePageStr)
+	// # of Markdown files processed
+	// Start at 1 because home page
+	c.mdCopied = 1
+
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
 	// convert to HTML and copy to output directory.
 	// If a file isn't Markdown, copy to output directory with
-	// no processing.
-	// # of Markdown files processed
-	mdCopied := 0
-
-	// # of non-Markdown copied
-	assetsCopied := 0
-
 	for _, filename := range c.files {
 		// Full pathmame of file to be copied (may be converted to HTML first)
 		source := filepath.Join(c.root, filename)
@@ -1389,10 +1420,11 @@ func (c *config) buildSite() {
 			// It's a markdown file. Convert to HTML,
 			// then rename with HTML extensions.
 			HTML, _ := buildFileToTemplatedString(c, filename)
-			target = filepath.Join(c.webroot, filename)
+			target := filepath.Join(c.webroot, filename)
 			target = replaceExtension(target, "html")
 			writeStringToFile(c, target, HTML)
-			mdCopied++
+			c.mdCopied++
+
 		} else {
 			// It's an asset. Just pass through.
 			copyFile(c, source, target)
@@ -1405,7 +1437,7 @@ func (c *config) buildSite() {
 	// This is where the files were published
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
-	c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", mdCopied), fileCount("asset", assetsCopied), c.copied)
+	c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", c.mdCopied), fileCount("asset", assetsCopied), c.copied)
 	//c.copied, mdCopied, assetsCopied)
 } // buildSite()
 
@@ -1909,7 +1941,7 @@ func (c *config) dumpSettings() {
 	print("ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
-	print("Inline stylesheets: %b", !c.externalStylesheets)
+	print("Inline stylesheets: %v", !c.externalStylesheets)
 	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
@@ -2035,7 +2067,7 @@ func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
 
 // mdYAMLtoHTML converts the Markdown file, which may
 // have front matter, to HTML. The  front matter
-// is deposited in frontMatter.
+// is one of the return values.
 func mdYAMLToHTML(source []byte) ([]byte, map[string]interface{}, error) {
 
 	mdParser := newGoldmark()
@@ -2151,6 +2183,20 @@ func portBusy(port string) bool {
 
 // METADATA UTILITIES/FRONT MATTER UTILITIES
 
+// fmStr is passed a front matter "type" and retrievs
+// the value for the value passed in as key. Value
+// is case-insensitive. So if
+// c.globalFm has a theme named "pages/themes/foo"
+// you'd pass in "theme" and get back "pages/themes/foo"
+func fmStr(key string, fm map[string]interface{}) string {
+	v := fm[strings.ToLower(key)]
+	value, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
+
 // fmStrSlice obtains a list of string values from the supplied front matter.
 // For example, if you had this code in your Markdown file:
 // ---
@@ -2159,7 +2205,8 @@ func portBusy(port string) bool {
 //   - 'fonts.css'
 //
 // ---
-func (c *config) fmStrSlice(key string, fm map[string]interface{}) []string {
+
+func fmStrSlice(key string, fm map[string]interface{}) []string {
 	if key == "" {
 		return []string{}
 	}
@@ -2173,20 +2220,6 @@ func (c *config) fmStrSlice(key string, fm map[string]interface{}) []string {
 		s[i] = r
 	}
 	return s
-}
-
-// fmStr is passed a front matter "type" and retrievs
-// the value for the value passed in as key. Value
-// is case-insensitive. So if
-// c.globalFm has a theme named "pages/themes/foo"
-// you'd pass in "theme" and get back "pages/themes/foo"
-func fmStr(key string, fm map[string]interface{}) string {
-	v := fm[strings.ToLower(key)]
-	value, ok := v.(string)
-	if !ok {
-		return ""
-	}
-	return value
 }
 
 // Get full path where executable lives,
