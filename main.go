@@ -135,7 +135,7 @@ func (c *config) assemble(filename string, article string) string {
 
 // THEME
 
-func (c *config) getFrontMatter(filename string) map[string]interface{} {
+func (c *config) getFm(filename string) map[string]interface{} {
 	var rawHTML string
 	var err error
 
@@ -655,14 +655,14 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 	return s
 }
 
-// getTheme() takes the name of a theme directory and returns
+// themeDescription() takes the name of a theme directory and returns
 // the name of the page layout files, stylesheets, style tags
 // in the theme object. It does not read any of those files in.
 // So at the end you know what the assets are but haven't done
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
-func (c *config) getTheme(themeDir string) theme {
-	debug("\t\t\tgetTheme('%s')", themeDir)
+func (c *config) themeDescription(themeDir string) theme {
+	debug("\t\t\tthemeDescription('%s')", themeDir)
 	// Return value
 	var theme theme
 	// Leave if no theme specified.
@@ -698,7 +698,7 @@ func (c *config) getTheme(themeDir string) theme {
 
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
-	tmpConfig.fm = tmpConfig.getFrontMatter(themeReadme)
+	tmpConfig.fm = tmpConfig.getFm(themeReadme)
 
 	// The theme's README.md file has been located.
 	// A temporary config object has been created.
@@ -706,11 +706,9 @@ func (c *config) getTheme(themeDir string) theme {
 	// header has the name of the header file, footer the name
 	// of the footer file, and so on. Determine
 	// their paths based on the theme's directory.
-	//debug("\t\t\t\tgetTheme() calling readFm")
-	//wait("tmpConfig.fm: %+v", tmpConfig.fm)
 	theme.readFm(tmpConfig.fm)
 	return theme
-} // getTheme()
+} // themeDescription()
 
 // If there's a local footer, return it.
 // If not and there's a global footer, return it.
@@ -760,25 +758,36 @@ func (c *config) header() string {
 	return ""
 }
 
-// readThemeAndFrontMatter obtains the front matter for this file.
-// It uses that front matter to obtain theme information.
+// getFmTheme obtains the front matter and theme for this file.
+// It uses the front matter to obtain theme information.
+// It then obtains the theme description for the file.
 // Distinguishes between home page and all others.
-func (c *config) readThemeAndFrontMatter(filename string) (*map[string]interface{}, *theme) {
-	f := c.getFrontMatter(filename)
-	//debug("\t\treadThemeAndFrontMatter(%v)", filename)
+// It returns the front matter and theme it found
+func (c *config) getFmTheme(filename string) (*map[string]interface{}, *theme) {
+  debug("\t\tgetFmTheme(%s)", filename)
+	f := c.getFm(filename)
 
 	themeDir := ""
 	if filename == c.homePage {
-		debug("\t\treadThemeAndFrontMatter home page")
-		debug("\t\t\tfm %+v", f)
-		themeDir = fmStr("global-theme", f)
-		debug("\t\t\tGlobal theme is: %s", themeDir)
-	} else {
 		themeDir = fmStr("theme", f)
-		debug("\t\treadThemeAndFrontMatter %s", themeDir)
-		debug("\t\t\tfm %+v", f)
+    if themeDir != "" {
+      debug("\t\t\tOverriding global theme")
+      // They want to override the global theme right 
+      // there on the home page
+      themeDir = fmStr("theme", f)
+    } else {
+      // No they don't plan to override the global theme on the home page.
+		  themeDir = fmStr("global-theme", f)
+      if themeDir == "" { 
+        debug("\t\t\tNo global theme specified")
+        c.globalTheme.present = false
+      }
+    } 
+	} else {
+    // Not the home page. Look only
+		themeDir = fmStr("theme", f)
 	}
-	t := c.getTheme(themeDir)
+	t := c.themeDescription(themeDir)
 	return &f, &t
 }
 
@@ -924,9 +933,6 @@ func (c *config) setupGlobals() { //
 	// Set defaults for files and dirs to skip
 	c.skip = "node_modules .git .DS_Store .gitignore " + pocoDir
 
-	// Create a list of files and dirs to skip when processing
-	c.getSkipPublish()
-
 	// Determine output directory for all HTML and assets (webroot)
 	c.setWebroot()
 
@@ -945,10 +951,16 @@ func (c *config) setupGlobals() { //
 	// Only read it through c.currentFile() after this
 	c.currentFilename = c.homePage
 
+	// Create a list of files and dirs to skip when processing
+	c.getSkipPublish()
+
 	// Display name of file being processed
 	c.verbose(c.currentFile())
 
 	c.loadTheme(c.currentFile())
+  // TODO: Fails
+	c.skipPublish.AddStr(c.currentFile())
+
 
 } // setupGlobals
 
@@ -999,9 +1011,9 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
-    //s := tagSurround(s, "style", "\n")
-    
-		return "<style>" + s + "</style>" + "\n" 
+		//s := tagSurround(s, "style", "\n")
+
+		return "<style>" + s + "</style>" + "\n"
 	}
 	return ""
 }
@@ -1026,19 +1038,32 @@ func (c *config) stylesheets() string {
 	return s
 }
 func (c *config) loadTheme(filename string) {
+	debug("\tloadTheme()")
 	// xxxx
-	debug("loadTheme()")
-	fm, theme := c.readThemeAndFrontMatter(filename)
+	// Get the front matter for this page and find
+	// out what theme it uses. Also works for global
+	// theme, if any, on the home page.
+	fm, theme := c.getFmTheme(filename)
+	debug("\ttheme present for %s? %v", filename, theme.present)
 	c.overrideFm = *fm
 	c.overrideTheme = *theme
+	if theme.present {
+		if filename == c.homePage {
+			c.globalTheme = *theme
+			c.globalFm = *fm
+			if c.globalTheme.present {
+				debug("\t\tglobal theme is: %s", c.globalTheme.dir)
+			}
 
-	if filename == c.homePage {
-		// Home page. See if a global theme was defined.
-		debug("\thome page: %s", filename)
-	} else {
-		debug("\t%s", filename)
-		// Not the home page
+			c.layout(&c.globalTheme)
+		} else {
+ 			c.theme = *theme
+			c.fm = *fm
+			c.layout(&c.theme)
+		}
+		//debug("\t********* THEME IS %+v\n************", c.theme)
 	}
+
 }
 
 // loadTheme obtains the theme named on this page, if any.
@@ -1053,7 +1078,7 @@ func (c *config) loadTheme(filename string) {
 func (c *config) oldloadTheme(filename string) {
 
 	debug("\tloadTheme() %s", filename)
-	fm, theme := c.readThemeAndFrontMatter(filename)
+	fm, theme := c.getFmTheme(filename)
 	if filename == c.homePage {
 		debug("\t\thome page")
 		debug("\t\tstyleTags: %+v", fmStr("style-tags", *fm))
@@ -1727,10 +1752,10 @@ func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
 		}
 
 		// It may be just a filename on the exclude list.
+		name = filepath.Join(currDir(), name)
 		if skipPublish.Found(name) {
 			return nil
 		}
-		name = filepath.Join(currDir(), name)
 
 		// Don't add directories to this list.
 		if !isDir {
