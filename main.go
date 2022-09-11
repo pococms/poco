@@ -235,9 +235,9 @@ func sliceToStylesheetStr(sheets []string) string {
 // and returns a string with each tag on a separate line.
 // TODO: code smell; see previous calls to readFm
 func (t *theme) tags(fm map[string]interface{}) string {
-  // xxx
-  styleTagNames := fmStrSlice("style-tags", fm)
+	styleTagNames := fmStrSlice("style-tags", fm)
 	t.styleTags = ""
+	// xxx
 	for _, tag := range styleTagNames {
 		s := fmt.Sprintf("\t\t%s\n", tag)
 		t.styleTags = t.styleTags + s
@@ -260,10 +260,9 @@ func (t *theme) tags(fm map[string]interface{}) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func (c *config) styleTags() string {
-	debug("\tstyleTags()\n\t\tfm: %+v", c.fm)
-	debug("\t\tglobalFm: %+v", c.globalFm)
-  // xxx
+func (c *config) oldstyleTags() string {
+	//debug("\tstyleTags()\n\t\tfm: %+v", c.fm)
+	//debug("\t\tglobalFm: %+v", c.globalFm)
 	c.globalTheme.tags(c.globalFm)
 	c.theme.tags(c.fm)
 	debug("\tpage theme.styleTags: %v", c.theme.styleTags)
@@ -275,9 +274,38 @@ func (c *config) styleTags() string {
 	return c.theme.styleTags
 }
 
-// TODO: Document
-func (c *config) gatherThemeStylesheets(t *theme) {
+func (c *config) gatherThemeStylesheets(t *theme, fm *map[string]interface{}) {
+	//xxx
+	debug("\t\tgatherThemeStylesheets()")
+	debug("\t\t\tstyleTags: %+v", fmStr("style-tags", *fm))
+	debug("\t\t\tFRONT MATTER:\t%+v", fm)
+	s := fmStr("stylesheets", *fm)
+	debug("\t\tstyleheets: %+v", fmStr("stylesheets", *fm))
+	debug("\t\t\tstylesheets:%+v", s)
 	slice := t.stylesheetFilenames
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+			fullPath := regularize(t.dir, filename)
+			//wait(fullPath)
+			debug("\t\t\t %s", fullPath)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			s := c.getWebOrLocalFileStr(fullPath)
+			t.stylesheets = t.stylesheets + s + "\n"
+		}
+		//debug("\t\t\tgatherThemeStylesheets() %v", t.stylesheets)
+	}
+}
+
+// TODO: Document
+func (c *config) newgatherThemeStylesheets(t *theme, fm *map[string]interface{}) {
+	//slice := t.stylesheetFilenames
+	slice := fmStrSlice("stylesheets", *fm)
+
+	// xxx
 	if len(slice) > 0 {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -293,14 +321,41 @@ func (c *config) gatherThemeStylesheets(t *theme) {
 	}
 }
 
-// stylesheets() generates stylesheet tags requested in the front matter.
-// priority.
-// Pre:
-func (c *config) stylesheets() string {
-	// TODO: Refactor
-	c.gatherThemeStylesheets(&c.theme)
-	c.gatherThemeStylesheets(&c.globalTheme)
-	s := tagSurround("style", c.globalTheme.stylesheets+c.theme.stylesheets)
+func (c *config) oldstylesheets() string {
+	debug("\t\tstylesheets() c.fm: %+v", c.fm)
+
+	slice := fmStrSlice("stylesheets", c.fm)
+	// xxx
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+			fullPath := regularize(c.theme.dir, filename)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			s := c.getWebOrLocalFileStr(fullPath)
+			c.theme.stylesheets = c.theme.stylesheets + s + "\n"
+		}
+	}
+
+	slice = fmStrSlice("stylesheets", c.globalFm)
+	// xxx
+	if len(slice) > 0 {
+		for _, filename := range slice {
+			fullPath := regularize(c.globalTheme.dir, filename)
+			s := c.getWebOrLocalFileStr(fullPath)
+			c.globalTheme.stylesheets = c.globalTheme.stylesheets + s + "\n"
+		}
+	}
+
+	//c.gatherThemeStylesheets(&c.theme, &c.fm)
+	// xxx
+	//c.gatherThemeStylesheets(&c.globalTheme, &c.globalFm)
+	s := c.globalTheme.stylesheets + c.theme.stylesheets
+	if len(s) > 0 {
+		s = tagSurround("style", c.globalTheme.stylesheets+c.theme.stylesheets)
+	}
 	return s
 }
 
@@ -389,12 +444,16 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
+	// externalStylesheets true means stylesheets will not be inlined.
+	externalStylesheets bool
+
 	// List of all files being processed
 	files []string
 
 	// Front matter
-	fm       map[string]interface{}
-	globalFm map[string]interface{}
+	fm         map[string]interface{}
+	globalFm   map[string]interface{}
+	overrideFm map[string]interface{}
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -440,14 +499,16 @@ type config struct {
 	// everything in the -skip command-line flag.
 	skipPublish searchInfo
 
-	// Contents of a theme directory: the theme for the current page
-	theme theme
+	// Contents of a theme directory: the theme for the current page,
+	// the global (default) theme directory, and any overrides
+	// from the front matter
+	theme         theme
+	globalTheme   theme
+	overrideTheme theme
+
 	// Command-line flag -themes shows installed themes
 	themeList bool
 
-	// Contents of the global (default) theme directory
-	globalTheme    theme
-	newglobalTheme *theme
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	timestamp bool
@@ -646,7 +707,7 @@ func (c *config) getTheme(themeDir string) theme {
 	// of the footer file, and so on. Determine
 	// their paths based on the theme's directory.
 	//debug("\t\t\t\tgetTheme() calling readFm")
-  //wait("tmpConfig.fm: %+v", tmpConfig.fm)
+	//wait("tmpConfig.fm: %+v", tmpConfig.fm)
 	theme.readFm(tmpConfig.fm)
 	return theme
 } // getTheme()
@@ -891,6 +952,95 @@ func (c *config) setupGlobals() { //
 
 } // setupGlobals
 
+func (c *config) styleTags() string {
+	t := c.getStyleTags(c.overrideFm)
+	if t != "" {
+		t = tagSurround("style", t, "\n")
+	}
+	return t
+}
+
+func (c *config) getStyleTags(fm map[string]interface{}) string {
+	styleTagNames := fmStrSlice("style-tags", fm)
+	styleTags := ""
+	for _, tag := range styleTagNames {
+		s := fmt.Sprintf("\t\t%s\n", tag)
+		styleTags = styleTags + s
+	}
+	return styleTags
+}
+
+func (c *config) getStylesheets(fm map[string]interface{}) string {
+
+	return sliceToStylesheetStr(fmStrSlice("stylesheets", fm))
+
+	slice := fmStrSlice("stylesheets", fm)
+	stylesheets := ""
+	for _, stylesheet := range slice {
+		s := fmt.Sprintf("\t\t%s\n", stylesheet)
+		stylesheets = stylesheets + s
+	}
+	return stylesheets
+}
+
+func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) string {
+	// Return value
+	s := ""
+	slice := fmStrSlice("stylesheets", *fm)
+	stylesheets := ""
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+			fullPath := regularize(dir, filename)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
+			stylesheets = stylesheets + s + "\n"
+		}
+    //s := tagSurround(s, "style", "\n")
+    
+		return "<style>" + s + "</style>" + "\n" 
+	}
+	return ""
+}
+
+// stylesheets() generates stylesheet tags required by themes
+// priority.
+func (c *config) stylesheets() string {
+	// Return value
+	s := ""
+	// Normally stylesheets are inlined.
+	// This allows them to be linked to as usual.
+	if c.externalStylesheets {
+		s = c.getStylesheets(c.overrideFm)
+	} else {
+		s = c.gatherStylesheets(c.root, &c.overrideFm)
+	}
+	/*
+		  if s != "" {
+			  s = tagSurround("style", s, "\n")
+		  }
+	*/
+	return s
+}
+func (c *config) loadTheme(filename string) {
+	// xxxx
+	debug("loadTheme()")
+	fm, theme := c.readThemeAndFrontMatter(filename)
+	c.overrideFm = *fm
+	c.overrideTheme = *theme
+
+	if filename == c.homePage {
+		// Home page. See if a global theme was defined.
+		debug("\thome page: %s", filename)
+	} else {
+		debug("\t%s", filename)
+		// Not the home page
+	}
+}
+
 // loadTheme obtains the theme named on this page, if any.
 // If it's the home page being processed, then the theme
 // is marked as the global theme. Otherwise it's just the
@@ -900,22 +1050,21 @@ func (c *config) setupGlobals() { //
 // In either case, there may be overrides
 // on the page for things like header, footer, stylesheets, or
 // style tags.
-func (c *config) loadTheme(filename string) {
+func (c *config) oldloadTheme(filename string) {
 
 	debug("\tloadTheme() %s", filename)
 	fm, theme := c.readThemeAndFrontMatter(filename)
 	if filename == c.homePage {
 		debug("\t\thome page")
-		// xxx
 		debug("\t\tstyleTags: %+v", fmStr("style-tags", *fm))
-    if theme.present {
-      c.layout(theme)
-      c.globalTheme = *theme
-      c.globalFm = *fm
-    } else {
-      c.theme = *theme
-      c.fm = *fm
-    }
+		if theme.present {
+			c.layout(theme)
+			c.globalTheme = *theme
+			c.globalFm = *fm
+		} else {
+			c.theme = *theme
+			c.fm = *fm
+		}
 	} else {
 		if !theme.present && c.globalTheme.present {
 			theme = &c.globalTheme
@@ -1735,6 +1884,7 @@ func (c *config) dumpSettings() {
 	print("ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
+	print("Inline stylesheets: %b", !c.externalStylesheets)
 	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
