@@ -4,13 +4,12 @@ import (
 	//"regexp"
 	//"fmt"
 	"golang.org/x/exp/slices"
-  "strings"
+	"strings"
 	"testing"
 )
 
-
 // ********************************************************
-// FRONT MATTER KEYS THAT RETURN STRINGS 
+// FRONT MATTER KEYS THAT RETURN STRINGS
 // ********************************************************
 
 // All front matter keys that return strings
@@ -24,6 +23,7 @@ description: "Build informational websites friction-free"
 
 ---
 `
+
 type strTest struct {
 	key      string
 	expected string
@@ -38,7 +38,6 @@ var fmStrTests = []strTest{
 	{"branding", "PocoCMS for the win!"},
 	{"description", "Build informational websites friction-free"},
 }
-
 
 // TestAllFmStrs tests all string values
 // one can expect in front matter.
@@ -58,9 +57,8 @@ func TestAllFmStrs(t *testing.T) {
 	}
 }
 
-
 // ********************************************************
-// FRONT MATTER KEYS THAT RETURN STRING SLICES 
+// FRONT MATTER KEYS THAT RETURN STRING SLICES
 // ********************************************************
 
 // All front matter keys that return string slices
@@ -138,7 +136,6 @@ func TestAllFmSlices(t *testing.T) {
 	}
 }
 
-
 // ********************************************************
 // RAW HTML OUTPUT WITH DEFAULT SETTINGS
 // ********************************************************
@@ -150,45 +147,43 @@ var articleMdToHTMLTests = []struct {
 	expected string
 }{
 
-  // TEST RECORD
-	{ 
-    // Markdown portion
+	// TEST RECORD
+	{
+		// Markdown portion
 		`hello`,
-    // Expected output portion
+		// Expected output portion
 		`<p>hello</p>`,
 	},
 
-  // TEST RECORD
-	{ 
-    // Markdown portion
+	// TEST RECORD
+	{
+		// Markdown portion
 		`# hello`,
-    // Expected output portion
+		// Expected output portion
 		`<h1 id="hello">hello</h1>`,
 	},
 }
-
 
 // testArticleCode takes markup and generates the raw HTML for
 // that markup. It tests only output of article, not other page
 // layout elements such as header, footer, etc.
 func TestArticleCode(t *testing.T) {
-  //c := newConfig()
+	//c := newConfig()
 	for _, tt := range articleMdToHTMLTests {
-    actual := mdYAMLStringToTemplatedHTMLString(newConfig(),tt.code)
-    // I actually don't understand why a test case like
-    // `# hello` ends up with a trailing newline
-    // on the actual value.
-    actual = strings.TrimSpace(string(actual))
+		actual := mdYAMLStringToTemplatedHTMLString(newConfig(), tt.code)
+		// I actually don't understand why a test case like
+		// `# hello` ends up with a trailing newline
+		// on the actual value.
+		actual = strings.TrimSpace(string(actual))
 		if actual != tt.expected {
-      t.Errorf("Expected %s. Got %s", tt.expected, actual)
-      /*
-			t.Errorf("%v: expected \"%v\", actual \"%v\"", 
-        tt.code, actual, tt.expected)
-        */
+			t.Errorf("Expected %s. Got %s", tt.expected, actual)
+			/*
+						t.Errorf("%v: expected \"%v\", actual \"%v\"",
+			        tt.code, actual, tt.expected)
+			*/
 		}
 	}
 }
-
 
 // ********************************************************
 // TITLE TAG
@@ -199,121 +194,137 @@ Author: "yo mama"
 ---
 `
 
-
 func TestMissingTitleTag(t *testing.T) {
 	source := fmTitleMissing
-  c := newConfig()
+	c := newConfig()
 	//var fm map[string]interface{}
 	var err error
 	if _, c.fm, err = mdYAMLToHTML([]byte(source)); err != nil {
 		t.Errorf("Failed converting %s to HTML and obtaining front matter", source)
 	}
 
-  actual := c.titleTag()
+	actual := c.titleTag()
 	actual = strings.TrimSpace(actual)
-  expected := strings.TrimSpace("\t<title>" + poweredBy + "</title>")
+	expected := strings.TrimSpace("\t<title>" + poweredBy + "</title>")
 	if actual != expected {
-    t.Errorf("titleTag(): expected %s. Got %s", expected, actual) 
+		t.Errorf("titleTag(): expected %s. Got %s", expected, actual)
 	}
 }
-
 
 // ********************************************************
 // SEARCHINFO UTILITIES
 // ********************************************************
 
-
 func TestSearchInfo(t *testing.T) {
-  //slice := []string{}
-  var s searchInfo 
-  s.AddStr("a")
-  expected := []string{"a"}  
- 	if !slices.Equal(s.list, expected) {
-    t.Errorf("%v should be empty, but it's %v",
-      s.list, expected)
-  }
-  // Add out of alphabetical order. 
-  // Result should still be sorted correctly.
-  s.AddStr("c")
-  s.AddStr("b")
-  expected = []string{"a","b","c"}  
- 	if !slices.Equal(s.list, expected) {
-    t.Errorf("s.list is %v, but it should be %v",
-      s.list, expected)
-  }
-  // "d" should not be in the list
-  searchFor := "d"
-  found := s.Found(searchFor)
-  if found {
-    t.Errorf("%v reported as found, but it should not be in s.list",
-      searchFor)
-  }
-  // "c" should be in the list
-  searchFor = "c"
-  found = s.Found(searchFor)
-  if !found {
-    t.Errorf("%v reported as not found, but it be present in s.list",
-      searchFor)
-  }
+	//slice := []string{}
+	var s searchInfo
+	s.AddStr("a")
+	expected := []string{"a"}
+	if !slices.Equal(s.list, expected) {
+		t.Errorf("%v should be empty, but it's %v",
+			s.list, expected)
+	}
+	// Add out of alphabetical order.
+	// Result should still be sorted correctly.
+	s.AddStr("c")
+	s.AddStr("b")
+	expected = []string{"a", "b", "c"}
+	if !slices.Equal(s.list, expected) {
+		t.Errorf("s.list is %v, but it should be %v",
+			s.list, expected)
+	}
+	// "d" should not be in the list
+	searchFor := "d"
+	found := s.Found(searchFor)
+	if found {
+		t.Errorf("%v reported as found, but it should not be in s.list",
+			searchFor)
+	}
+	// "c" should be in the list
+	searchFor = "c"
+	found = s.Found(searchFor)
+	if !found {
+		t.Errorf("%v reported as not found, but it be present in s.list",
+			searchFor)
+	}
 }
-// ********************************************************
-// getFm function
-// ********************************************************
 
-// All front matter keys that return strings
-/*
-var fmAllStr = `---
-title: "PocoCMS title"
-author: "Tom Campbell"
-theme: "tufte"
-global-theme: "pocodocs"
-branding: "PocoCMS for the win!"
-description: "Build informational websites friction-free"
-
----
-`
-*/
+// ********************************************************
+// GETFM RETURNS FRONT MATTER FOR FILE PASSED IN
+// ********************************************************
 
 var getFmTests = []struct {
 	filename string
-	code string
+	code     string
 }{
 
-  // TEST RECORD
-	{ 
-    // filename
+	// TEST RECORD
+	{
+		// filename
 		"README.md",
-    // Contents of Markdown file
+		// Contents of Markdown file
 		`---
 title: "yo mama"
 ---
 `,
 	},
-
 }
 
 // getFm() should return front matter that has
 // nothing to do with the front matter passed
 // in with the c, the config object.
 func TestGetFm(t *testing.T) {
- 	for _, tt := range getFmTests {
-    c := newConfig()
-    fm := c.getFm(c.instaMd(tt.filename, tt.code))
-    if fmStr("title", c.fm) == fmStr("title", fm) {
-      t.Errorf("c.fm and fm should be different")
-    }
-  }
+	for _, tt := range getFmTests {
+		c := newConfig()
+		fm := c.getFm(c.instaMd(tt.filename, tt.code))
+		if fmStr("title", c.fm) == fmStr("title", fm) {
+			t.Errorf("c.fm and fm should be different")
+		}
+	}
 }
+
+// ********************************************************
+// SLICETOSTYLESHEETSTR
+// ********************************************************
+
+var sliceToStylesheetStrTests = []struct {
+	slice    []string
+	expected string
+}{
+
+	// TEST RECORD
+	{
+		// slice of stylesheet names
+		[]string{"foo.css"},
+		`<link rel="stylesheet" href="foo.css">`,
+	},
+
+	// TEST RECORD
+	{
+		// slice of stylesheet names
+		[]string{"foo.css", "bar.css"},
+		"<link rel=\"stylesheet\" href=\"foo.css\">\n\t<link rel=\"stylesheet\" href=\"bar.css\">",
+	},
+}
+
+func TestSliceToStylesheetStr(t *testing.T) {
+	for _, tt := range sliceToStylesheetStrTests {
+		actual := strings.TrimSpace(sliceToStylesheetStr(tt.slice))
+		if actual != tt.expected  {
+      t.Errorf("%v should convert to:\n[%v]\nIt was actually:\n[%v]",
+				tt.slice, tt.expected, actual)
+		}
+	}
+}
+
 
 // instaMd creates Markdown file on the file
-// using the given filename, and 
+// using the given filename, and
 // the code passed in as a string.
-func (c *config)instaMd(filename, code string) string {
-  stringToFile(c, filename, code)
-  c.fileToString(filename)
-  return filename
+func (c *config) instaMd(filename, code string) string {
+	stringToFile(c, filename, code)
+	c.fileToString(filename)
+	return filename
 }
-
-
 
 
