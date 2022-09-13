@@ -135,6 +135,11 @@ func (c *config) assemble(filename string, article string) string {
 
 // THEME
 
+// getFm takes Markdown filename passed in, opens that file,
+// and returns its front matter. The way Goldmark works it
+// means it was necessary to parse and convert the Markdown
+// too, but that just gets discarded.
+// c.fm is left untouched.
 func (c *config) getFm(filename string) map[string]interface{} {
 	var rawHTML string
 	var err error
@@ -1309,7 +1314,7 @@ func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile
 	// Return the document as a string.
 	html, htmlFilename := buildFileToTemplatedString(c, filename)
 	// Write the contents of the completed HTML document to a file.
-	writeStringToFile(c, htmlFilename, html)
+	stringToFile(c, htmlFilename, html)
 	// Return the name of the converted file
 	return htmlFilename
 }
@@ -1385,7 +1390,7 @@ func (c *config) buildSite() {
 	assetsCopied := 0
 	// First write out home page
 	target := filepath.Join(c.webroot, "index.html")
-	writeStringToFile(c, target, c.homePageStr)
+	stringToFile(c, target, c.homePageStr)
 	// # of Markdown files processed
 	// Start at 1 because home page
 	c.mdCopied = 1
@@ -1422,7 +1427,7 @@ func (c *config) buildSite() {
 			HTML, _ := buildFileToTemplatedString(c, filename)
 			target := filepath.Join(c.webroot, filename)
 			target = replaceExtension(target, "html")
-			writeStringToFile(c, target, HTML)
+			stringToFile(c, target, HTML)
 			c.mdCopied++
 
 		} else {
@@ -1652,15 +1657,15 @@ func replaceExtension(filename string, newExtension string) string {
 	return strings.TrimSuffix(filename, filepath.Ext(filename)) + "." + newExtension
 }
 
-// writeStringToFile creates a file called filename without checking to see if it
+// stringToFile creates a file called filename without checking to see if it
 // exists, then writes contents to it.
 // filename is afully qualified pathname.
 // contents is the string to write
-func writeStringToFile(c *config, filename, contents string) {
+func stringToFile(c *config, filename, contents string) {
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
-		quit(1, err, c, "writeStringToFile: Unable to create file %s", filename)
+		quit(1, err, c, "stringToFile: Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		quit(1, err, c, "Error writing to file %s", filename)
@@ -1732,7 +1737,7 @@ func (c *config) newSite() {
 func writeDefaultHomePage(c *config, dir string) {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
-	writeStringToFile(c, pathname, html)
+	stringToFile(c, pathname, html)
 	c.homePage = pathname
 }
 
@@ -1991,15 +1996,14 @@ func dumpFm(c *config) string {
 // PARSING UTILITIES
 
 // convertMdYAMLToHTML converts the Markdown file, which may
-// have front matter, to HTML. The front matter is passed in
-// is used but not written to
+// have front matter, to HTML. 
+// Returns parsed file as HTML.
 func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 	source := c.fileToString(filename)
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
 
 	_ = mdParser.Parser().Parse(text.NewReader([]byte(source)))
-	//metaData := document.OwnerDocument().Meta()
 	var buf bytes.Buffer
 	// Convert Markdown source to HTML and deposit in buf.Bytes().
 	if err := mdParser.Convert([]byte(source), &buf, parser.WithContext(mdParserCtx)); err != nil {

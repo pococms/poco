@@ -9,9 +9,6 @@ import (
 )
 
 
-
-
-
 // ********************************************************
 // FRONT MATTER KEYS THAT RETURN STRINGS 
 // ********************************************************
@@ -259,4 +256,64 @@ func TestSearchInfo(t *testing.T) {
       searchFor)
   }
 }
+// ********************************************************
+// getFm function
+// ********************************************************
+
+// All front matter keys that return strings
+/*
+var fmAllStr = `---
+title: "PocoCMS title"
+author: "Tom Campbell"
+theme: "tufte"
+global-theme: "pocodocs"
+branding: "PocoCMS for the win!"
+description: "Build informational websites friction-free"
+
+---
+`
+*/
+
+var getFmTests = []struct {
+	filename string
+	code string
+}{
+
+  // TEST RECORD
+	{ 
+    // filename
+		"README.md",
+    // Contents of Markdown file
+		`---
+title: "yo mama"
+---
+`,
+	},
+
+}
+
+// getFm() should return front matter that has
+// nothing to do with the front matter passed
+// in with the c, the config object.
+func TestGetFm(t *testing.T) {
+ 	for _, tt := range getFmTests {
+    c := newConfig()
+    fm := c.getFm(c.instaMd(tt.filename, tt.code))
+    if fmStr("title", c.fm) == fmStr("title", fm) {
+      t.Errorf("c.fm and fm should be different")
+    }
+  }
+}
+
+// instaMd creates Markdown file on the file
+// using the given filename, and 
+// the code passed in as a string.
+func (c *config)instaMd(filename, code string) string {
+  stringToFile(c, filename, code)
+  c.fileToString(filename)
+  return filename
+}
+
+
+
 
