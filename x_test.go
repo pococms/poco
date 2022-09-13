@@ -318,6 +318,47 @@ func TestSliceToStylesheetStr(t *testing.T) {
 }
 
 
+
+
+// ********************************************************
+// convertMdYAMLFileToHTMLStr
+// ********************************************************
+
+var convertMdYAMLFileToHTMLStrTests = []struct {
+	filename string
+	code     string
+}{
+
+	// TEST RECORD
+	{
+		// filename
+		"README.md",
+		// Contents of Markdown file
+		`---
+title: "yo mama"
+---
+`,
+	},
+}
+
+// getFm() should return front matter that has
+// nothing to do with the front matter passed
+// in with the c, the config object.
+func TestGetFm(t *testing.T) {
+
+	for _, tt := range convertMdYAMLFileToHTMLStrTests {
+		c := newConfig()
+		fm := convertMdYAMLFileToHTMLStr(c, tt.filename, tt.code)
+		if fmStr("title", c.fm) == fmStr("title", fm) {
+			t.Errorf("c.fm and fm should be different")
+		}
+	}
+}
+
+// ********************************************************
+// UTILITIES
+// ********************************************************
+
 // instaMd creates Markdown file on the file
 // using the given filename, and
 // the code passed in as a string.

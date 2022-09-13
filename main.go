@@ -1145,6 +1145,7 @@ func (c *config) parseCommandLine() {
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
 
+  // Directory project lives in
 	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
 	// -settings command-line shows configuration values
@@ -1192,9 +1193,6 @@ func main() {
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 
-	if c.verboseFlag {
-		print("**************************************")
-	}
 	// New project requested?
 	if c.newProjectStr != "" {
 		c.newProject(c.newProjectStr)
@@ -1203,6 +1201,13 @@ func main() {
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
 	c.setupGlobals()
+
+  // Probably not for public release.
+  // Lets me search for a new session in command line 
+  // history or output file
+	if c.verboseFlag {
+    print("project: %s =============", filepath.Base(c.root))
+	}
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
@@ -1714,6 +1719,7 @@ func (s *searchInfo) Sort() {
 	})
 }
 
+
 func (s *searchInfo) AddStr(add string) {
 	if s.Found(add) {
 		return
@@ -1951,25 +1957,25 @@ func dumpFm(c *config) string {
 
 // PARSING UTILITIES
 
-// convertMdYAMLToHTML converts the Markdown file, which may
+// convertMdYAMLToHTMLStr converts the Markdown file, which may
 // have front matter, to HTML.
 // Returns parsed file as HTML.
 func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 	source := c.fileToString(filename)
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
-
+  // Build a syntax tree (intermediate representation) 
+  // for the input Markdown text.
 	_ = mdParser.Parser().Parse(text.NewReader([]byte(source)))
 	var buf bytes.Buffer
-	// Convert Markdown source to HTML and deposit in buf.Bytes().
+	// Convert syntax tree to HTML and deposit in buf.Bytes().
 	if err := mdParser.Convert([]byte(source), &buf, parser.WithContext(mdParserCtx)); err != nil {
 		quit(1, err, c, "Unable to convert Markdown to HTML")
 	}
-	// Obtain YAML front matter from document.
 	return string(buf.Bytes())
 }
 
-// mdYAMLFiletoHTML converts a Markdown document
+// mdYAMLFiletoHTMLString converts a Markdown document
 // with YAML front matter to HTML.
 // The HTML file has not yet had templates executed,
 // Destructive: replaces c.fm
