@@ -220,20 +220,6 @@ func sliceToStylesheetStr(sheets []string) string {
 	return tags
 }
 
-// tags() takes the slice containing one or more
-// tags like "article{color:blue}"
-// and returns a string with each tag on a separate line.
-// TODO: code smell; see previous calls to readFm
-func (t *theme) tags(fm map[string]interface{}) string {
-	styleTagNames := fmStrSlice("style-tags", fm)
-	t.styleTags = ""
-	for _, tag := range styleTagNames {
-		s := fmt.Sprintf("\t\t%s\n", tag)
-		t.styleTags = t.styleTags + s
-	}
-	return t.styleTags
-}
-
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
 // These are literal tags, not filenases.
@@ -249,20 +235,6 @@ func (t *theme) tags(fm map[string]interface{}) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func (c *config) oldstyleTags() string {
-	//debug("\tstyleTags()\n\t\tfm: %+v", c.fm)
-	//debug("\t\tglobalFm: %+v", c.globalFm)
-	c.globalTheme.tags(c.globalFm)
-	c.theme.tags(c.fm)
-	debug("\tpage theme.styleTags: %v", c.theme.styleTags)
-	debug("\tstyleTags() global theme.styleTags: %v", c.globalTheme.styleTags)
-	t := c.theme.styleTags + c.globalTheme.styleTags
-	if t != "" {
-		c.theme.styleTags = tagSurround("style", t, "\n")
-	}
-	return c.theme.styleTags
-}
-
 func (c *config) gatherThemeStylesheets(t *theme, fm *map[string]interface{}) {
 	//xxx
 	debug("\t\tgatherThemeStylesheets()")
@@ -1559,7 +1531,6 @@ func executableDir() string {
 	return filepath.Dir(ex)
 }
 
-
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
@@ -1981,7 +1952,7 @@ func dumpFm(c *config) string {
 // PARSING UTILITIES
 
 // convertMdYAMLToHTML converts the Markdown file, which may
-// have front matter, to HTML. 
+// have front matter, to HTML.
 // Returns parsed file as HTML.
 func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 	source := c.fileToString(filename)
@@ -2049,7 +2020,6 @@ func newGoldmark() goldmark.Markdown {
 		goldmark.WithRendererOptions(renderOpts...),
 	)
 }
-
 
 // mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
 // and executes templates. Returns a string of the result.
