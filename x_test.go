@@ -2,11 +2,19 @@ package main
 
 import (
 	//"regexp"
-	"fmt"
+	//"fmt"
 	"golang.org/x/exp/slices"
   "strings"
 	"testing"
 )
+
+
+
+
+
+// ********************************************************
+// FRONT MATTER KEYS THAT RETURN STRINGS 
+// ********************************************************
 
 // All front matter keys that return strings
 var fmAllStr = `---
@@ -19,11 +27,6 @@ description: "Build informational websites friction-free"
 
 ---
 `
-
-var fmTitleMissing = `---
----
-`
-
 type strTest struct {
 	key      string
 	expected string
@@ -39,33 +42,25 @@ var fmStrTests = []strTest{
 	{"description", "Build informational websites friction-free"},
 }
 
-// fmtTestStr
-func fmTestStr(key string, fm map[string]interface{}) string {
-	s := fmt.Sprintf("%s", fm[key])
-	return s
-}
 
-// ********************************************************
-// FRONT MATTER KEYS THAT RETURN STRINGS 
-// ********************************************************
-
-// TestAllFmStrings tests all string slice values
+// TestAllFmStrs tests all string values
 // one can expect in front matter.
-// For string values in front matter, see TestAllFmStrs
-func TestAllFmSlices(t *testing.T) {
+// For string slice values in front matter, see TestAllFmSlices
+func TestAllFmStrs(t *testing.T) {
+	source := fmAllStr
 	var err error
 	var fm map[string]interface{}
-	for _, tt := range fmStrSliceTests {
-		if _, fm, err = mdYAMLToHTML([]byte(tt.code)); err != nil {
-			t.Errorf("Unable to get front matter from %s", tt.code)
-		}
-		slice := fmStrSlice(tt.key, fm)
-		//fmt.Printf("SLICE: %v\n", slice)
-		if !slices.Equal(slice, tt.expected) {
-			t.Errorf("%v: expected \"%s\", actual \"%s\"", tt.key, slice, tt.expected)
+	if _, fm, err = mdYAMLToHTML([]byte(source)); err != nil {
+		t.Errorf("Unable to get front matter from %s", source)
+	}
+	for _, tt := range fmStrTests {
+		actual := fmStr(tt.key, fm)
+		if actual != tt.expected {
+			t.Errorf("FrontMatter:%s: expected \"%s\", actual \"%s\"", tt.key, actual, tt.expected)
 		}
 	}
 }
+
 
 // ********************************************************
 // FRONT MATTER KEYS THAT RETURN STRING SLICES 
@@ -128,20 +123,20 @@ style-tags:
 
 }
 
-// TestAllFmStrs tests all string values
+// TestAllFmSlices tests all string slice values
 // one can expect in front matter.
-// For string slice values in front matter, see TestAllFmSlices
-func TestAllFmStrs(t *testing.T) {
-	source := fmAllStr
+// For string values in front matter, see TestAllFmStrs
+func TestAllFmSlices(t *testing.T) {
 	var err error
 	var fm map[string]interface{}
-	if _, fm, err = mdYAMLToHTML([]byte(source)); err != nil {
-		t.Errorf("Unable to get front matter from %s", source)
-	}
-	for _, tt := range fmStrTests {
-		actual := fmTestStr(tt.key, fm)
-		if actual != tt.expected {
-			t.Errorf("FrontMatter:%s: expected \"%s\", actual \"%s\"", tt.key, actual, tt.expected)
+	for _, tt := range fmStrSliceTests {
+		if _, fm, err = mdYAMLToHTML([]byte(tt.code)); err != nil {
+			t.Errorf("Unable to get front matter from %s", tt.code)
+		}
+		slice := fmStrSlice(tt.key, fm)
+		//fmt.Printf("SLICE: %v\n", slice)
+		if !slices.Equal(slice, tt.expected) {
+			t.Errorf("%v: expected \"%s\", actual \"%s\"", tt.key, slice, tt.expected)
 		}
 	}
 }
@@ -173,46 +168,95 @@ var articleMdToHTMLTests = []struct {
     // Expected output portion
 		`<h1 id="hello">hello</h1>`,
 	},
-
 }
+
 
 // testArticleCode takes markup and generates the raw HTML for
 // that markup. It tests only output of article, not other page
 // layout elements such as header, footer, etc.
 func TestArticleCode(t *testing.T) {
-	var err error
-  var a []byte
+  //c := newConfig()
 	for _, tt := range articleMdToHTMLTests {
-		if a, _, err = mdYAMLToHTML([]byte(tt.code)); err != nil {
-      t.Errorf("Internal error converting code: %s", tt.code)
-		}
+    actual := mdYAMLStringToTemplatedHTMLString(newConfig(),tt.code)
     // I actually don't understand why a test case like
     // `# hello` ends up with a trailing newline
     // on the actual value.
-    actual := strings.TrimSpace(string(a))
+    actual = strings.TrimSpace(string(actual))
 		if actual != tt.expected {
-			t.Errorf("%v: expected \"%v\", actual \"%v\"", tt.code, actual, tt.expected)
+      t.Errorf("Expected %s. Got %s", tt.expected, actual)
+      /*
+			t.Errorf("%v: expected \"%v\", actual \"%v\"", 
+        tt.code, actual, tt.expected)
+        */
 		}
 	}
 }
 
 
+// ********************************************************
+// TITLE TAG
+// ********************************************************
 
-/*
+var fmTitleMissing = `---
+Author: "yo mama"
+---
+`
+
+
 func TestMissingTitleTag(t *testing.T) {
-	tagLine := poweredBy
 	source := fmTitleMissing
-	var fm map[string]interface{}
+  c := newConfig()
+	//var fm map[string]interface{}
 	var err error
-	if _, fm, err = mdYAMLToHTML([]byte(source)); err != nil {
+	if _, c.fm, err = mdYAMLToHTML([]byte(source)); err != nil {
 		t.Errorf("Failed converting %s to HTML and obtaining front matter", source)
 	}
 
-	//value := fmTest("Title", fm)
-	expected := "\t<title>" + tagLine + "</title>\n"
-	actual := fmStr("title", fm)
+  actual := c.titleTag()
+	actual = strings.TrimSpace(actual)
+  expected := strings.TrimSpace("\t<title>" + poweredBy + "</title>")
 	if actual != expected {
-		t.Errorf("FrontMatter[\"title\"]: expected \"%s\", actual \"%s\"", expected, actual)
+    t.Errorf("titleTag(): expected %s. Got %s", expected, actual) 
 	}
 }
-*/
+
+
+// ********************************************************
+// SEARCHINFO UTILITIES
+// ********************************************************
+
+
+func TestSearchInfo(t *testing.T) {
+  //slice := []string{}
+  var s searchInfo 
+  s.AddStr("a")
+  expected := []string{"a"}  
+ 	if !slices.Equal(s.list, expected) {
+    t.Errorf("%v should be empty, but it's %v",
+      s.list, expected)
+  }
+  // Add out of alphabetical order. 
+  // Result should still be sorted correctly.
+  s.AddStr("c")
+  s.AddStr("b")
+  expected = []string{"a","b","c"}  
+ 	if !slices.Equal(s.list, expected) {
+    t.Errorf("s.list is %v, but it should be %v",
+      s.list, expected)
+  }
+  // "d" should not be in the list
+  searchFor := "d"
+  found := s.Found(searchFor)
+  if found {
+    t.Errorf("%v reported as found, but it should not be in s.list",
+      searchFor)
+  }
+  // "c" should be in the list
+  searchFor = "c"
+  found = s.Found(searchFor)
+  if !found {
+    t.Errorf("%v reported as not found, but it be present in s.list",
+      searchFor)
+  }
+}
+

@@ -1558,6 +1558,18 @@ func dirEmpty(name string) bool {
 	return false // Either not empty or error, suits both cases
 }
 
+// Get full path where executable lives,
+// minus the name of the executable itself.
+func executableDir() string {
+	ex, err := os.Executable()
+	if err != nil {
+		quit(1, err, nil, "Can't figure out PocoCMS pathname")
+	}
+	// Amputate the actual filename
+	return filepath.Dir(ex)
+}
+
+
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
@@ -2049,6 +2061,7 @@ func newGoldmark() goldmark.Markdown {
 	)
 }
 
+
 // mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
 // and executes templates. Returns a string of the result.
 // Replaces c.fm
@@ -2220,17 +2233,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 		s[i] = r
 	}
 	return s
-}
-
-// Get full path where executable lives,
-// minus the name of the executable itself.
-func executableDir() string {
-	ex, err := os.Executable()
-	if err != nil {
-		quit(1, err, nil, "Can't figure out PocoCMS pathname")
-	}
-	// Amputate the actual filename
-	return filepath.Dir(ex)
 }
 
 // copyPocoDir copies the embedded .poco directory into
