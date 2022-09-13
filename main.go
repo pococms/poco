@@ -160,21 +160,6 @@ func (c *config) getFm(filename string) map[string]interface{} {
 	return newC.fm
 }
 
-// Pre: c.theme.dir must know theme directory.
-func (c *config) styleFiles(stylesheetList []string) {
-	//  Contents of header, nav, etc. ready to be converted from Markdown to HTML
-	var s string
-	for _, filename := range stylesheetList {
-		// Filename could be in one of these forms:
-		// stylesheets:
-		// - "tufte.min.css"
-		// - "~/Users/tom/tufte.min.css"
-		// - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
-		s = c.getWebOrLocalFileStr(filename)
-		c.theme.stylesheets = c.theme.stylesheets + s
-	}
-}
-
 // HTML UTILITIES
 
 // defaultHomePage() Generates a simple home page as an HTML string
