@@ -923,11 +923,8 @@ func (c *config) setupGlobals() { //
 	// Prevent the home page from being read and converted again.
 	c.skipPublish.AddStr(c.currentFile())
 
-	// Create the full HTML document.
-	// Convert the body text to HTML
+	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFile())
-	// xxx
-	// and keep track of how many Markdown files have been converted.
 
 } // setupGlobals
 
@@ -1018,8 +1015,8 @@ func (c *config) stylesheets() string {
 	return s
 }
 func (c *config) loadTheme(filename string) {
-	debug("\tloadTheme()")
-	return
+	//debug("\tloadTheme()")
+	//return
 	// xxxx
 	// Get the front matter for this page and find
 	// out what theme it uses. Also works for global
@@ -1539,7 +1536,7 @@ func executableDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
-	c.verbose("\tcopyFile(%s,%s)", source, target)
+	//c.verbose("\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
