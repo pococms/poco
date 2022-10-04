@@ -1,5 +1,7 @@
 package main
 
+// TODO: Come up with something better than "$$_" for filenames.
+// https://pkg.go.dev/os#TempDir
 import (
 	//"regexp"
 	//"fmt"
@@ -168,19 +170,11 @@ var articleMdToHTMLTests = []struct {
 // that markup. It tests only output of article, not other page
 // layout elements such as header, footer, etc.
 func TestArticleCode(t *testing.T) {
-	//c := newConfig()
 	for _, tt := range articleMdToHTMLTests {
-		actual := mdYAMLStringToTemplatedHTMLString(newConfig(), tt.code)
-		// I actually don't understand why a test case like
-		// `# hello` ends up with a trailing newline
-		// on the actual value.
+		actual := mdYAMLStringToTemplatedHTMLString(newConfig(), "fakefilename", tt.code)
 		actual = strings.TrimSpace(string(actual))
 		if actual != tt.expected {
 			t.Errorf("Expected %s. Got %s", tt.expected, actual)
-			/*
-						t.Errorf("%v: expected \"%v\", actual \"%v\"",
-			        tt.code, actual, tt.expected)
-			*/
 		}
 	}
 }
@@ -254,19 +248,25 @@ func TestSearchInfo(t *testing.T) {
 // ********************************************************
 
 var getFmTests = []struct {
-	filename string
-	code     string
+	filename        string
+	code            string
+	fmKey           string
+	fmExpectedValue string
 }{
 
 	// TEST RECORD
 	{
 		// filename
-		"README.md",
+		"$$_README.md",
 		// Contents of Markdown file
 		`---
 title: "yo mama"
 ---
 `,
+		// Front matter key to read
+		"title",
+		// Value the front matter should return
+		"yo mama",
 	},
 }
 
@@ -276,9 +276,13 @@ title: "yo mama"
 func TestGetFm(t *testing.T) {
 	for _, tt := range getFmTests {
 		c := newConfig()
-		fm := c.getFm(c.instaMd(tt.filename, tt.code))
-		if fmStr("title", c.fm) == fmStr("title", fm) {
-			t.Errorf("c.fm and fm should be different")
+		// Create a Markdown file on the fly (with optional
+		// front matter). Obtain its front matter.
+		fm := c.getFm(stringToFile(c, tt.filename, tt.code))
+		value := fmStr(tt.fmKey, fm)
+		if value != tt.fmExpectedValue {
+			t.Errorf("Frontmatter error. fmStr(%v) should was %v. Expected %v",
+				tt.fmKey, value, tt.fmExpectedValue)
 		}
 	}
 }
@@ -310,47 +314,54 @@ var sliceToStylesheetStrTests = []struct {
 func TestSliceToStylesheetStr(t *testing.T) {
 	for _, tt := range sliceToStylesheetStrTests {
 		actual := strings.TrimSpace(sliceToStylesheetStr(tt.slice))
-		if actual != tt.expected  {
-      t.Errorf("%v should convert to:\n[%v]\nIt was actually:\n[%v]",
+		if actual != tt.expected {
+			t.Errorf("%v should convert to:\n[%v]\nIt was actually:\n[%v]",
 				tt.slice, tt.expected, actual)
 		}
 	}
 }
 
-
-
-
 // ********************************************************
-// convertMdYAMLFileToHTMLStr
+// convertMdYAMLFileToHTMLFragmentStr
 // ********************************************************
 
-var convertMdYAMLFileToHTMLStrTests = []struct {
-	filename string
+var convertMdYAMLFileToHTMLFragmentStrTests = []struct {
 	code     string
+	expected string
 }{
 
 	// TEST RECORD
 	{
-		// filename
-		"README.md",
 		// Contents of Markdown file
 		`---
-title: "yo mama"
 ---
+hello, world.
 `,
+		// Expected HTML output
+		`<p>hello, world.</p>`,
+	},
+
+	// TEST RECORD
+	{
+		// Contents of Markdown file
+		`---
+description: "Poco baby"
+---
+hello, {{ .description }}!
+`,
+		// Expected HTML output
+		`<p>hello, Poco baby!</p>`,
 	},
 }
 
-// getFm() should return front matter that has
-// nothing to do with the front matter passed
-// in with the c, the config object.
-func TestGetFm(t *testing.T) {
-
-	for _, tt := range convertMdYAMLFileToHTMLStrTests {
+func TestMdYAMLStringToTemplatedHTMLString(t *testing.T) {
+	for _, tt := range convertMdYAMLFileToHTMLFragmentStrTests {
 		c := newConfig()
-		fm := convertMdYAMLFileToHTMLStr(c, tt.filename, tt.code)
-		if fmStr("title", c.fm) == fmStr("title", fm) {
-			t.Errorf("c.fm and fm should be different")
+		actual := mdYAMLStringToTemplatedHTMLString(c, "dummy.md", tt.code)
+		actual = strings.TrimSpace(actual)
+		if actual != tt.expected {
+			t.Errorf("Markdown source is\n%v\nIt converted to:\n%v\nExpected:\n%v",
+				tt.code, actual, tt.expected)
 		}
 	}
 }
@@ -358,14 +369,3 @@ func TestGetFm(t *testing.T) {
 // ********************************************************
 // UTILITIES
 // ********************************************************
-
-// instaMd creates Markdown file on the file
-// using the given filename, and
-// the code passed in as a string.
-func (c *config) instaMd(filename, code string) string {
-	stringToFile(c, filename, code)
-	c.fileToString(filename)
-	return filename
-}
-
-

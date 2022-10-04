@@ -10,7 +10,7 @@ stylesheets:
   - layout-only.css
   - "overrides.css"
 style-tags:
-  - "article{color:green;}"
+  - "article{color:red;}"
 ---
 # Tufte
 

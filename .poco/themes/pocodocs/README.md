@@ -8,7 +8,7 @@ stylesheets:
 - "../../css/pococms.css"
 - "pocodocs.css"
 styletags:
-- "article>p{color:yellow;}"
+- "article>p{color:blue;}"
 ---
 
 PocoDocs is a cheerful, colorful theme for reference documentation.

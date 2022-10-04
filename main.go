@@ -125,7 +125,7 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article\">" + timestamp + article + "\t" + "</article>" + "\n" +
+		"\n<article id=\"article-poco\">" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + c.footer() +
 		"</div><!-- page-container -->\n" +
@@ -143,14 +143,13 @@ func (c *config) assemble(filename string, article string) string {
 func (c *config) getFm(filename string) map[string]interface{} {
 	var rawHTML string
 	var err error
-
 	newC := newConfig()
+
 	// Convert Markdown file, possibly with front matter, to HTML
 	if rawHTML, err = mdYAMLFileToHTMLString(newC, filename); err != nil {
 		quit(1, err, c, "Problem converting %s to HTML", filename)
 	}
 
-	// TODO: Is this necessary when just getting the front matter?
 	// Execute its templates.
 	if _, err = doTemplate("", rawHTML, newC); err != nil {
 		quit(1, err, c, "%v: Unable to execute ", filename)
@@ -235,101 +234,8 @@ func sliceToStylesheetStr(sheets []string) string {
 // Would yield:
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-func (c *config) gatherThemeStylesheets(t *theme, fm *map[string]interface{}) {
-	//xxx
-	debug("\t\tgatherThemeStylesheets()")
-	debug("\t\t\tstyleTags: %+v", fmStr("style-tags", *fm))
-	debug("\t\t\tFRONT MATTER:\t%+v", fm)
-	s := fmStr("stylesheets", *fm)
-	debug("\t\tstyleheets: %+v", fmStr("stylesheets", *fm))
-	debug("\t\t\tstylesheets:%+v", s)
-	slice := t.stylesheetFilenames
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(t.dir, filename)
-			//wait(fullPath)
-			debug("\t\t\t %s", fullPath)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			t.stylesheets = t.stylesheets + s + "\n"
-		}
-		//debug("\t\t\tgatherThemeStylesheets() %v", t.stylesheets)
-	}
-}
-
+//
 // TODO: Document
-func (c *config) newgatherThemeStylesheets(t *theme, fm *map[string]interface{}) {
-	//slice := t.stylesheetFilenames
-	slice := fmStrSlice("stylesheets", *fm)
-
-	// xxx
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			//debug("\tgatherThemeStylesheets(): %s", filename)
-			// Get full pathname or URL of file.
-			fullPath := regularize(t.dir, filename)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			t.stylesheets = t.stylesheets + s + "\n"
-		}
-	}
-}
-
-func (c *config) oldstylesheets() string {
-	debug("\t\tstylesheets() c.fm: %+v", c.fm)
-
-	slice := fmStrSlice("stylesheets", c.fm)
-	// xxx
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(c.theme.dir, filename)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			s := c.getWebOrLocalFileStr(fullPath)
-			c.theme.stylesheets = c.theme.stylesheets + s + "\n"
-		}
-	}
-
-	slice = fmStrSlice("stylesheets", c.globalFm)
-	// xxx
-	if len(slice) > 0 {
-		for _, filename := range slice {
-			fullPath := regularize(c.globalTheme.dir, filename)
-			s := c.getWebOrLocalFileStr(fullPath)
-			c.globalTheme.stylesheets = c.globalTheme.stylesheets + s + "\n"
-		}
-	}
-
-	slice = fmStrSlice("stylesheets", c.fm)
-	// xxx
-	if len(slice) > 0 {
-		for _, filename := range slice {
-			fullPath := regularize(c.theme.dir, filename)
-			s := c.getWebOrLocalFileStr(fullPath)
-			c.theme.stylesheets = c.theme.stylesheets + s + "\n"
-		}
-	}
-
-	//c.gatherThemeStylesheets(&c.theme, &c.fm)
-	// xxx
-	//c.gatherThemeStylesheets(&c.globalTheme, &c.globalFm)
-	s := c.globalTheme.stylesheets + c.theme.stylesheets
-	if len(s) > 0 {
-		s = tagSurround("style", c.globalTheme.stylesheets+c.theme.stylesheets)
-	}
-	return s
-}
-
 // theme contains all the (lightweight) files needed for a theme:
 // header.md, style sheets, etc.
 type theme struct {
@@ -418,15 +324,20 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
-	// externalStylesheets true means stylesheets will not be inlined.
-	externalStylesheets bool
+	// linkStyles true means stylesheets will not be inlined.
+	linkStyles bool
 
 	// List of all files being processed
 	files []string
 
 	// Front matter
-	fm         map[string]interface{}
-	globalFm   map[string]interface{}
+	// front matter for current theme
+	fm map[string]interface{}
+
+	// front matter for global theme
+	globalFm map[string]interface{}
+
+	// front matter for current page
 	overrideFm map[string]interface{}
 
 	// Full pathname of the root index file Markdown in the root directory.
@@ -477,11 +388,9 @@ type config struct {
 	skipPublish searchInfo
 
 	// Contents of a theme directory: the theme for the current page,
-	// the global (default) theme directory, and any overrides
-	// from the front matter
-	theme         theme
-	globalTheme   theme
-	overrideTheme theme
+	// plus the global (default) theme directory.
+	pageTheme   theme
+	globalTheme theme
 
 	// Command-line flag -themes shows installed themes
 	themeList bool
@@ -622,26 +531,31 @@ func regularize(dir string, filename string) string {
 // So at the end you know what the assets are but haven't done
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
-func (c *config) themeDescription(themeDir string) theme {
+func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) theme {
 	debug("\t\t\tthemeDescription('%s')", themeDir)
 	// Return value
 	var theme theme
-	// Leave if no theme specified.
-	if themeDir == "" {
+	// Leave if no theme specified and no global theme specified.
+	//if themeDir == "" && !c.globalTheme.present {
+	if themeDir == "" && !possibleGlobalTheme {
 		theme.present = false
-		debug("\t\t\treturning with no theme for  %s", c.currentFile())
+		debug("\t\t\t\treturning with no local or global theme for  %s", c.currentFile())
 		return theme
 	}
+
+	// xxxx
 	// The theme is actually just a directory name.
 	theme.dir = themeDir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
+	// Get its full path.
 	themeReadme := filepath.Join(theme.dir, "README.md")
 	if !fileExists(themeReadme) {
 		theme.present = false
 		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
 			c.currentFile())
 	} else {
+		// Found it. Read its contents.
 		theme.readme = c.fileToString(themeReadme)
 	}
 
@@ -649,33 +563,43 @@ func (c *config) themeDescription(themeDir string) theme {
 	license := filepath.Join(theme.dir, "LICENSE")
 	if !fileExists(license) {
 		theme.present = false
-		quit(1, nil, c, "%s theme is missing a LICENSE file", c.theme.dir)
+		quit(1, nil, c, "%s theme is missing a LICENSE file", c.pageTheme.dir)
 	} else {
+		// Found it. Read its contents.
 		theme.license = c.fileToString(license)
+		// Met minimal requirements for a theme.
+		theme.present = true
 	}
-
-	// Only requirements for a theme are README.md and LICENSE  file
-	theme.present = true
 
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
+	// Get the front matter for this theme.
 	tmpConfig.fm = tmpConfig.getFm(themeReadme)
 
 	// The theme's README.md file has been located.
 	// A temporary config object has been created.
-	// Its front matter is drawn from the theme's README.md.
-	// header has the name of the header file, footer the name
-	// of the footer file, and so on. Determine
-	// their paths based on the theme's directory.
+	// Get from the theme's front matter, author, branding,
+	// description, etc.
 	theme.readFm(tmpConfig.fm)
+  // xxxxx
+	if possibleGlobalTheme && !c.globalTheme.present {
+		// If this is a global-theme declaration, read that
+		// into c
+		c.globalTheme = theme
+		debug("\t\t\t\tGlobal theme %s found", c.globalTheme.dir)
+	} else {
+		// It's a local theme declaration
+		c.pageTheme = theme
+		debug("\t\t\t\tLocal theme %s found", c.pageTheme.dir)
+	}
 	return theme
 } // themeDescription()
 
 // If there's a local footer, return it.
 // If not and there's a global footer, return it.
 func (c *config) footer() string {
-	if c.theme.present {
-		return c.theme.footer
+	if c.pageTheme.present {
+		return c.pageTheme.footer
 	}
 	if c.globalTheme.present {
 		return c.globalTheme.footer
@@ -686,8 +610,8 @@ func (c *config) footer() string {
 // If there's a local aside, return it.
 // If not and there's a global aside, return it.
 func (c *config) aside() string {
-	if c.theme.present {
-		return c.theme.aside
+	if c.pageTheme.present {
+		return c.pageTheme.aside
 	}
 	if c.globalTheme.present {
 		return c.globalTheme.aside
@@ -698,8 +622,8 @@ func (c *config) aside() string {
 // If there's a local nav, return it.
 // If not and there's a global nav, return it.
 func (c *config) nav() string {
-	if c.theme.present {
-		return c.theme.nav
+	if c.pageTheme.present {
+		return c.pageTheme.nav
 	}
 	if c.globalTheme.present {
 		return c.globalTheme.nav
@@ -710,8 +634,8 @@ func (c *config) nav() string {
 // If there's a local header, return it.
 // If not and there's a global header, return it.
 func (c *config) header() string {
-	if c.theme.present {
-		return c.theme.header
+	if c.pageTheme.present {
+		return c.pageTheme.header
 	}
 	if c.globalTheme.present {
 		return c.globalTheme.header
@@ -719,38 +643,42 @@ func (c *config) header() string {
 	return ""
 }
 
-// getFmTheme obtains the front matter and theme for this file.
+// getTheme obtains the front matter and theme for this file.
 // It uses the front matter to obtain theme information.
 // It then obtains the theme description for the file.
-// Distinguishes between home page and all others.
-// It returns the front matter and theme it found
-func (c *config) getFmTheme(filename string) (*map[string]interface{}, *theme) {
-	debug("\t\tgetFmTheme(%s)", filename)
+// Distinguishes between global theme (only recognzied on home page )
+// and all others.
+// Nondestructive to c: it returns the front matter and theme it found.
+func (c *config) oldgetTheme(filename string) (*map[string]interface{}, *theme) {
+	// Get the front matter for the named file.
 	f := c.getFm(filename)
-
+	var possibleGlobalTheme bool
+	var t theme
 	themeDir := ""
-	if filename == c.homePage {
+	if filename != c.homePage {
+		// Not the home page. Look only for a local theme.
 		themeDir = fmStr("theme", f)
 		if themeDir != "" {
-			debug("\t\t\tOverriding global theme")
-			// They want to override the global theme right
-			// there on the home page
-			themeDir = fmStr("theme", f)
+			debug("\t\t\tgetTheme(%s) possible local theme", filename)
 		} else {
-			// No they don't plan to override the global theme on the home page.
-			themeDir = fmStr("global-theme", f)
-			if themeDir == "" {
-				debug("\t\t\tNo global theme specified")
-				c.globalTheme.present = false
-			} else {
-				//debug("\t\t\tglobal theme named: %s", c.globalTheme.dir)
+			debug("\t\t\tgetTheme(%s) no local theme specified", filename)
+			//return &f, &c.globalTheme
+			if c.globalTheme.present {
+				themeDir = c.globalTheme.dir
 			}
 		}
 	} else {
-		// Not the home page. Look only
-		themeDir = fmStr("theme", f)
+		// On the home page. See if a global theme is specified
+		// (don't bother to look on any other page)
+		themeDir = fmStr("global-theme", f)
+		if themeDir != "" {
+			possibleGlobalTheme = true
+			debug("\t\t\tgetTheme(%s) possible global theme", filename)
+		}
 	}
-	t := c.themeDescription(themeDir)
+	if themeDir != "" {
+		t = c.themeDescription(themeDir, possibleGlobalTheme)
+	}
 	return &f, &t
 }
 
@@ -862,7 +790,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 	}
 
 	if state != HTML {
-		s = convertMdYAMLFileToHTMLStr(filename, c)
+		s = convertMdYAMLFileToHTMLFragmentStr(filename, c)
 		if s != "" {
 			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
 		}
@@ -946,23 +874,34 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 	return styleTags
 }
 
-func (c *config) getStylesheets(fm map[string]interface{}) string {
+// linkStylesheets() extracts stylesheet references and
+// creates link tags for them.
+func (c *config) linkStylesheets() string {
 
-	return sliceToStylesheetStr(fmStrSlice("stylesheets", fm))
-
-	slice := fmStrSlice("stylesheets", fm)
-	stylesheets := ""
-	for _, stylesheet := range slice {
-		s := fmt.Sprintf("\t\t%s\n", stylesheet)
-		stylesheets = stylesheets + s
+	// xxx
+	debug("\tlinkStyles()")
+	pageStyles := sliceToStylesheetStr(c.pageTheme.stylesheetFilenames)
+	debug("\t\tpage styles: %v", pageStyles)
+	if c.pageTheme.present {
+		themeStyles := sliceToStylesheetStr(c.pageTheme.stylesheetFilenames)
+		debug("\t\ttheme styles: %v", themeStyles)
+		return themeStyles + pageStyles
 	}
-	return stylesheets
+	if c.globalTheme.present {
+		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.stylesheetFilenames)
+		debug("\t\tglobal styles: %v", globalThemeStyles)
+		return globalThemeStyles + pageStyles
+	}
+	return pageStyles
 }
 
-func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) string {
+func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) string {
+	debug("\tinlineStyleSheets(%s)", dir)
 	// Return value
 	s := ""
-	slice := fmStrSlice("stylesheets", *fm)
+
+	slice := fmStrSlice("stylesheets", c.fm)
+	//slice := c.
 	stylesheets := ""
 	if len(slice) > 0 {
 		// Collect all the stylesheets mentioned.
@@ -970,15 +909,16 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(dir, filename)
+			debug("\t\tc.fm: %s", fullPath)
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
+			// For debugging purposes, add commment with filename
 			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
 	}
 
 	slice = fmStrSlice("stylesheets", c.globalFm)
-	stylesheets = ""
 	if len(slice) > 0 {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -987,14 +927,30 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 			fullPath := regularize(dir, filename)
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
+			debug("\t\tglobalFm: %s", fullPath)
 			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
-			wait(s)
+			stylesheets = stylesheets + s + "\n"
+		}
+	}
+
+	slice = fmStrSlice("stylesheets", c.overrideFm)
+	if len(slice) > 0 {
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+			fullPath := regularize(dir, filename)
+			debug("\t\toverrideFm: %s", fullPath)
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			// For debugging purposes, add commment with filename
+			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
 	}
 
 	if s != "" {
-		return "<style>" + s + "</style>" + "\n"
+		return "<style>" + stylesheets + "</style>" + "\n"
 	}
 	return ""
 }
@@ -1004,58 +960,173 @@ func (c *config) gatherStylesheets(dir string, fm *map[string]interface{}) strin
 func (c *config) stylesheets() string {
 	// Return value
 	s := ""
-	if c.externalStylesheets {
+	debug("\tstylesheets()")
+	if c.linkStyles {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
-		s = c.getStylesheets(c.overrideFm)
+		s = c.linkStylesheets()
 	} else {
 		// Inline stylesheets as usual
-		s = c.gatherStylesheets(c.root, &c.overrideFm)
+		s = c.inlineStylesheets(c.root)
 	}
 	return s
 }
-func (c *config) loadTheme(filename string) {
-	//debug("\tloadTheme()")
-	//return
-	// xxxx
-	// Get the front matter for this page and find
-	// out what theme it uses. Also works for global
-	// theme, if any, on the home page.
-	fm, theme := c.getFmTheme(filename)
-	debug("\ttheme present for %s? %v", filename, theme.present)
-	c.overrideFm = *fm
-	c.overrideTheme = *theme
-	if theme.present {
-		debug("\t\tSome theme is present")
-		if filename == c.homePage {
-			debug("\t\t\tAt thome page. Theme is: %+v", theme.dir)
-			// xxxx
-			if c.globalTheme.present {
-				debug("\t\t\tglobal theme %+v is present", theme.dir)
 
-				c.globalTheme = *theme
-				c.globalFm = *fm
-				c.layout(&c.globalTheme)
-				debug("\t\tglobal theme is: %s", c.globalTheme.dir)
-			} else {
-				debug("\t\t\tglobal theme not present")
-			}
-		} else {
-			c.theme = *theme
-			c.fm = *fm
-			c.layout(&c.theme)
-		}
-	}
-	// No theme present.
-	// If there's a global theme, apply it
-	if c.globalTheme.present {
-		debug("\t\t%s doesn't have a theme specified. Applying global theme to it.", filename)
-		c.theme = c.globalTheme
-		c.fm = c.globalFm
-		c.layout(&c.globalTheme)
-	}
-
+// validTheme() returns true if the theme directory contains
+// a README.md and a LICENSE file. Those are the minimum
+// requirements for a theme. A theme name is actually just
+// a directory path, so that's what's passed in.
+func (c *config) oldvalidTheme(t *theme) bool {
+  return false
+  //
 }
+
+// themeDataStructures obtains the data structures
+// for the theme located at dir.
+// If possibleGlobalTheme is true, it means the hoped-for theme is
+// the global theme.
+func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
+	// xxx
+	// The theme is actually just a directory name.
+  var theme theme
+	theme.dir = dir
+	// The theme's heart is its README.md file, which lists
+	// assets required by the theme.
+	// Get its full path.
+	themeReadme := filepath.Join(theme.dir, "README.md")
+	if !fileExists(themeReadme) {
+		theme.present = false
+		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
+			c.currentFile())
+	} else {
+		// Found it. Read its contents.
+		theme.readme = c.fileToString(themeReadme)
+	}
+
+	// Make sure there's a LICENSE file
+	license := filepath.Join(theme.dir, "LICENSE")
+	if !fileExists(license) {
+		theme.present = false
+		quit(1, nil, c, "%s theme is missing a LICENSE file", c.pageTheme.dir)
+	} else {
+		// Found it. Read its contents.
+		theme.license = c.fileToString(license)
+		// Met minimal requirements for a theme.
+		theme.present = true
+    // On the home page. The request is for the global theme.
+    if possibleGlobalTheme {
+      c.globalTheme.present = true
+    }
+	}
+
+	// Get a new config object to avoid stepping on c.config
+	tmpConfig := newConfig()
+	// Get the front matter for this theme.
+	tmpConfig.fm = tmpConfig.getFm(themeReadme)
+
+	// The theme's README.md file has been located.
+	// A temporary config object has been created.
+	// Get from the theme's front matter, author, branding,
+	// description, etc.
+	theme.readFm(tmpConfig.fm)
+
+	return &theme
+}
+
+// themeName() obtains the name and data structures for
+// any theme named on this page: the pageTheme or the globalTheme
+// (Possibly both if on the home page)
+// filename is the name of the current Markdown source file.
+func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*/ {
+	pageThemeDir := fmStr("theme", c.overrideFm)
+	// If NOT on the home page, check this page for a theme.
+	if filename != c.homePage {
+		// Nothing else to do if no theme named.
+		// c.overrideFm already has front matter for this page.
+		if pageThemeDir == "" {
+      // No theme. Business is concluded.
+      // c.theme.present is already false
+			return
+		}
+		// A page theme has been named. Not known to be valid.
+		// Again, this is not the home page.
+		// xxx themeName(), new version
+		if dirExists(pageThemeDir) {
+			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+      return
+		}
+
+  // On the home page. Check for a global-theme but also a page theme.
+	} else {
+    // First check for a page theme. If both are named, this will
+    // override the global theme.
+		if pageThemeDir != "" && dirExists(pageThemeDir){
+ 		// A page theme has been named. Not known to be valid.
+		// Again, this is not the home page.
+		// xxx themeName(), new version
+			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+    }
+	  // This is the home page. Check for a global theme.
+	  globalThemeDir := fmStr("global-theme", c.overrideFm)
+    if dirExists(globalThemeDir) {
+      c.globalTheme = *c.themeDataStructures(globalThemeDir, true) 
+      //wait("Found global theme %s: %+v", globalThemeDir, c.globalTheme)
+    }
+  }    
+}
+
+// loadTheme() is passed the current source filename.
+// If a page theme is named in the front matter, its description
+// is read. If at the home page, it reads the global theme, if any.
+// It is possible at the home page to have both page theme
+// and global themes names. In that case the page theme takes priority
+// on the home page, as it would any other page.
+// TODO: docs
+func (c *config) loadTheme(filename string) {
+	// Obtain the front matter for this page.
+	// Any values such as header, footer, etc. will override
+	// their corresponding local or global themes.
+	c.overrideFm = c.getFm(filename)
+
+  // Get the page theme, if any.
+  // If on the home page, look for both global 
+  // and local theme names.
+  // Load data structures for those themes.
+	c.themeName(filename)
+
+	// Handle case where no theme was named, and there's no
+	// global theme named either.
+	// Any theme info is just random stuff in
+	// the front matter of the current Markdown file.
+	if !c.pageTheme.present && !c.globalTheme.present {
+		return
+	}
+
+  // If a page theme has been named, the data structures are ready. 
+  // Read in its style sheets, style tags, and page layout elements.
+	if c.pageTheme.present {
+    // xxxx
+		// Local theme takes priority
+		c.layout(&c.pageTheme)
+    wait("page theme %s found: %+v", c.pageTheme.dir, c.pageTheme)
+		return
+	}
+
+  // If a global theme has been named, the data structures are ready. 
+  // Read in its style sheets, style tags, and page layout elements.
+	if c.globalTheme.present {
+		// Local theme takes priority
+		c.layout(&c.globalTheme)
+    wait("global theme %s found: %+v", c.globalTheme.dir, c.globalTheme)
+		return
+	}
+
+
+
+	// TODO: Add filename to skipfiles
+	// TODO: Delete functions with old in the name, such as oldLoadTHeme, oldgetTheme, themeDescription
+
+} // xxx loadTheme (new version)
 
 // loadTheme obtains the theme named on this page, if any.
 // If it's the home page being processed, then the theme
@@ -1067,31 +1138,41 @@ func (c *config) loadTheme(filename string) {
 // on the page for things like header, footer, stylesheets, or
 // style tags.
 func (c *config) oldloadTheme(filename string) {
+	debug("\tloadTheme(%s)", filename)
+	// Get the front matter for this page and find
+	// out what theme it uses.
+	// If it's a global theme, then c.globalThemePresent is true.
+	// This only means the theme name is known, not necessarily available.
 
-	debug("\tloadTheme() %s", filename)
-	fm, theme := c.getFmTheme(filename)
-	if filename == c.homePage {
-		debug("\t\thome page")
-		debug("\t\tstyleTags: %+v", fmStr("style-tags", *fm))
-		if theme.present {
-			c.layout(theme)
-			c.globalTheme = *theme
-			c.globalFm = *fm
-		} else {
-			c.theme = *theme
-			c.fm = *fm
-		}
-	} else {
-		if !theme.present && c.globalTheme.present {
-			theme = &c.globalTheme
-		}
-		c.layout(theme)
-		c.theme = *theme
-		c.fm = *fm
+	fm, theme := c.oldgetTheme(filename)
+	debug("\t\tstylesheets: %+v)", theme.stylesheetFilenames)
+
+	//c.overrideTheme = *theme
+
+	if !c.globalTheme.present && !c.pageTheme.present {
+		debug("\t\tNo global OR local theme present")
+		c.overrideFm = *fm
+		// Override info only. No local or global theme for this page.
+		return
 	}
-	debug("\t\tc.fm: %+v", c.fm)
-	debug("\t\tc.globalFm: %+v", c.globalFm)
-	//debug("\t\tc.theme: %+v", c.theme)
+
+	if c.pageTheme.present {
+		// Local theme takes priority
+		c.pageTheme = *theme
+		c.fm = *fm
+		debug("\t\tLocal theme %v present", c.pageTheme.dir)
+		c.layout(&c.pageTheme)
+		return
+	}
+
+	// Only global theme remains
+	// Fall back to global theme
+	if c.globalTheme.present {
+		c.globalTheme = *theme
+		c.globalFm = *fm
+		debug("\t\tGlobal theme %v present", c.globalTheme.dir)
+		c.layout(&c.globalTheme)
+	}
 }
 
 func (c *config) layout(t *theme) {
@@ -1132,6 +1213,9 @@ func (c *config) parseCommandLine() {
 	// debugFrontmatter command-line option shows the front matter of each page
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
+	// linkStyles controls whether stylesheets are inlined (normally they are)
+	flag.BoolVar(&c.linkStyles, "link-styles", false, "Link to stylesheets instead of inlining them")
+
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
 	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
@@ -1142,7 +1226,7 @@ func (c *config) parseCommandLine() {
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
 
-  // Directory project lives in
+	// Directory project lives in
 	flag.StringVar(&c.root, "root", ".", "Starting directory of the project")
 
 	// -settings command-line shows configuration values
@@ -1199,11 +1283,11 @@ func main() {
 	// Set values accordingly.
 	c.setupGlobals()
 
-  // Probably not for public release.
-  // Lets me search for a new session in command line 
-  // history or output file
+	// Probably not for public release.
+	// Lets me search for a new session in command line
+	// history or output file
 	if c.verboseFlag {
-    print("project: %s =============", filepath.Base(c.root))
+		print("project: %s =============", filepath.Base(c.root))
 	}
 
 	// If -serve flag was used just run as server.
@@ -1273,9 +1357,8 @@ func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile
 	// Return the document as a string.
 	html, htmlFilename := buildFileToTemplatedString(c, filename)
 	// Write the contents of the completed HTML document to a file.
-	stringToFile(c, htmlFilename, html)
 	// Return the name of the converted file
-	return htmlFilename
+	return stringToFile(c, htmlFilename, html)
 }
 
 // buildFileToTemplatedString converts a file from Markdown to raw HTML,
@@ -1349,7 +1432,7 @@ func (c *config) buildSite() {
 	assetsCopied := 0
 	// First write out home page
 	target := filepath.Join(c.webroot, "index.html")
-	stringToFile(c, target, c.homePageStr)
+	target = stringToFile(c, target, c.homePageStr)
 	// # of Markdown files processed
 	// Start at 1 because home page
 	c.mdCopied = 1
@@ -1386,7 +1469,7 @@ func (c *config) buildSite() {
 			HTML, _ := buildFileToTemplatedString(c, filename)
 			target := filepath.Join(c.webroot, filename)
 			target = replaceExtension(target, "html")
-			stringToFile(c, target, HTML)
+			target = stringToFile(c, target, HTML)
 			c.mdCopied++
 
 		} else {
@@ -1619,7 +1702,8 @@ func replaceExtension(filename string, newExtension string) string {
 // exists, then writes contents to it.
 // filename is afully qualified pathname.
 // contents is the string to write
-func stringToFile(c *config, filename, contents string) {
+// Returns filename
+func stringToFile(c *config, filename, contents string) string {
 	var out *os.File
 	var err error
 	if out, err = os.Create(filename); err != nil {
@@ -1628,6 +1712,7 @@ func stringToFile(c *config, filename, contents string) {
 	if _, err = out.WriteString(contents); err != nil {
 		quit(1, err, c, "Error writing to file %s", filename)
 	}
+	return filename
 }
 
 // downloadFile() tries to read in the named URL as text and return
@@ -1671,7 +1756,7 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 	// Handle case of local file with relative path
 	if !filepath.IsAbs(filename) {
 		// TODO: Try replacing with filepath.Abs
-		fullPath := filepath.Join(c.theme.dir, filename)
+		fullPath := filepath.Join(c.pageTheme.dir, filename)
 		s = c.fileToString(fullPath)
 		return s
 	}
@@ -1695,8 +1780,7 @@ func (c *config) newSite() {
 func writeDefaultHomePage(c *config, dir string) {
 	html := defaultHomePage(dir)
 	pathname := filepath.Join(dir, "index.md")
-	stringToFile(c, pathname, html)
-	c.homePage = pathname
+	c.homePage = stringToFile(c, pathname, html)
 }
 
 // SLICE UTILITIES
@@ -1715,7 +1799,6 @@ func (s *searchInfo) Sort() {
 		return s.list[i] <= s.list[j]
 	})
 }
-
 
 func (s *searchInfo) AddStr(add string) {
 	if s.Found(add) {
@@ -1917,7 +2000,7 @@ func (c *config) dumpSettings() {
 	print("ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
-	print("Inline stylesheets: %v", !c.externalStylesheets)
+	print("Inline stylesheets: %v", !c.linkStyles)
 	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
@@ -1937,32 +2020,22 @@ func dumpFm(c *config) string {
 	s = strings.ReplaceAll(s, "\"", "")
 	s = strings.TrimSpace(s)
 	return s
-	/*
-		  d := fmt.Sprintf("%v", c.fm)
-			if err == nil && d != "map[]"{
-				return d
-			} else {
-		    return ""
-		  }
-		  d = fmt.Sprintf("%v", err)
-		  if d != "<nil>"{
-		    return ""
-		  }
-		  return d
-	*/
 }
 
 // PARSING UTILITIES
 
-// convertMdYAMLToHTMLStr converts the Markdown file, which may
-// have front matter, to HTML.
+// convertMdYAMLFileToHTMLFragmentStr converts the Markdown code fragment,
+// which may have front matter, to HTML.
+// It doesn't execute templates.
+// It doesn't assemble the file--that its, no header, footer, etc.
+// So "hello, world" should come back as "<p>hello, world</p>"
 // Returns parsed file as HTML.
-func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
+func convertMdYAMLFileToHTMLFragmentStr(filename string, c *config) string {
 	source := c.fileToString(filename)
 	mdParser := newGoldmark()
 	mdParserCtx := parser.NewContext()
-  // Build a syntax tree (intermediate representation) 
-  // for the input Markdown text.
+	// Build a syntax tree (intermediate representation)
+	// for the input Markdown text.
 	_ = mdParser.Parser().Parse(text.NewReader([]byte(source)))
 	var buf bytes.Buffer
 	// Convert syntax tree to HTML and deposit in buf.Bytes().
@@ -1972,7 +2045,7 @@ func convertMdYAMLFileToHTMLStr(filename string, c *config) string {
 	return string(buf.Bytes())
 }
 
-// mdYAMLFiletoHTMLString converts a Markdown document
+// mdYAMLFileToHTMLString converts a Markdown document
 // with YAML front matter to HTML.
 // The HTML file has not yet had templates executed,
 // Destructive: replaces c.fm
@@ -2026,16 +2099,27 @@ func newGoldmark() goldmark.Markdown {
 
 // mdYAMLStringToTemplatedHTMLString() takes raw HTML, converts to Markdown,
 // and executes templates. Returns a string of the result.
-// Replaces c.fm
-func mdYAMLStringToTemplatedHTMLString(c *config, markdown string) string {
+// It doesn't assemble the file--that its, no header, footer, etc.
+// So "hello, world" should come back as "<p>hello, world</p>"
+// This should too:
+// ---
+// description: "world"
+// ---
+// hello, {{ .description }}.
+//
+// Returns parsed file as HTML.
+// aside, etc.
+//
+// Replaces contents of c.fm.
+func mdYAMLStringToTemplatedHTMLString(c *config, filename string, markdown string) string {
 	var parsedHTML string
 	var err error
 	var b []byte
 	if b, c.fm, err = mdYAMLToHTML([]byte(markdown)); err != nil {
 		quit(1, err, c, "Unable to convert markdown to raw HTML")
 	}
-	if parsedHTML, err = doTemplate(filepath.Base(c.currentFile()), string(b), c); err != nil {
-		quit(1, err, c, "%v: Problem executing template code", c.currentFile())
+	if parsedHTML, err = doTemplate(filename, string(b), c); err != nil {
+		quit(1, err, c, "%v: Problem executing template code", filename)
 	}
 	return parsedHTML
 }
