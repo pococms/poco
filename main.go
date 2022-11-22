@@ -581,7 +581,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
 	theme.readFm(tmpConfig.fm)
-  // xxxxx
+	// xxxxx
 	if possibleGlobalTheme && !c.globalTheme.present {
 		// If this is a global-theme declaration, read that
 		// into c
@@ -977,8 +977,8 @@ func (c *config) stylesheets() string {
 // requirements for a theme. A theme name is actually just
 // a directory path, so that's what's passed in.
 func (c *config) oldvalidTheme(t *theme) bool {
-  return false
-  //
+	return false
+	//
 }
 
 // themeDataStructures obtains the data structures
@@ -988,7 +988,7 @@ func (c *config) oldvalidTheme(t *theme) bool {
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// xxx
 	// The theme is actually just a directory name.
-  var theme theme
+	var theme theme
 	theme.dir = dir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
@@ -1013,10 +1013,10 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 		theme.license = c.fileToString(license)
 		// Met minimal requirements for a theme.
 		theme.present = true
-    // On the home page. The request is for the global theme.
-    if possibleGlobalTheme {
-      c.globalTheme.present = true
-    }
+		// On the home page. The request is for the global theme.
+		if possibleGlobalTheme {
+			c.globalTheme.present = true
+		}
 	}
 
 	// Get a new config object to avoid stepping on c.config
@@ -1044,8 +1044,8 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		// Nothing else to do if no theme named.
 		// c.overrideFm already has front matter for this page.
 		if pageThemeDir == "" {
-      // No theme. Business is concluded.
-      // c.theme.present is already false
+			// No theme. Business is concluded.
+			// c.theme.present is already false
 			return
 		}
 		// A page theme has been named. Not known to be valid.
@@ -1053,26 +1053,26 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		// xxx themeName(), new version
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-      return
+			return
 		}
 
-  // On the home page. Check for a global-theme but also a page theme.
+		// On the home page. Check for a global-theme but also a page theme.
 	} else {
-    // First check for a page theme. If both are named, this will
-    // override the global theme.
-		if pageThemeDir != "" && dirExists(pageThemeDir){
- 		// A page theme has been named. Not known to be valid.
-		// Again, this is not the home page.
-		// xxx themeName(), new version
+		// First check for a page theme. If both are named, this will
+		// override the global theme.
+		if pageThemeDir != "" && dirExists(pageThemeDir) {
+			// A page theme has been named. Not known to be valid.
+			// Again, this is not the home page.
+			// xxx themeName(), new version
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-    }
-	  // This is the home page. Check for a global theme.
-	  globalThemeDir := fmStr("global-theme", c.overrideFm)
-    if dirExists(globalThemeDir) {
-      c.globalTheme = *c.themeDataStructures(globalThemeDir, true) 
-      //wait("Found global theme %s: %+v", globalThemeDir, c.globalTheme)
-    }
-  }    
+		}
+		// This is the home page. Check for a global theme.
+		globalThemeDir := fmStr("global-theme", c.overrideFm)
+		if dirExists(globalThemeDir) {
+			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
+			//wait("Found global theme %s: %+v", globalThemeDir, c.globalTheme)
+		}
+	}
 }
 
 // loadTheme() is passed the current source filename.
@@ -1088,10 +1088,10 @@ func (c *config) loadTheme(filename string) {
 	// their corresponding local or global themes.
 	c.overrideFm = c.getFm(filename)
 
-  // Get the page theme, if any.
-  // If on the home page, look for both global 
-  // and local theme names.
-  // Load data structures for those themes.
+	// Get the page theme, if any.
+	// If on the home page, look for both global
+	// and local theme names.
+	// Load data structures for those themes.
 	c.themeName(filename)
 
 	// Handle case where no theme was named, and there's no
@@ -1102,26 +1102,26 @@ func (c *config) loadTheme(filename string) {
 		return
 	}
 
-  // If a page theme has been named, the data structures are ready. 
-  // Read in its style sheets, style tags, and page layout elements.
+	// If a page theme has been named, the data structures are ready.
+	// Read in its style sheets, style tags, and page layout elements.
 	if c.pageTheme.present {
-    // xxxx
+		// xxxx
 		// Local theme takes priority
 		c.layout(&c.pageTheme)
-    wait("page theme %s found: %+v", c.pageTheme.dir, c.pageTheme)
+		//wait("page theme %s found: %+v", c.pageTheme.dir, c.pageTheme)
+		debug("page theme %s found", c.pageTheme.dir)
 		return
 	}
 
-  // If a global theme has been named, the data structures are ready. 
-  // Read in its style sheets, style tags, and page layout elements.
+	// If a global theme has been named, the data structures are ready.
+	// Read in its style sheets, style tags, and page layout elements.
 	if c.globalTheme.present {
 		// Local theme takes priority
 		c.layout(&c.globalTheme)
-    wait("global theme %s found: %+v", c.globalTheme.dir, c.globalTheme)
+		//wait("global theme %s found: %+v", c.globalTheme.dir, c.globalTheme)
+		debug("global theme %s found", c.pageTheme.dir)
 		return
 	}
-
-
 
 	// TODO: Add filename to skipfiles
 	// TODO: Delete functions with old in the name, such as oldLoadTHeme, oldgetTheme, themeDescription
@@ -1700,7 +1700,7 @@ func replaceExtension(filename string, newExtension string) string {
 
 // stringToFile creates a file called filename without checking to see if it
 // exists, then writes contents to it.
-// filename is afully qualified pathname.
+// filename is a fully qualified pathname.
 // contents is the string to write
 // Returns filename
 func stringToFile(c *config, filename, contents string) string {

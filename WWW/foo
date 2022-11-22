@@ -1,9 +1,0 @@
-#!/bin/zsh
-TESTDIR=~/pococms/poco/foobar/
-cd ~/pococms/poco/
-go build
-rm -rf $TESTDIR
-mkdir -p $TESTDIR
-cd $TESTDIR
-poco
-ls $TESTDIR/.poco/themes/informer

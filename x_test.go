@@ -6,6 +6,7 @@ import (
 	//"regexp"
 	//"fmt"
 	"golang.org/x/exp/slices"
+  "os"
 	"strings"
 	"testing"
 )
@@ -210,7 +211,6 @@ func TestMissingTitleTag(t *testing.T) {
 // ********************************************************
 
 func TestSearchInfo(t *testing.T) {
-	//slice := []string{}
 	var s searchInfo
 	s.AddStr("a")
 	expected := []string{"a"}
@@ -238,7 +238,7 @@ func TestSearchInfo(t *testing.T) {
 	searchFor = "c"
 	found = s.Found(searchFor)
 	if !found {
-		t.Errorf("%v reported as not found, but it be present in s.list",
+		t.Errorf("%v reported as not found, but it should be present in s.list",
 			searchFor)
 	}
 }
@@ -300,6 +300,7 @@ var sliceToStylesheetStrTests = []struct {
 	{
 		// slice of stylesheet names
 		[]string{"foo.css"},
+    // slice should be converted to this HTML:
 		`<link rel="stylesheet" href="foo.css">`,
 	},
 
@@ -307,6 +308,7 @@ var sliceToStylesheetStrTests = []struct {
 	{
 		// slice of stylesheet names
 		[]string{"foo.css", "bar.css"},
+    // slice should be converted to this HTML:
 		"<link rel=\"stylesheet\" href=\"foo.css\">\n\t<link rel=\"stylesheet\" href=\"bar.css\">",
 	},
 }
@@ -333,25 +335,64 @@ var convertMdYAMLFileToHTMLFragmentStrTests = []struct {
 	// TEST RECORD
 	{
 		// Contents of Markdown file
-		`---
----
+    // note: empty file
+		`
+`,
+		// Expected output when Markdown file is converted to HTML
+		``,
+	},
+
+	// TEST RECORD
+	{
+		// Contents of Markdown file
+    // note: unformatted text. no YAML front matter.
+		`
 hello, world.
 `,
-		// Expected HTML output
+		// Expected output when Markdown file is converted to HTML
 		`<p>hello, world.</p>`,
 	},
 
 	// TEST RECORD
 	{
 		// Contents of Markdown file
+    // note: unformatted text. Empty YAML front matter.
+		`---
+---
+hello, world.
+`,
+		// Expected output when Markdown file is converted to HTML
+		`<p>hello, world.</p>`,
+	},
+
+	// TEST RECORD
+	{
+		// Contents of Markdown file
+    // note: YAML front matter contains description key.
 		`---
 description: "Poco baby"
 ---
 hello, {{ .description }}!
 `,
-		// Expected HTML output
+		// Expected output when Markdown file is converted to HTML
 		`<p>hello, Poco baby!</p>`,
 	},
+
+	// TEST RECORD
+	{
+		// Contents of Markdown file
+    // note: YAML front matter contains empty description value.
+		`---
+description: 
+---
+hello, {{ .description }}!
+`,
+		// Expected output when Markdown file is converted to HTML
+    // TODO: Create an error message explaining this output
+		`<p>hello, <no value>!</p>`,
+	},
+
+  // -- TEST RECORDS END HERE --
 }
 
 func TestMdYAMLStringToTemplatedHTMLString(t *testing.T) {
@@ -365,6 +406,64 @@ func TestMdYAMLStringToTemplatedHTMLString(t *testing.T) {
 		}
 	}
 }
+
+
+// ********************************************************
+// 
+// ********************************************************
+
+var getTmpTests = []struct {
+	code            string
+	fmKey           string
+	fmExpectedValue string
+}{
+
+	// TEST RECORD
+	{
+		// Contents of Markdown file
+		`---
+title: "yo mama"
+---
+`,
+		// Front matter key to read
+		"title",
+		// Value the front matter should return
+		"yo mama",
+	},
+}
+
+func TestGetTmpTests(t *testing.T) {
+  for _, tt := range getTmpTests {
+		//c := newConfig()
+		// Create a Markdown file on the fly (with optional
+		// front matter). Obtain its front matter.
+    var f *os.File
+    var err error
+    // xxx
+    // Create a temporary file with an .md extension in Go's 
+    // default temp file directory.
+    if f, err = os.CreateTemp("", "*.md"); err != nil {
+      t.Errorf("Unable to create temporary file")
+    }
+    // Delete this file when the function exits
+    defer os.Remove(f.Name())
+    // Create a file using the temp name and this test record's
+    // source code.
+    err = os.WriteFile(f.Name(), []byte(tt.code), 0666)
+
+    /*
+		fm := c.getFm(stringToFile(c, tt.filename, tt.code))
+		value := fmStr(tt.fmKey, fm)
+		if value != tt.fmExpectedValue {
+			t.Errorf("Frontmatter error. fmStr(%v) should was %v. Expected %v",
+				tt.fmKey, value, tt.fmExpectedValue)
+		}
+    */
+	}
+}
+
+
+
 
 // ********************************************************
 // UTILITIES
