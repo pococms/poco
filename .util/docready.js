@@ -1,6 +1,3 @@
-<!-- In-progress test for widely compatible documenty ready code so Javascript can be executed safely -->
-
-<script> {
   // Document.ready working back to IE 8.
   // From https://stackoverflow.com/questions/2304941/what-is-the-non-jquery-equivalent-of-document-ready
   function ready(fn) {
@@ -43,13 +40,4 @@ window.ready(function() {
   startHere();
 });
 
-/*
 
-window.ready(function() {
-  alert('it works');
-});
-
-*/
-}
-
-</script>

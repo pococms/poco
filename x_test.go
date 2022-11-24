@@ -132,7 +132,6 @@ func TestAllFmSlices(t *testing.T) {
 			t.Errorf("Unable to get front matter from %s", tt.code)
 		}
 		slice := fmStrSlice(tt.key, fm)
-		//fmt.Printf("SLICE: %v\n", slice)
 		if !slices.Equal(slice, tt.expected) {
 			t.Errorf("%v: expected \"%s\", actual \"%s\"", tt.key, slice, tt.expected)
 		}
@@ -257,6 +256,7 @@ var getFmTests = []struct {
 	// TEST RECORD
 	{
 		// filename
+    // TODO: Use temp file or defer deletion of this file
 		"$$_README.md",
 		// Contents of Markdown file
 		`---
@@ -407,6 +407,9 @@ func TestMdYAMLStringToTemplatedHTMLString(t *testing.T) {
 	}
 }
 
+
+
+// xxx
 
 // ********************************************************
 // 
