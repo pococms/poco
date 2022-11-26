@@ -125,9 +125,9 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article-poco\">\n" + timestamp + article + "\t" + "</article>" + "\n" +
+		"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
-		"\t" + c.footer() +
+		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
     "<script> {" + "\n" +
     c.documentReady() +
