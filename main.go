@@ -1289,8 +1289,6 @@ func main() {
 	// No file was given on the command line.
 	// Build the project in place.
 
-  debug("Parsing command line")
-
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 
