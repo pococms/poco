@@ -1,3 +1,4 @@
+  // Search for "USER JAVASCRIPT CODE" to see where user Javascript should go.
   // Document.ready working back to IE 8.
   // From https://stackoverflow.com/questions/2304941/what-is-the-non-jquery-equivalent-of-document-ready
   function ready(fn) {
@@ -19,25 +20,26 @@
     }
   }
 
-  // tests
-  try {
-    window.ready(5);
-  } catch (ex) {
-    console.log(ex.message);
-  }
+  // Demonstrate error checking 
+  //try {
+  //  window.ready(5);
+  //} catch (ex) {
+  //  console.log(ex.message);
+  //}
 
 
-// Put any initialization code for the HTML document here.
-function startHere() {
-    alert('do something there')
-}
-
-// HTML Document has been loaded. This is where it's safe 
-// for you to execute code. For modularity's sake this 
-// version calls an arbitrary function.
-window.ready(function() {
+  // HTML Document has been loaded. This is where it's safe 
+  // for you to execute code. For modularity's sake this 
+  // version calls an arbitrary function.
+  window.ready(function() {
   // startHere() is just an arbitrary name. Can be anything.
   startHere();
-});
+  })
+
+  // --- START USER JAVASCRIPT CODE
+  function startHere() {
+  }
+  // --- END USER JAVASCRIPT CODE
+;
 
 
