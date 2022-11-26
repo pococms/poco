@@ -125,10 +125,13 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article-poco\">" + timestamp + article + "\t" + "</article>" + "\n" +
+		"\n<article id=\"article-poco\">\n" + timestamp + article + "\t" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		"\t" + c.footer() +
 		"</div><!-- page-container -->\n" +
+    "<script> {" + "\n" +
+    c.documentReady() +
+    "}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
@@ -160,6 +163,12 @@ func (c *config) getFm(filename string) map[string]interface{} {
 }
 
 // HTML UTILITIES
+// documentReady() inserts Javascript code to ensure that
+// user-defined Javascript executes only after the full
+// HTML DOM has been loaded.
+func (c *config) documentReady() string {
+  return c.fileToString(".poco/js/docready.js")
+}
 
 // defaultHomePage() Generates a simple home page as an HTML string
 // Uses the file segment of dir as the the H1 title.
@@ -543,7 +552,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 		return theme
 	}
 
-	// xxxx
 	// The theme is actually just a directory name.
 	theme.dir = themeDir
 	// The theme's heart is its README.md file, which lists
@@ -581,7 +589,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
 	theme.readFm(tmpConfig.fm)
-	// xxxxx
 	if possibleGlobalTheme && !c.globalTheme.present {
 		// If this is a global-theme declaration, read that
 		// into c
@@ -876,9 +883,10 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 
 // linkStylesheets() extracts stylesheet references and
 // creates link tags for them.
+// See also inlineStylesheets(), which inserts stylesheet
+// code directly into the HTML document
 func (c *config) linkStylesheets() string {
 
-	// xxx
 	debug("\tlinkStyles()")
 	pageStyles := sliceToStylesheetStr(c.pageTheme.stylesheetFilenames)
 	debug("\t\tpage styles: %v", pageStyles)
@@ -895,6 +903,10 @@ func (c *config) linkStylesheets() string {
 	return pageStyles
 }
 
+// inlineStylesheets() directly injects stylesheet code into the
+// HTML document instead of linking to it.
+// See also linkStylesheets(), which links to stylesheet
+// instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) string {
 	debug("\tinlineStyleSheets(%s)", dir)
 	// Return value
@@ -913,8 +925,8 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
-			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
-			stylesheets = stylesheets + s + "\n"
+			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
+			stylesheets = s + "\n"
 		}
 	}
 
@@ -928,7 +940,8 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			debug("\t\tglobalFm: %s", fullPath)
-			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
+			// For debugging purposes, add commment with filename
+			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
 	}
@@ -944,7 +957,7 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
-			s = "/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
+			s = "\n\n/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
 	}
@@ -986,7 +999,6 @@ func (c *config) oldvalidTheme(t *theme) bool {
 // If possibleGlobalTheme is true, it means the hoped-for theme is
 // the global theme.
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
-	// xxx
 	// The theme is actually just a directory name.
 	var theme theme
 	theme.dir = dir
@@ -1050,7 +1062,7 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		}
 		// A page theme has been named. Not known to be valid.
 		// Again, this is not the home page.
-		// xxx themeName(), new version
+		// themeName(), new version
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 			return
@@ -1063,7 +1075,7 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		if pageThemeDir != "" && dirExists(pageThemeDir) {
 			// A page theme has been named. Not known to be valid.
 			// Again, this is not the home page.
-			// xxx themeName(), new version
+			// themeName(), new version
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 		}
 		// This is the home page. Check for a global theme.
@@ -1105,7 +1117,6 @@ func (c *config) loadTheme(filename string) {
 	// If a page theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
 	if c.pageTheme.present {
-		// xxxx
 		// Local theme takes priority
 		c.layout(&c.pageTheme)
 		//wait("page theme %s found: %+v", c.pageTheme.dir, c.pageTheme)
@@ -1126,7 +1137,7 @@ func (c *config) loadTheme(filename string) {
 	// TODO: Add filename to skipfiles
 	// TODO: Delete functions with old in the name, such as oldLoadTHeme, oldgetTheme, themeDescription
 
-} // xxx loadTheme (new version)
+} // loadTheme (new version)
 
 // loadTheme obtains the theme named on this page, if any.
 // If it's the home page being processed, then the theme
@@ -1643,6 +1654,37 @@ func copyFile(c *config, source string, target string) {
 		quit(1, err, c, "Error copying file %s to %s", source, target)
 	}
 
+}
+
+// copyPocoDir copies the embedded .poco directory into
+// the current directory, which is expected to be
+// a new project directory.
+func (c *config) copyPocoDir(f embed.FS, dir string) error {
+	if dir == "" {
+		dir = currDir()
+	}
+	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			quit(1, err, c, "Problem walking .poco dir")
+		}
+		if d.IsDir() {
+			// It's a directory. Create it in the target location.
+			// Easy to do because we're guaranteed inside the project dir.
+			err := os.MkdirAll(path, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
+			}
+		} else {
+			// Build a full path for the source file to copy.
+			// The source file is in the same directory as
+			// the poco executable.
+			source := filepath.Join(executableDir(), path)
+			// Destination is just path, which is guaranteed to
+			// be a subdirectory of the current (new project) directory.
+			copyFile(c, source, path)
+		}
+		return nil
+	})
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -2279,37 +2321,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 		s[i] = r
 	}
 	return s
-}
-
-// copyPocoDir copies the embedded .poco directory into
-// the current directory, which is expected to be
-// a new project directory.
-func (c *config) copyPocoDir(f embed.FS, dir string) error {
-	if dir == "" {
-		dir = currDir()
-	}
-	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			quit(1, err, c, "Problem walking .poco dir")
-		}
-		if d.IsDir() {
-			// It's a directory. Create it in the target location.
-			// Easy to do because we're guaranteed inside the project dir.
-			err := os.MkdirAll(path, os.ModePerm)
-			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
-			}
-		} else {
-			// Build a full path for the source file to copy.
-			// The source file is in the same directory as
-			// the poco executable.
-			source := filepath.Join(executableDir(), path)
-			// Destination is just path, which is guaranteed to
-			// be a subdirectory of the current (new project) directory.
-			copyFile(c, source, path)
-		}
-		return nil
-	})
 }
 
 // newProject() takes a directory name and generates a
