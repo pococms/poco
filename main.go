@@ -1275,12 +1275,21 @@ func (c *config) parseCommandLine() {
 	// See if a directory was specified.
 	c.root = flag.Arg(0)
 
+  // TODO: Not sure this is the right place to run this, but see
+  // issue #19
+	if c.themeList {
+		print(c.themeDirContents())
+		os.Exit(0)
+	}
+
 }
 
 func main() {
 	c := newConfig()
 	// No file was given on the command line.
 	// Build the project in place.
+
+  debug("Parsing command line")
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
@@ -1314,11 +1323,6 @@ func main() {
 	// If -settings flag just show config values and quit
 	if c.settings {
 		c.dumpSettings()
-		os.Exit(0)
-	}
-
-	if c.themeList {
-		print(c.themeDirContents())
 		os.Exit(0)
 	}
 
@@ -1552,7 +1556,6 @@ func (c *config) getSkipPublish() {
 	// Add anything from the -skip command line option
 	list := strings.Split(c.skip, " ")
 	c.skipPublish.list = append(c.skipPublish.list, list...)
-	debug("Adding .poco and .backup to skip list")
 	c.skipPublish.AddStr(".backup")
 
 	// Get what's specified in the home page front matter
