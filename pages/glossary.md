@@ -103,6 +103,19 @@ for the distinguished file named `index.html` in its own webroot directory, so
 The reason `README.md` takes priority over `index.md` is that's how many
 previous site generators roll, such as the one on GitHub.
 
+### Defining a global theme on the home page
+
+The home page lets you define a global [theme](#theme) for the entire site.
+If you add `global-theme:` followed by the theme name to the front
+matter as shown below, all pages of your site will default to
+the global theme without your having to specify it on each page.
+For example, this defines `wide` as the global theme:
+
+    ---
+    theme: ".poco/themes/wide"
+    ---
+
+
 ## Layout element
 
 A finished PocoCMS web page includes the following
@@ -197,7 +210,7 @@ such as PocoCMS the term normally refers to Markdown.
 ## page theme
 
 A page [theme](#theme) controls the appearance of a single page. 
-It overrides the [global theme](#global-theme), if any
+It overrides the [global theme](#global-theme), if any.
 
 
 
@@ -223,9 +236,32 @@ website
 ## theme
 
 A PocoCMS theme is a collection of stylesheets and Markdown files 
-contained in a directory (folder). The directory is used as the name of the theme. The theme can specify styles
-to include on every page of the site. The theme can also specify 
+contained in a directory (folder). 
+The directory is used as the name of the theme. 
+The theme can specify styles to include on every page of the site. 
+The theme can also specify 
 [layout elements](#layout-elements): a [header](#header), [nav bar](#nav), [footer](#footer), or [aside](#aside) to include on each page.
+
+There two kinds of themes: global, and page. A global theme causes all
+pages in the site to use the same theme without having to specify it
+every time in the page front matter. See [home page](#home-page) for
+a usage example.
+
+You can specify themes on a per page basis. For example, if you want
+to use the theme named `wide` you would add this to your Markdown page:
+
+    ---
+    theme: .poco/themes/wide
+    ---
+
+### How to find out what themes are installed
+
+To find out what themes are installed on your machine, just run
+this at the command line:
+
+```bash
+poco -themes
+```
 
 ## web root
 Synonymous with [webroot](#web-root).

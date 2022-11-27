@@ -346,6 +346,19 @@ skip-publish:
 ---
 ```
 
+## theme 
+
+Defines a [page theme](glossary.html#page-theme) to be used as 
+the default for all pages in the site. 
+It is optional.  The global theme can be overridden 
+on a per-page basis using [theme](#theme).
+
+    ```
+    ---
+    global-theme: /Users/blake/pocothemes/informer
+    ---
+    ```
+
 
 ## title
 The `Title` key lets you set a title for your HTML page.
