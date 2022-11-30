@@ -5,12 +5,54 @@
   <title>Trying to obtain <p> color using DOM</title>              
   <style>
     p{color:red}
+
+    .tg  {border-collapse:collapse;border-spacing:0;}
+    .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+      overflow:hidden;padding:10px 5px;word-break:normal;}
+    .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+      font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+    .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+
+
   </style>
 </head>
 <body>
-<article id="article-test">
+<article id="article-poco">
   <h1>Attempting to read color of paragraph. See window.ready() function</h1>
   <p>hello, world.</p>
+  <h2>Remember</h2>
+  <ul>
+    <li>Specify colors using lowercase hex codes like
+    "#ff0000" for red, because tests depend on that format</li>l
+    <li></li>l
+  </ul>
+
+<table id="testRows" class="tg">
+<thead>
+  <tr>
+    <th class="tg-0lax">Div</th>
+    <th class="tg-0lax">Element</th>
+    <th class="tg-0lax">Attribute</th>
+    <th class="tg-0lax">Expected value</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-0lax">
+        article-poco
+    </td>
+    <td class="tg-0lax">
+      p
+    </td>
+    <td class="tg-0lax">
+      style.color
+    </td>
+    <td class="tg-0lax">
+      #ff0000
+    </td>
+  </tr>
+</tbody>
+</table>
 </article>
 
 <script> {                                               
@@ -30,9 +72,9 @@
   }                       
   window.ready(function() {                                                  
       // Return HTMLCollection of all paragraphs in article.
-      var pc = document.getElementById("article-test").querySelectorAll("p");
+      var pc = document.getElementById("article-poco").querySelectorAll("p");
       // Pick out the first paragraph.
-      p = pc.item(0) 
+      var p = pc.item(0) 
       // Obtain text:
       console.log("paragraph text: " + p.innerText)    // Succeeds
       // Try to obtain color, which is styled red:
@@ -45,6 +87,7 @@
 
       console.log("Is styled color for <p> red? ", pcolor == 'red')             
     
+      readTableRows()
   });                            
 
 
@@ -102,6 +145,53 @@
         (g.length == 1 ? "0"+ g : g) +
         (b.length == 1 ? "0"+ b : b)
     );
+  }
+
+  function readTableRows() {
+    //gets table
+    var table = document.getElementById('testRows');
+
+    //gets rows of table
+    var rowLength = table.rows.length;
+
+    //loops through rows    
+    for (i = 1; i < rowLength; i++){
+       
+      //gets cells of current row  
+      var row = table.rows.item(i).cells;
+
+      //gets amount of cells of current row
+      var cellLength = row.length;
+
+      var div = row.item(0).innerText.trim()
+      var element = row.item(1).innerText.trim()
+      var attribute = row.item(2).innerText.trim()
+      var expected = row.item(3).innerText.trim()
+      console.log("variable div: ", div)
+      console.log("variable element: ", element)
+      console.log("variable attribute: '", attribute,"'")
+      console.log("variable expected: ", expected)
+      var p2 = document.getElementById(div).querySelectorAll(element);
+      // Pick out the first paragraph.
+      var item = p2.item(0) 
+      console.log("item.getAttribute(",attribute,"): ",item.getAttribute(attribute))
+      // Obtain text:
+      //console.log("p2.attribute(",attribute,"):" , p2.getAttribute(attribute))
+      console.log("item: ", item)
+      console.log(item.getAttribute(attribute))
+      //var pc = document.getElementById("article-poco").querySelectorAll("p");
+      // Pick out the first paragraph.
+      //p = pc.item(0) 
+      // Obtain text:
+      //console.log("paragraph text: " + p.innerText)    // Succeeds
+
+      console.log(p2)
+       //loops through each cell in current row
+       //for(var j = 0; j < cellLength; j++){
+       //  var cellVal = row.item(j).innerHTML;
+       //  console.log(cellVal + " ");
+       // }
+    }
   }
 
 
