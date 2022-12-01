@@ -1,0 +1,94 @@
+#!/bin/zsh
+# Creates a directory named .themetest, silently overwriting any existing directory with that name.
+# Generates projects using
+# * Global theme only, inline stylesheets
+# * Global theme only, inline stylesheets, style sheet override on page
+# * Local theme only, inline stylesheets,  
+# * Local theme only, inline stylesheets, style sheet override on page
+# * Global and local themes both, inline stylesheets 
+# * Global and local themes both, inline stylesheets, style sheet override on page
+# * Global theme only, linked stylesheets
+# * Global theme only, linked stylesheets, style sheet override on page
+# * Local theme only, linked stylesheets,  
+# * Local theme only, linked stylesheets, style sheet override on page
+# * Global and local themes both, linked stylesheets 
+# * Global and local themes both, linked stylesheets, style sheet override on page
+ 
+MAINPROJECT=.themetest
+rm -rf $MAINPROJECT
+poco -new $MAINPROJECT
+cd $MAINPROJECT
+cat <<- EOF > ./index.md
+# Local/global themes test
+[Inline style sheet versions](inline/WWW/index.html)
+
+[Linked style sheet versions](linked/WWW/index.html)
+EOF
+
+declare -a projectTypes=(
+  # Uses inline stylesheets
+  'inline'
+
+  # Uses linked stylesheets
+  'linked'
+  )
+
+# Create an array of directory names,
+# one for each possible local/global/override option
+declare -a scopes=(
+
+  # Global theme only
+	'global'
+
+  # Global theme only, stylesheet override 
+	'global-override'
+
+  # local theme only
+	'local'
+
+  # local theme only, stylesheet override 
+	'local-override'
+
+  # Global and local theme, no overrides
+	'global-local'
+
+  # Global and local theme, stylesheet override
+	'global-local-override'
+
+
+  )
+
+# For each kind of stylesheet handling (either linked, or
+# inlined locally), create a master directory
+
+# The entire project either uses linked or inline style sheets.
+echo "Creating project types"
+for projectType in "${projectTypes[@]}"
+  do
+    # Whether linked or inline stylesheets are used,
+    # the test projects are identical: local theme
+    # only, global theme only, etc.
+    #mkdir -p "${projectType}"
+    echo poco -new "${projectType}"
+    poco -new "${projectType}"
+    for scope in "${scopes[@]}"
+      do
+        # Create directires named inline/global,
+        # inline/global-local, etc.
+        mkdir -p "${projectType}/${scope}"
+      done
+  done
+
+    # Display the commmand to execute...
+    # And execute the command
+    #echo "${project}"
+    #cat <<- EOF > ./$project
+    #  The file $project is disposable.
+#EOF
+
+echo "Contents of ${MAINPROJECT}:"
+ls
+ls inline
+ls linked
+
+
