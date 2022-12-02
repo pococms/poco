@@ -210,23 +210,7 @@ func tagSurround(tag string, txt string, extra ...string) string {
 	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
 
-// sliceToStylesheetStr takes a slice of simple stylesheet names, such as
-// [ "foo.css", "bar.css" ] and converts it into a string
-// consisting of stylesheet link tags separated by newlines:
-//
-// <link rel="stylesheet" href="foo.css"/>
-// <link rel="stylesheet" href="bar.css"/>
-func sliceToStylesheetStr(sheets []string) string {
-	if len(sheets) <= 0 {
-		return ""
-	}
-	var tags string
-	for _, sheet := range sheets {
-		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
-		tags += tag
-	}
-	return tags
-}
+
 
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
@@ -888,19 +872,43 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 func (c *config) linkStylesheets() string {
 
 	debug("\tlinkStyles()")
-	pageStyles := sliceToStylesheetStr(c.pageTheme.stylesheetFilenames)
+  // xxxx
+	//pageStyles := sliceToStylesheetStr("", c.pageTheme.stylesheetFilenames)
+	pageStyles := c.getStyleTags(c.fm) 
 	debug("\t\tpage styles: %v", pageStyles)
 	if c.pageTheme.present {
-		themeStyles := sliceToStylesheetStr(c.pageTheme.stylesheetFilenames)
+    wait("c.pageTheme.dir: %s", c.pageTheme.dir)
+		themeStyles := sliceToStylesheetStr(c.pageTheme.dir,c.pageTheme.stylesheetFilenames)
+		//pageStyles = sliceToStylesheetStr(c.pageTheme.dir,pageStyles)
 		debug("\t\ttheme styles: %v", themeStyles)
 		return themeStyles + pageStyles
 	}
 	if c.globalTheme.present {
-		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.stylesheetFilenames)
+		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.dir,c.globalTheme.stylesheetFilenames)
 		debug("\t\tglobal styles: %v", globalThemeStyles)
 		return globalThemeStyles + pageStyles
 	}
 	return pageStyles
+}
+
+// sliceToStylesheetStr takes a slice of simple stylesheet names, such as
+// [ "foo.css", "bar.css" ] and converts it into a string
+// consisting of stylesheet link tags separated by newlines:
+//
+// <link rel="stylesheet" href="foo.css"/>
+// <link rel="stylesheet" href="bar.css"/>
+func sliceToStylesheetStr(dir string, sheets []string) string {
+//xxx
+	if len(sheets) <= 0 {
+		return ""
+	}
+	var tags string
+	for _, sheet := range sheets {
+    // TODO: Should probably use portable path delimiters
+		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
+		tags += tag
+	}
+	return tags
 }
 
 // inlineStylesheets() directly injects stylesheet code into the
@@ -947,13 +955,14 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 	}
 
 	slice = fmStrSlice("stylesheets", c.overrideFm)
+  wait("local stylesheets")
 	if len(slice) > 0 {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(dir, filename)
-			debug("\t\toverrideFm: %s", fullPath)
+			wait("\t\toverrideFm: %s", fullPath)
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
@@ -1296,6 +1305,21 @@ func main() {
 	if c.newProjectStr != "" {
 		c.newProject(c.newProjectStr)
 	}
+
+  // Prevent generating a project if in same directory as poco
+  dir, err := os.Executable()
+  if err != nil {
+		quit(1, err, c, "Can't determine executable directory", "")
+  }
+
+  // If in the poco main directory and no project was specified, 
+  // then prevent turning the poco main directory into a project.
+  // OTOH if something is specified, e.g. poco ~/mysite, it's
+  // okay to generate that site.
+  if currDir() == filepath.Dir(dir) && c.root == "" {
+		quit(1, err, c, "%s", "Don't run poco in its own directory. Quitting.")
+  }
+
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
@@ -1323,6 +1347,7 @@ func main() {
 		c.dumpSettings()
 		os.Exit(0)
 	}
+
 
 	// Generate the site based in c.root. Output its contens to c.webroot.
 	c.buildSite()
