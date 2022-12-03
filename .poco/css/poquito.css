@@ -1,56 +1,74 @@
+html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
 #page-container { 
-  position: relative;
-  min-height: 100vh;
+  position: relative;
+  min-height: 100vh;
 }
 /* This is nested just inside article, and closes right before footer */
 #content-wrap {
-  padding-bottom: 10vh;    /* NOTE: Should be same as Footer height */
+  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
 }
 body{
-  height:100vh;
-  font-family:sans-serif;
+  height:100vh;
+  font-family:sans-serif;
 }
+article{margin:10%;paddding:10%;}
+article ul > li, article > ol > li {margin-left:1em; padding-left:0em;}
 header{height:10vh;}
 nav{height:10vh;}
 aside{ 
-  float:left; /* Change to float:left for right sidebar */
-  width:30rem;
-  padding:1rem;
+  float:left; /* Change to float:left for right sidebar */
+  width:30rem;
+  padding:1rem;
 }
 /* NOTE: Footer height must be same as #content-wrap padding-bottom */
 footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
 table{
-  border-collapse: collapse;
-  width: 100%;
+  border-collapse: collapse;
+  width: 100%;
 }
 td, th{
-  padding: 0.5rem;
-  border: 1px solid;
+  padding: 0.5rem;
+  border: 1px solid;
 }
 code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
 }
 pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
 }
-/* enough.table.css */
 table{
-  border-collapse: collapse;
-  width: 100%;
+  border-collapse: collapse;
+  width: 100%;
 }
 td, th{
-  padding: 0.5rem;
-  border: 1px solid LightGray;
+  padding: 0.5rem;
+  border: 1px solid LightGray;
 }
-medi (max-width:1080px){
-  aside{display:none}
-  article{padding:1rem;}
+
+@media (max-width:1080px){
+  aside{display:none}
+  article{padding:1rem;}
 }
-media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
+
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
 }
 
