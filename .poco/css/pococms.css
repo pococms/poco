@@ -1,4 +1,3 @@
-/* pococms.css */
 html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
 header > ul {list-style-type:none;display:inline;}
 header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}

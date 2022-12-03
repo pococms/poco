@@ -1,5 +1,4 @@
-/* layout that supports header, nav, aside, and footer.
- * */
+/* layout that supports header, nav, aside, and footer. */
 #page-container { 
   position: relative;
   min-height: 100vh;
