@@ -1040,50 +1040,25 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 	debug("\tgetThemeData(%s)", filename)
-	pageThemeDir := fmStr("theme", c.pageFm)
 
-	// If NOT on the home page, check this page for a theme.
-	if filename != c.homePage {
-		// Nothing else to do if no theme named.
-		// c.pageFm already has front matter for this page.
-		if pageThemeDir == "" {
-			// No theme. Business is concluded.
-			// c.theme.present is already false
-			return
-		}
+	// Check for a local theme on this page. 
+  pageThemeDir := fmStr("theme", c.pageFm)
+  if dirExists(pageThemeDir) {
+    c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+    debug("\t\tPAGE THEME: %s", c.pageTheme.name)
+  } else {
+    c.pageTheme = c.globalTheme
+    debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
+  }
 
-    // Check for a global theme
-    
-	  //debug("\t\tpageThemeDir: %s", pageThemeDir)
-		// A page theme has been named. Not known to be valid.
-		// Again, this is not the home page.
-		// getThemeData(), new version
-		if dirExists(pageThemeDir) {
-			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-			//debug("\tgetThemeData(): not on home page. c.pageTheme:\n%+v\n", c.pageTheme)
-			return
-		}
-
-		// On the home page. Check for a global-theme but also a page theme.
-	} else {
-    debug("\t\ton home page")
-	  //pageThemeDir := fmStr("global-theme", c.pageFm)
-		// First check for a page theme. If both are named, this will
-		// override the global theme.
-		if pageThemeDir != "" && dirExists(pageThemeDir) {
-			// A page theme has been named. Not known to be valid.
-			// Again, this is not the home page.
-			// getThemeData(), new version
-			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-			//debug("\tgetThemeData(): on home page. c.pageTheme:\n%+v\n", c.pageTheme)
-		}
-		// This is the home page. Check for a global theme.
+  // If on the home page, check for a global theme.
+  if filename == c.homePage {
 		globalThemeDir := fmStr("global-theme", c.pageFm)
 		if dirExists(globalThemeDir) {
 			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
-			//wait("Found global theme %s: %+v", globalThemeDir, c.globalTheme)
-		}
-	}
+      debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
+    }
+  }
 }
 
 // loadTheme() is passed the current source filename.
