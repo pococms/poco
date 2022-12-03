@@ -129,9 +129,9 @@ func (c *config) assemble(filename string, article string) string {
 		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
-    "<script> {" + "\n" +
-    c.documentReady() +
-    "}\n</script>" + "\n" +
+		"<script> {" + "\n" +
+		c.documentReady() +
+		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
@@ -167,7 +167,7 @@ func (c *config) getFm(filename string) map[string]interface{} {
 // user-defined Javascript executes only after the full
 // HTML DOM has been loaded.
 func (c *config) documentReady() string {
-  return c.fileToString(".poco/js/docready.js")
+	return c.fileToString(".poco/js/docready.js")
 }
 
 // defaultHomePage() Generates a simple home page as an HTML string
@@ -209,8 +209,6 @@ func tagSurround(tag string, txt string, extra ...string) string {
 	}
 	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
-
-
 
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
@@ -277,6 +275,9 @@ type theme struct {
 	// Contents of README.md for this theme.
 	readme string
 
+  // Name of the theme is the same as directory with no pathname
+  name string
+
 	// True of a theme is named on this page
 	present bool
 
@@ -331,7 +332,7 @@ type config struct {
 	globalFm map[string]interface{}
 
 	// front matter for current page
-	overrideFm map[string]interface{}
+	pageFm map[string]interface{}
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -848,7 +849,7 @@ func (c *config) setupGlobals() { //
 } // setupGlobals
 
 func (c *config) styleTags() string {
-	t := c.getStyleTags(c.overrideFm)
+	t := c.getStyleTags(c.pageFm)
 	if t != "" {
 		t = tagSurround("style", t, "\n")
 	}
@@ -867,24 +868,31 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 
 // linkStylesheets() extracts stylesheet references and
 // creates link tags for them.
+// By this time loadTheme() has been called. c.fm has hardcoded
+// style tags, c.pageTheme and c.globalTheme have lists of
+// stylesheets. Now it's time to turn those into HTML
+// elements.
+//
 // See also inlineStylesheets(), which inserts stylesheet
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
 
-	debug("\tlinkStyles()")
-  // xxxx
+	debug("\tlinkStylesheets()")
 	//pageStyles := sliceToStylesheetStr("", c.pageTheme.stylesheetFilenames)
-	pageStyles := c.getStyleTags(c.fm) 
+	pageStyles := c.getStyleTags(c.fm)
+	debug("Front matter: %+v", c.fm)
 	debug("\t\tpage styles: %v", pageStyles)
+
+	// If there's a page theme,
 	if c.pageTheme.present {
-    wait("c.pageTheme.dir: %s", c.pageTheme.dir)
-		themeStyles := sliceToStylesheetStr(c.pageTheme.dir,c.pageTheme.stylesheetFilenames)
+		//wait("c.pageTheme.dir: %s", c.pageTheme.dir)
+		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
 		//pageStyles = sliceToStylesheetStr(c.pageTheme.dir,pageStyles)
 		debug("\t\ttheme styles: %v", themeStyles)
 		return themeStyles + pageStyles
 	}
 	if c.globalTheme.present {
-		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.dir,c.globalTheme.stylesheetFilenames)
+		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.dir, c.globalTheme.stylesheetFilenames)
 		debug("\t\tglobal styles: %v", globalThemeStyles)
 		return globalThemeStyles + pageStyles
 	}
@@ -898,13 +906,12 @@ func (c *config) linkStylesheets() string {
 // <link rel="stylesheet" href="foo.css"/>
 // <link rel="stylesheet" href="bar.css"/>
 func sliceToStylesheetStr(dir string, sheets []string) string {
-//xxx
 	if len(sheets) <= 0 {
 		return ""
 	}
 	var tags string
 	for _, sheet := range sheets {
-    // TODO: Should probably use portable path delimiters
+		// TODO: Should probably use portable path delimiters
 		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
 		tags += tag
 	}
@@ -915,15 +922,18 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // HTML document instead of linking to it.
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
-func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) string {
+func (c *config) inlineStylesheets(dir string) string {
 	debug("\tinlineStyleSheets(%s)", dir)
+	//debug("\t\tfront matter: %+v", c.fm)
 	// Return value
 	s := ""
 
-	slice := fmStrSlice("stylesheets", c.fm)
-	//slice := c.
+	// Look for stylesheets named on this page,
+	// which ave the highest priority.
+	slice := fmStrSlice("stylesheetFilenames", c.fm)
 	stylesheets := ""
 	if len(slice) > 0 {
+		wait("\t\tslice of on-page stylesheets: %+v", slice)
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -938,8 +948,33 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 		}
 	}
 
+	// xxx
+	if c.pageTheme.present {
+    //debug("\t\t\tpage theme %s present", c.pageTheme.dir)
+		slice = c.pageTheme.stylesheetFilenames
+		// Collect all the stylesheets mentioned.
+		// Concatenate them into a big-ass string.
+		for _, filename := range slice {
+			// Get full pathname or URL of file.
+      fullPath := filepath.Join(dir, c.pageTheme.dir, filename)
+      //debug("page them dir: %s, dir: %s", c.pageTheme.dir, dir)
+
+			// If the file is local, read it in.
+			// If it's at a URL, download it.
+			// For debugging purposes, add commment with filename
+			s = "\n\n/* " + filename + "*/\n" + c.getWebOrLocalFileStr(fullPath)
+			stylesheets = stylesheets + s + "\n"
+		}
+		// Page theme overrides global so exit with that.
+		if s != "" {
+			return "<style>" + stylesheets + "</style>" + "\n"
+		}
+	}
+
 	slice = fmStrSlice("stylesheets", c.globalFm)
-	if len(slice) > 0 {
+	if c.globalTheme.present {
+		debug("\t\tGlobal theme: %+v", fmStr("global-theme", c.globalFm))
+
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -952,23 +987,8 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
 			stylesheets = stylesheets + s + "\n"
 		}
-	}
-
-	slice = fmStrSlice("stylesheets", c.overrideFm)
-  wait("local stylesheets")
-	if len(slice) > 0 {
-		// Collect all the stylesheets mentioned.
-		// Concatenate them into a big-ass string.
-		for _, filename := range slice {
-			// Get full pathname or URL of file.
-			fullPath := regularize(dir, filename)
-			wait("\t\toverrideFm: %s", fullPath)
-			// If the file is local, read it in.
-			// If it's at a URL, download it.
-			// For debugging purposes, add commment with filename
-			s = "\n\n/* " + filename + "*/ " + c.getWebOrLocalFileStr(fullPath)
-			stylesheets = stylesheets + s + "\n"
-		}
+	} else {
+		debug("No global stylesheets found")
 	}
 
 	if s != "" {
@@ -982,7 +1002,7 @@ func (c *config) inlineStylesheets(dir string /*, fm *map[string]interface{}*/) 
 func (c *config) stylesheets() string {
 	// Return value
 	s := ""
-	debug("\tstylesheets()")
+	debug("stylesheets()")
 	if c.linkStyles {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
@@ -1007,6 +1027,9 @@ func (c *config) oldvalidTheme(t *theme) bool {
 // for the theme located at dir.
 // If possibleGlobalTheme is true, it means the hoped-for theme is
 // the global theme.
+// If valid theme (all that's required: README.md and LICENSE files),
+// then set theme.present to true. Covers special case for the global
+// theme.
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// The theme is actually just a directory name.
 	var theme theme
@@ -1040,6 +1063,9 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 		}
 	}
 
+  // Strip path off theme to get its name
+  theme.name = filepath.Base(dir)
+
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
 	// Get the front matter for this theme.
@@ -1054,16 +1080,18 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 	return &theme
 }
 
-// themeName() obtains the name and data structures for
+// getThemeData() obtains the name and data structures for
 // any theme named on this page: the pageTheme or the globalTheme
 // (Possibly both if on the home page)
 // filename is the name of the current Markdown source file.
-func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*/ {
-	pageThemeDir := fmStr("theme", c.overrideFm)
+func (c *config) getThemeData(filename string) {
+  debug("getThemeData(%s)", filename)
+	pageThemeDir := fmStr("theme", c.pageFm)
+  debug("\tpageThemeDir: %s", pageThemeDir)
 	// If NOT on the home page, check this page for a theme.
 	if filename != c.homePage {
 		// Nothing else to do if no theme named.
-		// c.overrideFm already has front matter for this page.
+		// c.pageFm already has front matter for this page.
 		if pageThemeDir == "" {
 			// No theme. Business is concluded.
 			// c.theme.present is already false
@@ -1071,9 +1099,10 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		}
 		// A page theme has been named. Not known to be valid.
 		// Again, this is not the home page.
-		// themeName(), new version
+		// getThemeData(), new version
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+      //debug("\tgetThemeData(): not on home page. c.pageTheme:\n%+v\n", c.pageTheme)
 			return
 		}
 
@@ -1084,11 +1113,12 @@ func (c *config) themeName(filename string) /*(*map[string]interface{}, *theme)*
 		if pageThemeDir != "" && dirExists(pageThemeDir) {
 			// A page theme has been named. Not known to be valid.
 			// Again, this is not the home page.
-			// themeName(), new version
+			// getThemeData(), new version
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+      //debug("\tgetThemeData(): on home page. c.pageTheme:\n%+v\n", c.pageTheme)
 		}
 		// This is the home page. Check for a global theme.
-		globalThemeDir := fmStr("global-theme", c.overrideFm)
+		globalThemeDir := fmStr("global-theme", c.pageFm)
 		if dirExists(globalThemeDir) {
 			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
 			//wait("Found global theme %s: %+v", globalThemeDir, c.globalTheme)
@@ -1107,13 +1137,13 @@ func (c *config) loadTheme(filename string) {
 	// Obtain the front matter for this page.
 	// Any values such as header, footer, etc. will override
 	// their corresponding local or global themes.
-	c.overrideFm = c.getFm(filename)
+	c.pageFm = c.getFm(filename)
 
 	// Get the page theme, if any.
 	// If on the home page, look for both global
 	// and local theme names.
 	// Load data structures for those themes.
-	c.themeName(filename)
+	c.getThemeData(filename)
 
 	// Handle case where no theme was named, and there's no
 	// global theme named either.
@@ -1127,9 +1157,8 @@ func (c *config) loadTheme(filename string) {
 	// Read in its style sheets, style tags, and page layout elements.
 	if c.pageTheme.present {
 		// Local theme takes priority
-		c.layout(&c.pageTheme)
-		//wait("page theme %s found: %+v", c.pageTheme.dir, c.pageTheme)
-		debug("page theme %s found", c.pageTheme.dir)
+		c.addPageElements(&c.pageTheme)
+		debug("loadTheme(): page theme %s found", c.pageTheme.dir)
 		return
 	}
 
@@ -1137,18 +1166,14 @@ func (c *config) loadTheme(filename string) {
 	// Read in its style sheets, style tags, and page layout elements.
 	if c.globalTheme.present {
 		// Local theme takes priority
-		c.layout(&c.globalTheme)
-		//wait("global theme %s found: %+v", c.globalTheme.dir, c.globalTheme)
-		debug("global theme %s found", c.pageTheme.dir)
+		c.addPageElements(&c.globalTheme)
+		debug("loadTheme(): global theme %s found", c.globalTheme.dir)
 		return
 	}
 
-	// TODO: Add filename to skipfiles
-	// TODO: Delete functions with old in the name, such as oldLoadTHeme, oldgetTheme, themeDescription
-
 } // loadTheme (new version)
 
-// loadTheme obtains the theme named on this page, if any.
+// oldloadTheme obtains the theme named on this page, if any.
 // If it's the home page being processed, then the theme
 // is marked as the global theme. Otherwise it's just the
 // theme for this page, which overrides the global theme.
@@ -1158,10 +1183,10 @@ func (c *config) loadTheme(filename string) {
 // on the page for things like header, footer, stylesheets, or
 // style tags.
 func (c *config) oldloadTheme(filename string) {
-	debug("\tloadTheme(%s)", filename)
+	debug("\toldloadTheme(%s)", filename)
 	// Get the front matter for this page and find
 	// out what theme it uses.
-	// If it's a global theme, then c.globalThemePresent is true.
+	// If it's a global theme, then c.globalTheme.present is true.
 	// This only means the theme name is known, not necessarily available.
 
 	fm, theme := c.oldgetTheme(filename)
@@ -1171,7 +1196,7 @@ func (c *config) oldloadTheme(filename string) {
 
 	if !c.globalTheme.present && !c.pageTheme.present {
 		debug("\t\tNo global OR local theme present")
-		c.overrideFm = *fm
+		c.pageFm = *fm
 		// Override info only. No local or global theme for this page.
 		return
 	}
@@ -1181,7 +1206,7 @@ func (c *config) oldloadTheme(filename string) {
 		c.pageTheme = *theme
 		c.fm = *fm
 		debug("\t\tLocal theme %v present", c.pageTheme.dir)
-		c.layout(&c.pageTheme)
+		c.addPageElements(&c.pageTheme)
 		return
 	}
 
@@ -1191,11 +1216,11 @@ func (c *config) oldloadTheme(filename string) {
 		c.globalTheme = *theme
 		c.globalFm = *fm
 		debug("\t\tGlobal theme %v present", c.globalTheme.dir)
-		c.layout(&c.globalTheme)
+		//c.layout(&c.globalTheme)
 	}
 }
 
-func (c *config) layout(t *theme) {
+func (c *config) addPageElements(t *theme) {
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
@@ -1211,7 +1236,7 @@ func (t *theme) readFm(fm map[string]interface{}) {
 	t.asideFilename = fmStr("aside", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("style-tags", fm)
-	debug("\t\treadFm() styleTagNames: %+v", t.styleTagNames)
+	//debug("\t\treadFm() styleTagNames: %+v", t.styleTagNames)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 }
 
@@ -1284,8 +1309,8 @@ func (c *config) parseCommandLine() {
 	// See if a directory was specified.
 	c.root = flag.Arg(0)
 
-  // TODO: Not sure this is the right place to run this, but see
-  // issue #19
+	// TODO: Not sure this is the right place to run this, but see
+	// issue #19
 	if c.themeList {
 		print(c.themeDirContents())
 		os.Exit(0)
@@ -1306,19 +1331,19 @@ func main() {
 		c.newProject(c.newProjectStr)
 	}
 
-  // Prevent generating a project if in same directory as poco
-  dir, err := os.Executable()
-  if err != nil {
+	// Prevent generating a project if in same directory as poco
+	dir, err := os.Executable()
+	if err != nil {
 		quit(1, err, c, "Can't determine executable directory", "")
-  }
+	}
 
-  // If in the poco main directory and no project was specified, 
-  // then prevent turning the poco main directory into a project.
-  // OTOH if something is specified, e.g. poco ~/mysite, it's
-  // okay to generate that site.
-  if currDir() == filepath.Dir(dir) && c.root == "" {
+	// If in the poco main directory and no project was specified,
+	// then prevent turning the poco main directory into a project.
+	// OTOH if something is specified, e.g. poco ~/mysite, it's
+	// okay to generate that site.
+	if currDir() == filepath.Dir(dir) && c.root == "" {
 		quit(1, err, c, "%s", "Don't run poco in its own directory. Quitting.")
-  }
+	}
 
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
@@ -1347,7 +1372,6 @@ func main() {
 		c.dumpSettings()
 		os.Exit(0)
 	}
-
 
 	// Generate the site based in c.root. Output its contens to c.webroot.
 	c.buildSite()
@@ -1390,6 +1414,7 @@ func doTemplate(templateName string, source string, c *config) (string, error) {
 
 // buildFileToFile converts a file from Markdown to HTML, generates an output file,
 // and returns name of destination file
+// Used for every Markdown page on the site.
 func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile string) {
 	// Convert Markdown file filename to raw HTML, then assemble a complete HTML document to be published.
 	// Return the document as a string.
@@ -1405,7 +1430,7 @@ func buildFileToFile(c *config, filename string, debugFrontMatter bool) (outfile
 // generates an output file,
 // and returns name of the destination HTML file
 // Does not check if the input file is Markdown.
-// Returns the string and the filen:ame
+// Returns the string and the filename
 func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	// Exit silently if not a valid file
 	if filename == "" || !fileExists(filename) {
@@ -2063,9 +2088,10 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
-	print("Global Theme: %s", c.globalTheme.dir)
+	print("Global theme: %s", c.globalTheme.dir)
+	print("Page theme: %s", c.pageTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
-	print("ignore: %v", c.skipPublish.list)
+	print("Ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
 	print("Inline stylesheets: %v", !c.linkStyles)
