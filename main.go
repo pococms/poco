@@ -312,7 +312,7 @@ type config struct {
 	// mdCopied tracks # of Markdown files converted and copied to webroot
 	mdCopied int
 
-	// Name of Markdown file being processed. 
+	// Name of Markdown file being processed.
 	currentFilename string
 
 	// dumpfm command-line option shows the front matter of each page
@@ -940,10 +940,10 @@ func (c *config) inlineStylesheets(dir string) string {
 			stylesheets = stylesheets + s + "\n"
 		}
 
-    if s != "" {
-      return "<style>" + stylesheets + "</style>" + "\n"
-    }
-  }
+		if s != "" {
+			return "<style>" + stylesheets + "</style>" + "\n"
+		}
+	}
 	return ""
 }
 
@@ -963,8 +963,6 @@ func (c *config) stylesheets() string {
 	}
 	return s
 }
-
-
 
 // themeDataStructures obtains the data structures
 // for the theme located at dir.
@@ -1030,24 +1028,24 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 func (c *config) getThemeData(filename string) {
 	debug("\tgetThemeData(%s)", filename)
 
-	// Check for a local theme on this page. 
-  pageThemeDir := fmStr("theme", c.pageFm)
-  if dirExists(pageThemeDir) {
-    c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-    debug("\t\tPAGE THEME: %s", c.pageTheme.name)
-  } else {
-    c.pageTheme = c.globalTheme
-    debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
-  }
+	// Check for a local theme on this page.
+	pageThemeDir := fmStr("theme", c.pageFm)
+	if dirExists(pageThemeDir) {
+		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+		debug("\t\tPAGE THEME: %s", c.pageTheme.name)
+	} else {
+		c.pageTheme = c.globalTheme
+		debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
+	}
 
-  // If on the home page, check for a global theme.
-  if filename == c.homePage {
+	// If on the home page, check for a global theme.
+	if filename == c.homePage {
 		globalThemeDir := fmStr("global-theme", c.pageFm)
 		if dirExists(globalThemeDir) {
 			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
-      debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
-    }
-  }
+			debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
+		}
+	}
 }
 
 // loadTheme() is passed the current source filename.
@@ -1061,24 +1059,16 @@ func (c *config) loadTheme(filename string) {
 	// Obtain the front matter for this page.
 	// Any values such as header, footer, etc. will override
 	// their corresponding local or global themes.
-  // c.pageFm = map[string]interface{}{}
+	// c.pageFm = map[string]interface{}{}
 	c.pageFm = c.getFm(filename)
 
-  debug("loadTheme(%s)", filename)
+	debug("loadTheme(%s)", filename)
 
 	// Get the page theme, if any.
 	// If on the home page, look for both global
 	// and local theme names.
 	// Load data structures for those themes.
 	c.getThemeData(filename)
-
-	// Handle case where no theme was named, and there's no
-	// global theme named either.
-	// Any theme info is just random stuff in
-	// the front matter of the current Markdown file.
-	if !c.pageTheme.present && !c.globalTheme.present {
-		return
-	}
 
 	// If a page theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
@@ -1099,8 +1089,6 @@ func (c *config) loadTheme(filename string) {
 	}
 
 } // loadTheme (new version)
-
-
 
 func (c *config) addPageElements(t *theme) {
 	c.layoutElement("header", t)
@@ -1395,13 +1383,13 @@ func (c *config) buildSite() {
 		c.verbose(c.currentFilename)
 
 		// Full pathname of location of copied file in webroot
-    // If it's an asset (non-Markdown file), it will be 
-    // copied as is.
+		// If it's an asset (non-Markdown file), it will be
+		// copied as is.
 		target := filepath.Join(c.webroot, filename)
 
 		// Full pathname of output directory for copied files
-    targetDir := c.webroot
-    // Create the webroot directory if it doesn't exist
+		targetDir := c.webroot
+		// Create the webroot directory if it doesn't exist
 		if !dirExists(targetDir) {
 			err := os.MkdirAll(targetDir, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
@@ -1409,7 +1397,7 @@ func (c *config) buildSite() {
 			}
 		}
 		// Obtain file extension.
-    ext := path.Ext(c.currentFilename)
+		ext := path.Ext(c.currentFilename)
 
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
