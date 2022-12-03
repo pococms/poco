@@ -312,7 +312,7 @@ type config struct {
 	// mdCopied tracks # of Markdown files converted and copied to webroot
 	mdCopied int
 
-	// Name of Markdown file being processed. NOTE: read it with currentFile() method.
+	// Name of Markdown file being processed. 
 	currentFilename string
 
 	// dumpfm command-line option shows the front matter of each page
@@ -431,13 +431,6 @@ func (c *config) findHomePage() {
 	c.currentFilename = c.homePage
 }
 
-// currentFile() returns the name of the file
-// being processed, since it's displayed in
-// two different places
-func (c *config) currentFile() string {
-	return c.currentFilename
-}
-
 // setRoot() obtains a fully qualified pathname for the home page source filename
 // and its root directory.
 // Pre: parseComandLine()
@@ -533,7 +526,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	//if themeDir == "" && !c.globalTheme.present {
 	if themeDir == "" && !possibleGlobalTheme {
 		theme.present = false
-		debug("\t\t\t\treturning with no local or global theme for  %s", c.currentFile())
 		return theme
 	}
 
@@ -546,7 +538,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	if !fileExists(themeReadme) {
 		theme.present = false
 		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
-			c.currentFile())
+			c.currentFilename)
 	} else {
 		// Found it. Read its contents.
 		theme.readme = c.fileToString(themeReadme)
@@ -792,20 +784,19 @@ func (c *config) setupGlobals() { //
 
 	// Display home page filename in verbose mode. Same as
 	// elsewhere in buildSite for all the other files.
-	// Only read it through c.currentFile() after this
 	c.currentFilename = c.homePage
 
 	// Create a list of files and dirs to skip when processing
 	c.getSkipPublish()
 
 	// Display name of file being processed
-	c.verbose(c.currentFile())
+	c.verbose(c.currentFilename)
 
 	// Prevent the home page from being read and converted again.
-	c.skipPublish.AddStr(c.currentFile())
+	c.skipPublish.AddStr(c.currentFilename)
 
 	// Convert home page to HTML
-	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFile())
+	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
 
 } // setupGlobals
 
@@ -912,7 +903,6 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
-    debug("\t\t\t\t\tPage theme for page %s: %s", c.currentFile(), c.pageTheme.name)
 		slice = c.pageTheme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -935,7 +925,6 @@ func (c *config) inlineStylesheets(dir string) string {
 
 	// xxx
 	if c.globalTheme.present {
-    debug("\t\tGlobal theme for page %s: %s", c.currentFile(), c.globalTheme.name)
 		slice = c.globalTheme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -995,7 +984,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 	if !fileExists(themeReadme) {
 		theme.present = false
 		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
-			c.currentFile())
+			c.currentFilename)
 	} else {
 		// Found it. Read its contents.
 		theme.readme = c.fileToString(themeReadme)
@@ -1341,7 +1330,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := c.assemble(c.currentFile(), rawHTML)
+		finishedDocument := c.assemble(c.currentFilename, rawHTML)
 		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
@@ -1403,7 +1392,7 @@ func (c *config) buildSite() {
 		source := filepath.Join(c.root, filename)
 
 		c.currentFilename = source
-		c.verbose(c.currentFile())
+		c.verbose(c.currentFilename)
 
 		// Full pathname of location of copied file in webroot
     // If it's an asset (non-Markdown file), it will be 
@@ -1420,7 +1409,7 @@ func (c *config) buildSite() {
 			}
 		}
 		// Obtain file extension.
-    ext := path.Ext(c.currentFile())
+    ext := path.Ext(c.currentFilename)
 
 		// Replace converted filename extension, from markdown to HTML.
 		// Only convert to HTML if it has a Markdown extension.
@@ -1428,9 +1417,8 @@ func (c *config) buildSite() {
 			// It's a markdown file. Convert to HTML,
 			// then rename with HTML extensions.
 			//jjHTML, _ := buildFileToTemplatedString(c, filename)
-			HTML, _ := buildFileToTemplatedString(c, c.currentFile())
+			HTML, _ := buildFileToTemplatedString(c, c.currentFilename)
 			target := filepath.Join(c.webroot, filename)
-			//target := filepath.Join(c.webroot, c.currentFile())
 			target = replaceExtension(target, "html")
 			target = stringToFile(c, target, HTML)
 			c.mdCopied++
@@ -1923,7 +1911,7 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 		// Prints name of source file being processed.
 		if exitCode != 0 {
 			if c != nil {
-				fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFile(), msg, errmsg)
+				fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 			} else {
 				fmt.Printf("PocoCMS %s\n \t%s\n", msg, errmsg)
 			}
