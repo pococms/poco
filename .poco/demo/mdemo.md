@@ -24,7 +24,7 @@ real world.
 * [Creating clickable image links in Markdown](#clickable-images)
 * [Tables](#tables)
 * [Block quote](#block-quote)
-* [Footer]#foote-43)
+* [Footer](#footer)
 * [HTML Forms](#html-forms)
 
 
