@@ -31,7 +31,7 @@ real world.
 
 ## Markdown syntax
 
-Here's how markdown appears in the **{{.Page.FrontMatter.Theme }}** theme
+Here's how markdown appears in the **{{.theme }}** theme
 ## Common text formatting
 
 #### You type:
@@ -62,7 +62,7 @@ Horizontal rule:
 #### It shows as:
 [HTML color names](https://htmlcolorcodes.com/color-names/)
 
-<a id="handmade-anchor"><a>
+<a id="handmade-anchor"></a>
 ## Bookmarks
 
 
@@ -308,7 +308,7 @@ Headers are always centered.
 #### You type:
 ```
 
-| Left-justified Contents |  Centered Contents   | Right-justified Contents   |
+| Left-justified Contents  |  Centered Contents   | Right-justified Contents   |
 | ------------------------ |:--------------------:| --------------------------:|
 | Row 1, Col 1             | Row 1, Col 2         | Row 1, Col 3               |
 | Row 2, Col 1             | Row 2, Col 2         | Row 2, Col 3               |
