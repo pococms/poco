@@ -1,0 +1,69 @@
+/* 12/3/22 8:30pm */
+html {box-sizing: border-box;}
+*, *:before, *:after {box-sizing: inherit;}
+
+/* Make touch interaction faster */
+a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
+
+/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
+p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, pre, section {
+	display: block;
+}
+
+#page-container { 
+  position: relative;
+  min-height: 100vh;
+}
+/* This is nested just inside article, and closes right before footer */
+#content-wrap {
+  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
+}
+
+article{width:80%;margin:0 0 2rem 2rem;padding:0 2rem 0 2rem}
+article ul>li,article>ol>li{margin-left:2em; padding-left:0em;}
+aside{ 
+  float:right; /* Change to float:left for left sidebar */
+  width:15rem;
+  padding:0 2rem 0 2rem;
+  margin:10rem 2rem 0 0;
+}
+body{
+  height:100vh;
+  font-family:sans-serif;
+}
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+/* NOTE: Footer height must be same as #content-wrap padding-bottom */
+footer {position:absolute;bottom:0;width:100%;margin-left:4rem;height:10vh;}
+header{height:4rem;margin-left:4rem}
+nav{height:2rem;margin-left:4rem;}
+pre{
+  background-color: ghostwhite;
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
+}
+table{
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th{
+  padding: 0.5rem;
+  border: 1px solid;
+}
+@media (max-width:1080px){
+  aside{display:none}
+  article{padding:1rem;}
+  html{font-size:20px;}
+}
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
+  html{font-size:20px;}
+}
+
