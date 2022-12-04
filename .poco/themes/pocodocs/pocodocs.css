@@ -3,6 +3,7 @@ article > dl > dt {font-weight:bold}
 article > dl > dd {margin-left:0;padding-bottom:1rem;}
 article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
 article > ul > li {font-size:larger;line-height:1.75rem;}
+aside{float:left}
 article{margin:0 8rem 0 8rem}
 article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
 article{width:50rem;padding:auto 4rem auto 4rem;}

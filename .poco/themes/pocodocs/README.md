@@ -3,6 +3,7 @@ author: "Tom Campbell"
 branding: "PocoCMS Documentation theme"
 header: "header.md"
 footer: "footer.md"
+aside: "aside.md"
 stylesheets:
 - "../../css/reset.css"
 - "../../css/pococms.css"

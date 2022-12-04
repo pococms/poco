@@ -1,4 +1,4 @@
-/* 12/3/22 3:25pm */
+/* 12/3/22 8:30pm */
 html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 
@@ -23,12 +23,13 @@ footer, header, hgroup, menu, nav, pre, section {
   padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
 }
 
-article{width:80%;margin:0rem;padding:10%;}
-article ul>li,article>ol>li{margin-left:1em; padding-left:0em;}
+article{width:80%;margin:0 0 2rem 2rem;padding:0 2rem 0 2rem}
+article ul>li,article>ol>li{margin-left:2em; padding-left:0em;}
 aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  width:15%;
-  padding:1rem;
+  float:right; /* Change to float:left for left sidebar */
+  width:15rem;
+  padding:0 2rem 0 2rem;
+  margin:10rem 2rem 0 0;
 }
 body{
   height:100vh;
@@ -38,9 +39,9 @@ code,kbd,pre{
   font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
 }
 /* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-header{height:4rem;}
-nav{height:2rem;}
+footer {position:absolute;bottom:0;width:100%;margin-left:4rem;height:10vh;}
+header{height:4rem;margin-left:4rem}
+nav{height:2rem;margin-left:4rem;}
 pre{
   background-color: ghostwhite;
   font-size: smaller;
@@ -58,9 +59,11 @@ td, th{
 @media (max-width:1080px){
   aside{display:none}
   article{padding:1rem;}
+  html{font-size:20px;}
 }
 @media (max-width:720px){
   header,nav,aside,footer{display:none}
   article{padding:1rem;}
+  html{font-size:20px;}
 }
 
