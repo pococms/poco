@@ -1258,7 +1258,9 @@ func main() {
 	// then prevent turning the poco main directory into a project.
 	// OTOH if something is specified, e.g. poco ~/mysite, it's
 	// okay to generate that site.
-	if currDir() == filepath.Dir(dir) && c.root == "" {
+	// Should be
+	if executableDir() == c.root {
+		//if currDir() == executableDir() {
 		quit(1, err, c, "%s", "Don't run poco in its own directory. Quitting.")
 	}
 
@@ -1369,7 +1371,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 func (c *config) treeVisit(files *[]string, count *int, skipPublish searchInfo) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-		  quit(1, err, c, "Unable to complete treeVisit()")
+			quit(1, err, c, "Unable to complete treeVisit()")
 			return err
 		}
 
@@ -1382,14 +1384,14 @@ func (c *config) treeVisit(files *[]string, count *int, skipPublish searchInfo) 
 		} else {
 			// DIRECTORY
 			//if path == "." || path == ".." || skipPublish.Found(path) {
-      // If this directory is to be skipped...
+			// If this directory is to be skipped...
 			if skipPublish.Found(path) {
-        // Consume the whole thing
+				// Consume the whole thing
 				return filepath.SkipDir
 			}
-      sep := string(os.PathSeparator)
-      path = path + sep
-			*files = append(*files,path)
+			sep := string(os.PathSeparator)
+			path = path + sep
+			*files = append(*files, path)
 			return nil
 		}
 		return nil
@@ -1458,7 +1460,7 @@ func (c *config) buildSite() {
 	// Start at 1 because home page
 	c.mdCopied = 1
 
-  sep := string(os.PathSeparator)
+	sep := string(os.PathSeparator)
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
 	// convert to HTML and copy to output directory.
@@ -1466,20 +1468,20 @@ func (c *config) buildSite() {
 	for _, filename := range c.files {
 
 		// Full pathmame of file to be copied (may be converted to HTML first)
-	  // xxxx
-    // In the project tree, directories are stored with 
-    // a terminating path separator. Files aren't.
-    ending := filename[len(filename)-1:]
-    // If the filename ends with a path separator,
-    // create that directory in the webroot.
-    if ending == sep {
-		  dir := filepath.Join(c.webroot, filename)
+		// xxxx
+		// In the project tree, directories are stored with
+		// a terminating path separator. Files aren't.
+		ending := filename[len(filename)-1:]
+		// If the filename ends with a path separator,
+		// create that directory in the webroot.
+		if ending == sep {
+			dir := filepath.Join(c.webroot, filename)
 			err := os.MkdirAll(dir, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
 				quit(1, err, c, "Unable to create directory %s", dir)
 			}
-      continue
-    }
+			continue
+		}
 		source := filepath.Join(c.root, filename)
 		c.currentFilename = source
 		c.verbose(c.currentFilename)
@@ -1789,7 +1791,7 @@ func stringToFile(c *config, filename, contents string) string {
 	var err error
 	defer out.Close()
 	if out, err = os.Create(filename); err != nil {
-    quit(1, err, c, "stringToFile(): Unable to create file %s", filename)
+		quit(1, err, c, "stringToFile(): Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		quit(1, err, c, "Error writing to file %s", filename)
@@ -1901,7 +1903,6 @@ func (s *searchInfo) Found(searchFor string) bool {
 	})
 	return pos < l && s.list[pos] == searchFor
 }
-
 
 // Generate HTML
 
