@@ -690,24 +690,25 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	// Converted/templated HTML */
 	s := ""
+  suppress := fmStr(tag, c.pageFm) != "SUPPRESS"
 	switch tag {
 	case "header":
-		if t.headerFilename != "" && t.headerFilename != "SUPPRESS" {
+		if t.headerFilename != "" && suppress  {
 			t.headerFilename = regularize(t.dir, t.headerFilename)
 			filename = t.headerFilename
 		}
 	case "nav":
-		if t.navFilename != "" && t.navFilename != "SUPPRESS" {
+		if t.navFilename != "" && suppress  {
 			t.navFilename = regularize(t.dir, t.navFilename)
 			filename = t.navFilename
 		}
 	case "aside":
-		if t.asideFilename != "" && t.asideFilename != "SUPPRESS" {
+		if t.asideFilename != "" && suppress  {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
 		}
 	case "footer":
-		if t.footerFilename != "" && t.footerFilename != "SUPPRESS" {
+		if t.footerFilename != "" && suppress  {
 			t.footerFilename = regularize(t.dir, t.footerFilename)
 			filename = t.footerFilename
 		}
