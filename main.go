@@ -176,8 +176,7 @@ func (c *config) documentReady() string {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-stylesheets:
-    - "https://cdn.jsdelivr.net/gh/pococms/poco/.poco/css/poquito.css"
+title: "Powered by PocoCMS"
 ---
 `
 	var indexMdBody = `
@@ -355,7 +354,7 @@ type config struct {
 	// Port localhost server runs on
 	port string
 
-	// Home directory for source code
+	// Home directory for project
 	root string
 
 	// Command-line flag -serve determing if running as
@@ -435,14 +434,13 @@ func (c *config) findHomePage() {
 // and its root directory.
 // Pre: parseComandLine()
 func (c *config) setRoot() {
+	// xxx
 	var err error
 	// Determine home page, which may have been passed on command line.
 	if c.root == "." || c.root == "" {
 		// Handle most common case: no params, just process this directory.
 		c.root = currDir()
 	}
-	// Something's left on the command line. It's presumed to
-	// be a directory. Exit if that dir doesn't exist.
 	if !filepath.IsAbs(c.root) {
 		c.root, err = filepath.Abs(c.root)
 		if err != nil {
@@ -519,7 +517,6 @@ func regularize(dir string, filename string) string {
 // anything with them.
 // Returns an empty theme object if themeDir is empty.
 func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) theme {
-	debug("\t\t\tthemeDescription('%s')", themeDir)
 	// Return value
 	var theme theme
 	// Leave if no theme specified and no global theme specified.
@@ -567,14 +564,12 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// description, etc.
 	theme.readFm(tmpConfig.fm)
 	if possibleGlobalTheme && !c.globalTheme.present {
-		// If this is a global-theme declaration, read that
+		// If this is a globaltheme declaration, read that
 		// into c
 		c.globalTheme = theme
-		debug("\t\t\t\tGlobal theme %s found", c.globalTheme.dir)
 	} else {
 		// It's a local theme declaration
 		c.pageTheme = theme
-		debug("\t\t\t\tLocal theme %s found", c.pageTheme.dir)
 	}
 	return theme
 } // themeDescription()
@@ -756,6 +751,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 // setupGlobals() sets sitewide values such as
 // home page, language, underlying theme, etc.
+// Ensures it's a valid project.
 // Pre: parseCommandline()
 func (c *config) setupGlobals() { //
 
@@ -795,19 +791,54 @@ func (c *config) setupGlobals() { //
 	// Prevent the home page from being read and converted again.
 	c.skipPublish.AddStr(c.currentFilename)
 
+	// Make sure it's a valid site. If not, create a minimal home page.
+	if !isProject(c.root) {
+		quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
+	}
+
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
 
 } // setupGlobals
 
+// STYLESHEET AND STYLE TAG UTILITIES
+
+// styleTags() takes front matter that looks like this:
+//
+// style-tags:
+// - "article > p{color:red}"
+// - "aside > h1 {font-size:2em}"
+//
+// And generates this code
+//
+// <style>
+// article > p{color:red}
+// aside > h1 {font-size:2em}
+// </style>
+//
+// xxx
 func (c *config) styleTags() string {
+	// Take the slice of tags and put each one
+	// on its own line.
 	t := c.getStyleTags(c.pageFm)
+	// Enclose these lines within "<style>" tags
 	if t != "" {
 		t = tagSurround("style", t, "\n")
 	}
 	return t
 }
 
+// getStyleTags() converts front matter that looks like this
+//
+// style-tags:
+// - "article > p{color:red}"
+// - "aside > h1 {font-size:2em}"
+//
+// Into a newline-delimited list of tags:
+//
+// article > p{color:red}
+// aside > h1 {font-size:2em}
+//
 func (c *config) getStyleTags(fm map[string]interface{}) string {
 	styleTagNames := fmStrSlice("style-tags", fm)
 	styleTags := ""
@@ -829,25 +860,26 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
 
-	debug("\tlinkStylesheets()")
-	//pageStyles := sliceToStylesheetStr("", c.pageTheme.stylesheetFilenames)
+	// Get any style tags on this page that might override
+	// the other stylesheets
 	pageStyles := c.getStyleTags(c.fm)
-	debug("Front matter: %+v", c.fm)
-	debug("\t\tpage styles: %v", pageStyles)
 
-	// If there's a page theme,
+	// If there's a page theme, obtain its stylesheets.
 	if c.pageTheme.present {
-		//wait("c.pageTheme.dir: %s", c.pageTheme.dir)
 		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
-		//pageStyles = sliceToStylesheetStr(c.pageTheme.dir,pageStyles)
-		debug("\t\ttheme styles: %v", themeStyles)
+		// It overrides any global stylesheet so exit if
+		// there was a page theme.
 		return themeStyles + pageStyles
 	}
+
+	// If there'a global theme, obtains its stylesheets
 	if c.globalTheme.present {
 		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.dir, c.globalTheme.stylesheetFilenames)
-		debug("\t\tglobal styles: %v", globalThemeStyles)
 		return globalThemeStyles + pageStyles
 	}
+
+	// If no themes were specified, return whatever
+	// style overrides that might be on this page.
 	return pageStyles
 }
 
@@ -875,31 +907,28 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string) string {
-	debug("\t\t\t\tinlineStyleSheets(%s)", dir)
-	//debug("\t\tfront matter: %+v", c.fm)
 	// Return value
 	s := ""
 
 	// Look for stylesheets named on this page,
-	// which ave the highest priority.
-	slice := fmStrSlice("stylesheetFilenames", c.fm)
-	stylesheets := ""
+	// which have the highest priority.
+	slice := fmStrSlice("stylesheets", c.fm)
+	overrides := ""
 	if len(slice) > 0 {
-		debug("\t\t\t\t\tslice of on-page stylesheets: %+v", slice)
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(dir, filename)
-			debug("\t\t\t\t\t\tc.fm: %s", fullPath)
+			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
 			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
-			stylesheets = s + "\n"
+			overrides = overrides + s + "\n"
 		}
 	}
 
+	stylesheets := ""
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
@@ -919,11 +948,12 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
-			return "<style>" + stylesheets + "</style>" + "\n"
+			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
 
-	// xxx
+	// Get list of stylesheets for the global theme, if there is one.
+	// It overrides any global theme so exit afterwards.
 	if c.globalTheme.present {
 		slice = c.globalTheme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
@@ -937,12 +967,14 @@ func (c *config) inlineStylesheets(dir string) string {
 				// If the file is local, read it in.
 				// If it's at a URL, download it.
 				c.getWebOrLocalFileStr(fullPath)
-			stylesheets = stylesheets + s + "\n"
+			stylesheets = stylesheets + s + overrides + "\n"
 		}
-
 		if s != "" {
-			return "<style>" + stylesheets + "</style>" + "\n"
+			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
+	}
+	if overrides != "" {
+		return "<style>\n" + overrides + "</style>" + "\n"
 	}
 	return ""
 }
@@ -952,7 +984,6 @@ func (c *config) inlineStylesheets(dir string) string {
 func (c *config) stylesheets() string {
 	// Return value
 	s := ""
-	debug("\t\t\tstylesheets()")
 	if c.linkStyles {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
@@ -1026,24 +1057,20 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // (Possibly both if on the home page)
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
-	debug("\tgetThemeData(%s)", filename)
 
 	// Check for a local theme on this page.
 	pageThemeDir := fmStr("theme", c.pageFm)
 	if dirExists(pageThemeDir) {
 		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
-		debug("\t\tPAGE THEME: %s", c.pageTheme.name)
 	} else {
 		c.pageTheme = c.globalTheme
-		debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
 	}
 
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
-		globalThemeDir := fmStr("global-theme", c.pageFm)
+		globalThemeDir := fmStr("globaltheme", c.pageFm)
 		if dirExists(globalThemeDir) {
 			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
-			debug("\t\tGLOBAL THEME: %s", c.globalTheme.name)
 		}
 	}
 }
@@ -1062,8 +1089,6 @@ func (c *config) loadTheme(filename string) {
 	// c.pageFm = map[string]interface{}{}
 	c.pageFm = c.getFm(filename)
 
-	debug("loadTheme(%s)", filename)
-
 	// Get the page theme, if any.
 	// If on the home page, look for both global
 	// and local theme names.
@@ -1075,7 +1100,6 @@ func (c *config) loadTheme(filename string) {
 	if c.pageTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.pageTheme)
-		debug("\tpage theme %s found", c.pageTheme.dir)
 		return
 	}
 
@@ -1084,7 +1108,6 @@ func (c *config) loadTheme(filename string) {
 	if c.globalTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.globalTheme)
-		debug("\tglobal theme %s found", c.globalTheme.dir)
 		return
 	}
 
@@ -1106,7 +1129,6 @@ func (t *theme) readFm(fm map[string]interface{}) {
 	t.asideFilename = fmStr("aside", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("style-tags", fm)
-	//debug("\t\treadFm() styleTagNames: %+v", t.styleTagNames)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 }
 
@@ -1136,6 +1158,8 @@ func (c *config) parseCommandLine() {
 	flag.StringVar(&c.lang, "lang", "en", "HTML language designation, such as en or fr")
 
 	// new creates a directory, sample index.md, and pocoDir
+	// This fails in the case of
+	//   poco -new
 	flag.StringVar(&c.newProjectStr, "new", "", "Create a new site")
 
 	// Port server runs on
@@ -1174,10 +1198,17 @@ func (c *config) parseCommandLine() {
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
 
-	// Collect configuration info for this project
-
-	// See if a directory was specified.
-	c.root = flag.Arg(0)
+  // Expand the directory case like:
+  // 
+  //   poco mysite
+  //
+	if !filepath.IsAbs(c.newProjectStr){
+		var err error
+		c.root, err = filepath.Abs(c.newProjectStr)
+		if err != nil {
+			quit(1, err, nil, "Can't get absolute path for %s", c.newProjectStr)
+		}
+	}
 
 	// TODO: Not sure this is the right place to run this, but see
 	// issue #19
@@ -1189,9 +1220,8 @@ func (c *config) parseCommandLine() {
 }
 
 func main() {
+
 	c := newConfig()
-	// No file was given on the command line.
-	// Build the project in place.
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
@@ -1199,9 +1229,27 @@ func main() {
 	// New project requested?
 	if c.newProjectStr != "" {
 		c.newProject(c.newProjectStr)
+	} else {
+		// -new not used on command line.
+		// If there was a directory name left on the command line,
+		// make it the root project
+		// Example command line:
+		//   poco foo
+		c.root = flag.Arg(0)
+		if c.root == "" {
+			// No directory named on command line.
+			// Assume the current directory is the
+			// intended project.
+			c.root = currDir()
+		}
+		if !isProject(c.root) {
+			quit(1, nil, c, "%s is not a Poco project", c.root)
+		}
+		// xxx
 	}
 
 	// Prevent generating a project if in same directory as poco
+	// TODO: Ddin't I write executableDir() or something?
 	dir, err := os.Executable()
 	if err != nil {
 		quit(1, err, c, "Can't determine executable directory", "")
@@ -1218,14 +1266,8 @@ func main() {
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
+	// Create home page.
 	c.setupGlobals()
-
-	// Probably not for public release.
-	// Lets me search for a new session in command line
-	// history or output file
-	if c.verboseFlag {
-		print("project: %s =============", filepath.Base(c.root))
-	}
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
@@ -1243,7 +1285,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Generate the site based in c.root. Output its contens to c.webroot.
+	// Generate the site based in c.root. Output its contents to c.webroot.
 	c.buildSite()
 
 	// If -settings-after flag just show config values and quit
@@ -1329,10 +1371,8 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 func (c *config) buildSite() {
-
+	// xxxx
 	var err error
-	// Make sure it's a valid site. If not, create a minimal home page.
-
 	// Change to requested directory
 	if err = os.Chdir(c.root); err != nil {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
@@ -1355,7 +1395,11 @@ func (c *config) buildSite() {
 	// Create the webroot directory
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
+		// TODO: revisit this deleted code. It seemed to matter when I tried this
+		// from within the main poco directory:
+		// poco -new .poco/test/scope1
 		if err != nil && !os.IsExist(err) {
+			//if err != nil {
 			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
 		}
 	}
@@ -1389,7 +1433,8 @@ func (c *config) buildSite() {
 
 		// Full pathname of output directory for copied files
 		targetDir := c.webroot
-		// Create the webroot directory if it doesn't exist
+		// Create the target directory if it doesn't exist
+		// TODO: Necessary?
 		if !dirExists(targetDir) {
 			err := os.MkdirAll(targetDir, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
@@ -1488,6 +1533,17 @@ func (c *config) getSkipPublish() {
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
+// pocoDirExists returns if the named directory contains
+// a directory by the name of pocoDir.
+func pocoDirExists(path string) bool {
+	// See if there's a .poco directory
+	poco := filepath.Join(path, pocoDir)
+	if !dirExists(poco) {
+		return false
+	}
+	return true
+}
+
 // isProject() looks at the structure of the specified directory
 // and tries to determine if there's already a project here.
 func isProject(path string) bool {
@@ -1495,6 +1551,11 @@ func isProject(path string) bool {
 	if !dirExists(path) {
 		return false
 	}
+
+	if !pocoDirExists(path) {
+		return false
+	}
+
 	if indexFile(path) == "" {
 		return false
 	} else {
@@ -1571,7 +1632,7 @@ func copyFile(c *config, source string, target string) {
 	var src, trgt *os.File
 	var err error
 	if src, err = os.Open(source); err != nil {
-		quit(1, err, c, "copyFile: Unable to open file %s", source)
+		quit(1, err, c, "copyFile: Unable to read file %s", source)
 	}
 	defer src.Close()
 
@@ -1585,7 +1646,7 @@ func copyFile(c *config, source string, target string) {
 }
 
 // copyPocoDir copies the embedded .poco directory into
-// the current directory, which is expected to be
+// the given directory, which is normally
 // a new project directory.
 func (c *config) copyPocoDir(f embed.FS, dir string) error {
 	if dir == "" {
@@ -2262,22 +2323,30 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 // up that condition and helps stop you from
 // putting this project where it shouldn't be.
 func (c *config) newProject(dir string) {
-	c.root = dir
-	if !dirExists(c.root) {
+	if !dirExists(dir) {
+		//if !dirExists(dir) {
 		// We're good. No directory by that name. Create it.
-		err := os.MkdirAll(c.root, os.ModePerm)
+		//err := os.MkdirAll(c.root, os.ModePerm)
+		err := os.MkdirAll(dir, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
 			quit(1, err, c, "Unable to create new project directory %s", c.root)
 		}
 	} else {
-		// Existing directory by that name. No need to continue.
-		if isProject(c.root) {
-			if promptYes("Project at " + c.root + "exists. This will replace index.md, add a " + pocoDir + " directory, and replace any directory named " + c.webroot + ". Continue?") {
-				c.newSite()
-			} else {
-				quit(1, nil, c, "Leaving project at %s intact. Quitting.", c.root)
-			}
+		// Existing directory by that name. Does it already contain a project?
+		if isProject(dir) {
+      // There is a world in which one might want to "reset" a project. Maybe
+      // the .poco directory was touched or you want to restore the factory
+      // themes? This deleted code handles that case. Just seems a bit
+      // dangerous.
+			// if promptYes("Project at " + dir + " exists. This will replace index.md, add a " + pocoDir + " directory, and replace any directory named " + c.webroot + ". Continue?") {
+			// 	c.root = dir
+			// 		c.newSite()
+			// } else {
+			// 		quit(1, nil, c, "Leaving project at %s intact. Quitting.", c.root)
+			// 	}
+			quit(1, nil, c, "There is already a project at %s. Quitting.", c.root)
 		}
+
 	}
 }
 
