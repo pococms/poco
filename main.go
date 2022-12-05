@@ -1198,11 +1198,13 @@ func (c *config) parseCommandLine() {
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
 
-  // Expand the directory case like:
-  // 
-  //   poco mysite
-  //
-	if !filepath.IsAbs(c.newProjectStr){
+	// If it's somehting like poco -new ~/tmp/foo/bar,
+	// save that full pathname as c.root.
+	if filepath.IsAbs(c.newProjectStr) {
+		c.root = c.newProjectStr
+	} else {
+		// If it's something like poco -new fred, expand fred to be a full pathname
+		// and then save to c.root
 		var err error
 		c.root, err = filepath.Abs(c.newProjectStr)
 		if err != nil {
@@ -2323,6 +2325,7 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 // up that condition and helps stop you from
 // putting this project where it shouldn't be.
 func (c *config) newProject(dir string) {
+	// xxx
 	if !dirExists(dir) {
 		//if !dirExists(dir) {
 		// We're good. No directory by that name. Create it.
@@ -2334,10 +2337,10 @@ func (c *config) newProject(dir string) {
 	} else {
 		// Existing directory by that name. Does it already contain a project?
 		if isProject(dir) {
-      // There is a world in which one might want to "reset" a project. Maybe
-      // the .poco directory was touched or you want to restore the factory
-      // themes? This deleted code handles that case. Just seems a bit
-      // dangerous.
+			// There is a world in which one might want to "reset" a project. Maybe
+			// the .poco directory was touched or you want to restore the factory
+			// themes? This deleted code handles that case. Just seems a bit
+			// dangerous.
 			// if promptYes("Project at " + dir + " exists. This will replace index.md, add a " + pocoDir + " directory, and replace any directory named " + c.webroot + ". Continue?") {
 			// 	c.root = dir
 			// 		c.newSite()
