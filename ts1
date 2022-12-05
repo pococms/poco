@@ -1,14 +1,19 @@
 #!/bin/zsh
-# Builds a multipage site.
-# Shows use of global and page themes.
+# ts1
+# Generates a multipage site in a temp directory.
+# Visual demonstrations of:
+# - global and page themes
+# - suppressing header, nav, footer, aside
 # 
 # Command-line options:
 # 
 # --theme {theme name}
+# -t {theme name}
 #
 # Example:
 #  
 #   ts1 --theme pocodocs
+#   ts1 --t pocodocs
 #
 # UTILITY FUNCTIONS
 function pause(){
@@ -16,9 +21,9 @@ function pause(){
   read nothing_at_all
 }
 
+# Default global theme. Can be altered with --theme command line option
 THEME=poquito
 
-#echo "Name of this script: ${0}"
 # PARSE COMMAND LINE
 echo ""
 while :; do
@@ -49,7 +54,6 @@ while :; do
    		 
    	 *)
    		 # No more options. Break out of loop.
-   		 # printf 'NO MORE OPTIONS\n'
    		 break;
     esac
     
@@ -58,17 +62,9 @@ done
 
 
 
-
-
-
-
-#
 # Create a temporary directory.
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
-# TODO:
-# Unfortunately I couldn't get it to work. root index.html works but
-# not nested files. Not sure why.
 tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
 echo "Creating poco project at temp directory ${tmpdir}"
 poco -new $tmpdir
@@ -91,7 +87,7 @@ theme: ".poco/themes/${THEME}"
 # Project build tests 
 ## Click these pages 1 directory levels down
 * [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
+* [Level 2 page 2](level2/page2-2.html) (Overrides parts of theme)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
@@ -211,8 +207,14 @@ EOM
 read -r -d '' PAGE_2_2 << EOM
 ---
 title: "level2/page2-2"
+style-tags: 
+- "article>h2{font-weight:bold;color:red;}"
+- "article>p{font-size:1.25em;font-style:italic;font-family:'Times New Roman', Times, serif;}"
 ---
-# Subdirectory level2 is 1 level below root
+# This page demonstrate style overrides
+
+Note how h2 headers are red, and the body style is now an italic serif font.
+
 ## Page level2/page2-2.html
 ## Click these pages 1 directory level down
 * [Level 3 page 1](level3/page3-1.html)
