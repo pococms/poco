@@ -84,7 +84,7 @@ See also [page theme](#page-theme)
 The home page is a file named either `index.md` or `README.md`
 in the root directory of your project. It has some special
 properties, for example, it's the only file you can use to 
-`global-theme` to set a theme for the site overall.
+`globaltheme` to set a theme for the site overall.
 
 *README.md vs index.md*
 
@@ -106,7 +106,7 @@ previous site generators roll, such as the one on GitHub.
 ### Defining a global theme on the home page
 
 The home page lets you define a global [theme](#theme) for the entire site.
-If you add `global-theme:` followed by the theme name to the front
+If you add `globaltheme:` followed by the theme name to the front
 matter as shown below, all pages of your site will default to
 the global theme without your having to specify it on each page.
 For example, this defines `wide` as the global theme:
@@ -210,7 +210,7 @@ such as PocoCMS the term normally refers to Markdown.
 ## page theme
 
 A page [theme](#theme) controls the appearance of a single page. 
-It overrides the [global theme](#global-theme), if any.
+It overrides the [global theme](#globaltheme), if any.
 
 
 

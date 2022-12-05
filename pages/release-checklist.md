@@ -2,7 +2,8 @@
 
 * go fmt
 * Run all stylesheets through `vnu`
-* `du -h` on the directory
+* `tree` on the source directory
+* `du -h` on the source directory
 * Check document Markdown source code for ocurrences of TODO:, 
 including as comments in Go template format
 * Run poco in the poco directory
