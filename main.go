@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -383,7 +384,7 @@ type config struct {
 	// Contents of a theme directory: the theme for the current page,
 	// plus the global (default) theme directory.
 	pageTheme   theme
-	globalTheme theme
+	theme theme
 
 	// Command-line flag -themes shows installed themes
 	themeList bool
@@ -519,7 +520,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Return value
 	var theme theme
 	// Leave if no theme specified and no global theme specified.
-	//if themeDir == "" && !c.globalTheme.present {
+	//if themeDir == "" && !c.theme.present {
 	if themeDir == "" && !possibleGlobalTheme {
 		theme.present = false
 		return theme
@@ -562,10 +563,10 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
 	theme.readFm(tmpConfig.fm)
-	if possibleGlobalTheme && !c.globalTheme.present {
+	if possibleGlobalTheme && !c.theme.present {
 		// If this is a globaltheme declaration, read that
 		// into c
-		c.globalTheme = theme
+		c.theme = theme
 	} else {
 		// It's a local theme declaration
 		c.pageTheme = theme
@@ -579,8 +580,8 @@ func (c *config) footer() string {
 	if c.pageTheme.present {
 		return c.pageTheme.footer
 	}
-	if c.globalTheme.present {
-		return c.globalTheme.footer
+	if c.theme.present {
+		return c.theme.footer
 	}
 	return ""
 }
@@ -591,8 +592,8 @@ func (c *config) aside() string {
 	if c.pageTheme.present {
 		return c.pageTheme.aside
 	}
-	if c.globalTheme.present {
-		return c.globalTheme.aside
+	if c.theme.present {
+		return c.theme.aside
 	}
 	return ""
 }
@@ -603,8 +604,8 @@ func (c *config) nav() string {
 	if c.pageTheme.present {
 		return c.pageTheme.nav
 	}
-	if c.globalTheme.present {
-		return c.globalTheme.nav
+	if c.theme.present {
+		return c.theme.nav
 	}
 	return ""
 }
@@ -615,8 +616,8 @@ func (c *config) header() string {
 	if c.pageTheme.present {
 		return c.pageTheme.header
 	}
-	if c.globalTheme.present {
-		return c.globalTheme.header
+	if c.theme.present {
+		return c.theme.header
 	}
 	return ""
 }
@@ -674,7 +675,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 	// GLOBAL: No layout file specified, but a global theme is present.
 	//         This is the case where the home page has Theme: "foo" in the front matter.
 	//         The current page doesn't have a theme specified in its front Matter.
-	//         The global theme HTML is already in c.globalTheme.theme.header etc.
+	//         The global theme HTML is already in c.theme.header etc.
 	// LOCAL:  No global theme was specified, but a layout file was specified.
 	//         This is the case where there's a Theme: "foobar" on the current page
 	//         but the home page didn't contain a theme designation.
@@ -851,7 +852,7 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 // linkStylesheets() extracts stylesheet references and
 // creates link tags for them.
 // By this time loadTheme() has been called. c.fm has hardcoded
-// style tags, c.pageTheme and c.globalTheme have lists of
+// style tags, c.pageTheme and c.theme have lists of
 // stylesheets. Now it's time to turn those into HTML
 // elements.
 //
@@ -872,9 +873,9 @@ func (c *config) linkStylesheets() string {
 	}
 
 	// If there'a global theme, obtains its stylesheets
-	if c.globalTheme.present {
-		globalThemeStyles := sliceToStylesheetStr(c.globalTheme.dir, c.globalTheme.stylesheetFilenames)
-		return globalThemeStyles + pageStyles
+	if c.theme.present {
+		themeStyles := sliceToStylesheetStr(c.theme.dir, c.theme.stylesheetFilenames)
+		return themeStyles + pageStyles
 	}
 
 	// If no themes were specified, return whatever
@@ -953,13 +954,13 @@ func (c *config) inlineStylesheets(dir string) string {
 
 	// Get list of stylesheets for the global theme, if there is one.
 	// It overrides any global theme so exit afterwards.
-	if c.globalTheme.present {
-		slice = c.globalTheme.stylesheetFilenames
+	if c.theme.present {
+		slice = c.theme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(dir, c.globalTheme.dir), filename)
+			fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
 
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
@@ -1030,7 +1031,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 		theme.present = true
 		// On the home page. The request is for the global theme.
 		if possibleGlobalTheme {
-			c.globalTheme.present = true
+			c.theme.present = true
 		}
 	}
 
@@ -1059,22 +1060,31 @@ func (c *config) getThemeData(filename string) {
 
 	// Check for a local theme on this page.
 	pageThemeDir := fmStr("pagetheme", c.pageFm)
+  if pageThemeDir != "" {
+    debug("getThemeData(%s): pageThemeDir is %v", filename, pageThemeDir)
+  }
 	if dirExists(pageThemeDir) {
 		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 	} else {
-		c.pageTheme = c.globalTheme
+		c.pageTheme = c.theme
+      debug("c.pageTheme is global %+v:", c.pageTheme)
 	}
 
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
 		globalThemeDir := fmStr("theme", c.pageFm)
+    debug("\tglobalThemeDir is %+v\n\tpageFm is\t%+v", globalThemeDir, c.pageFm)
 		if dirExists(globalThemeDir) {
-			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
+			c.theme = *c.themeDataStructures(globalThemeDir, true)
 		}
+    debug("\tHome page: global theme specified is %+v", c.theme)
 	}
 }
 
-// loadTheme() is passed the current source filename.
+// loadTheme() is passed the current source filename
+// (NOT the name of the theme, so filename could easily
+// be '/Users/tom/pococms/poco/tmp/index.md' or 
+// '/Users/tom/pococms/poco/pricing/comparek.md').
 // If a page theme is named in the front matter, its description
 // is read. If at the home page, it reads the global theme, if any.
 // It is possible at the home page to have both page theme
@@ -1093,9 +1103,9 @@ func (c *config) loadTheme(filename string) {
 	// and local theme names.
 	// Load data structures for those themes.
 	c.getThemeData(filename)
-
 	// If a page theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
+  debug("c.pageTheme: %+v", c.pageTheme)
 	if c.pageTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.pageTheme)
@@ -1104,9 +1114,9 @@ func (c *config) loadTheme(filename string) {
 
 	// If a global theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
-	if c.globalTheme.present {
+	if c.theme.present {
 		// Local theme takes priority
-		c.addPageElements(&c.globalTheme)
+		c.addPageElements(&c.theme)
 		return
 	}
 
@@ -2021,7 +2031,7 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
-	print("Global theme: %s", c.globalTheme.dir)
+	print("Global theme: %s", c.theme.dir)
 	print("Page theme: %s", c.pageTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
 	print("Ignore: %v", c.skipPublish.list)
