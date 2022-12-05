@@ -1058,7 +1058,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 func (c *config) getThemeData(filename string) {
 
 	// Check for a local theme on this page.
-	pageThemeDir := fmStr("theme", c.pageFm)
+	pageThemeDir := fmStr("pagetheme", c.pageFm)
 	if dirExists(pageThemeDir) {
 		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 	} else {
@@ -1067,7 +1067,7 @@ func (c *config) getThemeData(filename string) {
 
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
-		globalThemeDir := fmStr("globaltheme", c.pageFm)
+		globalThemeDir := fmStr("theme", c.pageFm)
 		if dirExists(globalThemeDir) {
 			c.globalTheme = *c.themeDataStructures(globalThemeDir, true)
 		}
@@ -2271,9 +2271,7 @@ func portBusy(port string) bool {
 
 // fmStr is passed a front matter "type" and retrievs
 // the value for the value passed in as key. Value
-// is case-insensitive. So if
-// c.globalFm has a theme named "pages/themes/foo"
-// you'd pass in "theme" and get back "pages/themes/foo"
+// is case-insensitive. 
 func fmStr(key string, fm map[string]interface{}) string {
 	v := fm[strings.ToLower(key)]
 	value, ok := v.(string)
