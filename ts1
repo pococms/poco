@@ -1,12 +1,66 @@
 #!/bin/zsh
 # Builds a multipage site.
 # Shows use of global and page themes.
+# 
+# Command-line options:
+# 
+# --theme {theme name}
+#
+# Example:
+#  
+#   ts1 --theme pocodocs
 #
 # UTILITY FUNCTIONS
 function pause(){
   echo "Please press enter..."
   read nothing_at_all
 }
+
+THEME=poquito
+
+#echo "Name of this script: ${0}"
+# PARSE COMMAND LINE
+echo ""
+while :; do
+    case $1 in
+    
+   	 -t|--theme)
+   		 if [ -n "$2" ]; then
+   			 THEME=$2
+         echo "Chose theme ${THEME}"
+         pause
+   			 shift 2
+   			 continue
+   		 else
+   			 echo "ERROR: --theme needs a theme name. The default is ${THEME}. \nExample:\n\t${0} --theme pocodocs\n" >&2
+   			 #printf 'ERROR: "--theme" needs a theme name.\nExample:\n\t${0} --theme pocodocs\n' >&2
+   			 exit 1
+   		 fi
+   		 ;;
+   		 
+   	 --)
+   		 shift
+   		 break
+   		 ;;
+   		 
+   	 --?*)
+   		 printf 'WARNING: Unknown option %s ignored\n' "$1" >&2
+   		 ;;
+   		 
+   	 *)
+   		 # No more options. Break out of loop.
+   		 # printf 'NO MORE OPTIONS\n'
+   		 break;
+    esac
+    
+    command shift
+done
+
+
+
+
+
+
 
 #
 # Create a temporary directory.
@@ -32,7 +86,7 @@ fi
 # above the second EOM
 read -r -d '' INDEX << EOM
 ---
-globaltheme: ".poco/themes/poquito"
+theme: ".poco/themes/${THEME}"
 ---
 # Project build tests 
 ## Click these pages 1 directory levels down
@@ -142,7 +196,7 @@ EOM
 read -r -d '' PAGE_2_1 << EOM
 ---
 title: "level2/page2-1"
-theme: ".poco/themes/tufte"
+pagetheme: ".poco/themes/tufte"
 ---
 # Subdirectory level1 is 1 level below root
 ## Page level2/page2-1.html
