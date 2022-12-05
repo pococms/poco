@@ -1247,21 +1247,13 @@ func main() {
 		}
 	}
 
-	// Prevent generating a project if in same directory as poco
-	// TODO: Ddin't I write executableDir() or something?
-	dir, err := os.Executable()
-	if err != nil {
-		quit(1, err, c, "Can't determine executable directory", "")
-	}
-
 	// If in the poco main directory and no project was specified,
 	// then prevent turning the poco main directory into a project.
 	// OTOH if something is specified, e.g. poco ~/mysite, it's
 	// okay to generate that site.
 	// Should be
 	if executableDir() == c.root {
-		//if currDir() == executableDir() {
-		quit(1, err, c, "%s", "Don't run poco in its own directory. Quitting.")
+		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
 	}
 
 	// Obtain README.md or index.md.
@@ -1438,7 +1430,7 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to get directory tree")
 	}
 	// xxx
-	debug("Project tree:\n%+v", c.files)
+	// debug("Project tree:\n%+v", c.files)
 	// Create the webroot directory
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
@@ -1709,8 +1701,6 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 		if d.IsDir() {
 			// It's a directory. Create it in the target location.
 			// Easy to do because we're guaranteed inside the project dir.
-			debug("copyPocoDir(): creating dir %s", path)
-			// xxx
 			err := os.MkdirAll(path, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
 				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
