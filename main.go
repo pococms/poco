@@ -434,7 +434,6 @@ func (c *config) findHomePage() {
 // and its root directory.
 // Pre: parseComandLine()
 func (c *config) setRoot() {
-	// xxx
 	var err error
 	// Determine home page, which may have been passed on command line.
 	if c.root == "." || c.root == "" {
@@ -816,7 +815,6 @@ func (c *config) setupGlobals() { //
 // aside > h1 {font-size:2em}
 // </style>
 //
-// xxx
 func (c *config) styleTags() string {
 	// Take the slice of tags and put each one
 	// on its own line.
@@ -1247,7 +1245,6 @@ func main() {
 		if !isProject(c.root) {
 			quit(1, nil, c, "%s is not a Poco project", c.root)
 		}
-		// xxx
 	}
 
 	// Prevent generating a project if in same directory as poco
@@ -1368,12 +1365,56 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	}
 }
 
+// DIRECTORY TREE
+func (c *config) treeVisit(files *[]string, count *int, skipPublish searchInfo) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+		  quit(1, err, c, "Unable to complete treeVisit()")
+			return err
+		}
+
+		isDir := info.IsDir()
+		if !isDir {
+			// FILE
+			if !skipPublish.Found(path) {
+				*files = append(*files, path)
+			}
+		} else {
+			// DIRECTORY
+			//if path == "." || path == ".." || skipPublish.Found(path) {
+      // If this directory is to be skipped...
+			if skipPublish.Found(path) {
+        // Consume the whole thing
+				return filepath.SkipDir
+			}
+      sep := string(os.PathSeparator)
+      path = path + sep
+			*files = append(*files,path)
+			return nil
+		}
+		return nil
+	}
+
+}
+
+// getProjectTree() collects all files in the specified project tree starting
+// at the root.
+// Ignore directories starting with a in searchInfo, and . and ..
+func (c *config) getProjectTree(path string, dirs *int, skipPublish searchInfo) (tree []string, err error) {
+	var files []string
+	err = filepath.Walk(path, c.treeVisit(&files, dirs, skipPublish))
+	if err != nil {
+		quit(1, err, c, "getProjectTree() error at %s", path)
+		return []string{}, err
+	}
+	return files, nil
+}
+
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
 // projectDir.
 func (c *config) buildSite() {
-	// xxxx
 	var err error
 	// Change to requested directory
 	if err = os.Chdir(c.root); err != nil {
@@ -1388,12 +1429,14 @@ func (c *config) buildSite() {
 	}
 
 	// Collect all the files required for this project.
-	c.files, err = getProjectTree(".", c.skipPublish)
+	var treeCount int
+	c.files, err = c.getProjectTree(".", &treeCount, c.skipPublish)
 	// c.files is a list of files with pathnames relative to c.root
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
-
+	// xxx
+	debug("Project tree:\n%+v", c.files)
 	// Create the webroot directory
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
@@ -1406,7 +1449,6 @@ func (c *config) buildSite() {
 		}
 	}
 
-	// no processing.
 	// # of non-Markdown copied
 	assetsCopied := 0
 	// First write out home page
@@ -1416,6 +1458,7 @@ func (c *config) buildSite() {
 	// Start at 1 because home page
 	c.mdCopied = 1
 
+  sep := string(os.PathSeparator)
 	// Main loop. Traverse the list of files to be copied.
 	// If a file is Markdown as determined by its file extension,
 	// convert to HTML and copy to output directory.
@@ -1423,8 +1466,21 @@ func (c *config) buildSite() {
 	for _, filename := range c.files {
 
 		// Full pathmame of file to be copied (may be converted to HTML first)
+	  // xxxx
+    // In the project tree, directories are stored with 
+    // a terminating path separator. Files aren't.
+    ending := filename[len(filename)-1:]
+    // If the filename ends with a path separator,
+    // create that directory in the webroot.
+    if ending == sep {
+		  dir := filepath.Join(c.webroot, filename)
+			err := os.MkdirAll(dir, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to create directory %s", dir)
+			}
+      continue
+    }
 		source := filepath.Join(c.root, filename)
-
 		c.currentFilename = source
 		c.verbose(c.currentFilename)
 
@@ -1433,16 +1489,6 @@ func (c *config) buildSite() {
 		// copied as is.
 		target := filepath.Join(c.webroot, filename)
 
-		// Full pathname of output directory for copied files
-		targetDir := c.webroot
-		// Create the target directory if it doesn't exist
-		// TODO: Necessary?
-		if !dirExists(targetDir) {
-			err := os.MkdirAll(targetDir, os.ModePerm)
-			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to create directory %s in webroot", targetDir)
-			}
-		}
 		// Obtain file extension.
 		ext := path.Ext(c.currentFilename)
 
@@ -1661,6 +1707,8 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 		if d.IsDir() {
 			// It's a directory. Create it in the target location.
 			// Easy to do because we're guaranteed inside the project dir.
+			debug("copyPocoDir(): creating dir %s", path)
+			// xxx
 			err := os.MkdirAll(path, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
 				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
@@ -1739,8 +1787,9 @@ func replaceExtension(filename string, newExtension string) string {
 func stringToFile(c *config, filename, contents string) string {
 	var out *os.File
 	var err error
+	defer out.Close()
 	if out, err = os.Create(filename); err != nil {
-		quit(1, err, c, "stringToFile: Unable to create file %s", filename)
+    quit(1, err, c, "stringToFile(): Unable to create file %s", filename)
 	}
 	if _, err = out.WriteString(contents); err != nil {
 		quit(1, err, c, "Error writing to file %s", filename)
@@ -1853,54 +1902,6 @@ func (s *searchInfo) Found(searchFor string) bool {
 	return pos < l && s.list[pos] == searchFor
 }
 
-// DIRECTORY TREE
-
-func visit(files *[]string, skipPublish searchInfo) filepath.WalkFunc {
-
-	// Find out what directories to exclude
-	return func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			// Quietly fail if unable to access path.
-			return err
-		}
-		isDir := info.IsDir()
-		// Obtain just the full pathname
-		name := info.Name()
-
-		// Inside the Walk func called by getProjectTree
-
-		// Skip any directory to be excluded, such as
-		// the pub and .git directores
-		if skipPublish.Found(name) && isDir {
-			return filepath.SkipDir
-		}
-
-		// It may be just a filename on the exclude list.
-		name = filepath.Join(currDir(), name)
-		if skipPublish.Found(name) {
-			return nil
-		}
-
-		// Don't add directories to this list.
-		if !isDir {
-			*files = append(*files, path)
-		}
-		return nil
-	}
-}
-
-// Obtain a list of all files in the specified project tree starting
-// at the root.
-// Ignore items in exclude.List
-func getProjectTree(path string, skipPublish searchInfo) (tree []string, err error) {
-	var files []string
-
-	err = filepath.Walk(path, visit(&files, skipPublish))
-	if err != nil {
-		return []string{}, err
-	}
-	return files, nil
-}
 
 // Generate HTML
 
