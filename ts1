@@ -1,0 +1,211 @@
+#!/bin/zsh
+# Builds a multipage site.
+# Shows use of global and page themes.
+#
+# UTILITY FUNCTIONS
+function pause(){
+  echo "Please press enter..."
+  read nothing_at_all
+}
+
+#
+# Create a temporary directory.
+# Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
+# https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+# TODO:
+# Unfortunately I couldn't get it to work. root index.html works but
+# not nested files. Not sure why.
+tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+echo "Creating poco project at temp directory ${tmpdir}"
+poco -new $tmpdir
+ALLDIRS=$tmpdir/level2/level3/
+mkdir -p  $ALLDIRS
+if [[ $? -gt 0 ]]
+then
+  echo "Error creating subdirs"
+fi
+
+
+
+# Generate the page index.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' INDEX << EOM
+---
+globaltheme: ".poco/themes/poquito"
+---
+# Project build tests 
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+* [Home](index.html)
+EOM
+
+# Generate the page supress-header.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_HEADER << EOM
+---
+header: "SUPPRESS"
+---
+# This page should have no header. 
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+* [Home](index.html)
+EOM
+
+# Generate the page supress-aside.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_ASIDE << EOM
+---
+aside: "SUPPRESS"
+---
+# This page should have no aside. 
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+* [Home](index.html)
+EOM
+
+# Generate the page supress-nav.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_NAV << EOM
+---
+nav: "SUPPRESS"
+---
+# This page should have no navbar. 
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+* [Home](index.html)
+EOM
+
+# Generate the page supress-footer.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_FOOTER << EOM
+---
+footer: "SUPPRESS"
+---
+# This page should have no footer. 
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+* [Home](index.html)
+EOM
+
+# Generate the page named page2_1.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' PAGE_2_1 << EOM
+---
+title: "level2/page2-1"
+theme: ".poco/themes/tufte"
+---
+# Subdirectory level1 is 1 level below root
+## Page level2/page2-1.html
+## Click these pages 1 directory level down
+* [Level 3 page 1](level3/page3-1.html)
+* [Home](./index.html)
+EOM
+
+# Generate the page named page2_2.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' PAGE_2_2 << EOM
+---
+title: "level2/page2-2"
+---
+# Subdirectory level2 is 1 level below root
+## Page level2/page2-2.html
+## Click these pages 1 directory level down
+* [Level 3 page 1](level3/page3-1.html)
+* [Home](./index.html)
+EOM
+
+
+# Generate the page named page3_1.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' PAGE_3_1 << EOM
+---
+title: "level3/page3-1"
+---
+# Subdirectory level3 is 2 level below root
+## Page level2/level3/page3-1.html
+## Click these pages 1 directory level up 
+* [Level 2 page 1](../page2-1.html)
+* [Level 2 page 2](../page2-2.html)
+* [Home](./index.html)
+EOM
+
+
+#echo "\nlevel2 dir:"
+#ls $tmpdir/level2
+#echo "\nlevel3 dir:"
+#ls $tmpdir/level3
+
+echo $INDEX > $tmpdir/index.md
+echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
+echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
+echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
+echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
+echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
+echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
+echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
+poco $tmpdir
+if [[ $? -gt 0 ]]
+then
+  echo "Poco was unable to create the project"
+  echo "Contents of the directory:"
+  ls ${tmpdir}
+else
+  echo "Project created successfully"
+  #echo "Opening in local browser and local server"
+  open $tmpdir/WWW/index.html
+  cd $tmpdir
+  #poco -serve
+fi
+
