@@ -1,4 +1,5 @@
 #!/bin/zsh
+# 12/5/22: Still has usable code I think but Superseded by the less ambitious ts1
 # Create a temporary directory.
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
@@ -12,45 +13,7 @@ else
   echo "poco status: error ${?}"
 fi
 
-PAGE1=page1.md
-
-declare -A arr
-arr[0,0]="w"     
-arr[0,1]="w-script"
-arr[0,2]="w-yaml"  
- 
-arr[1,0]="debut/gallery"
-arr[1,1]="dg-script"
-arr[1,2]="dg-yaml"  
- 
-arr[2,0]="pillar"
-arr[2,1]="pillar-script"
-arr[2,2]="yml-pillar"            
-
-COUNT=${#arr[@]}
-echo "Number of elements: ${COUNT}" 
- 
- 
-# List just the themes 
-echo "\nList themes:"
-for ((i=0; i<$COUNT/3; i++))
-do
-  echo "${arr[$i,0]}"                
-done
-
-# List the scripts 
-echo "\nList scripts:"
-for ((i=0; i<$COUNT/3; i++))
-do
-  echo "${arr[$i,1]}"
-done
-#
-# List the YAML files
-echo "\nList YAML files:"
-for ((i=0; i<$COUNT/3; i++))
-do
-  echo "${arr[$i,2]}"
-done
+PAGE1=page1
 
 
 # Displays prompt, and waits for user to answer 
@@ -80,22 +43,68 @@ wait_for_yes() {
   done
 }
 
+# Displays prompt, and waits for user to press Enter. 
+#   wait_for_enter "Please press enter"
+wait_for_enter() {
+    echo -n "${1} "
+    read answer
+}
+
 
 
 
 # Generate a page at peer level to the home page in the project
 # Writes its contents to $PAGE1_TEXT
-echo "Creating ${PAGE1}"
 read -r -d '' PAGE1_TEXT << EOM
 # Project build tests 
+## Test links to subdirectories
+[Level 2 page 1](level2/page2-1.html)
+[Level 2 page 2](level2/page2-2.html)
 [Home](index.html)
 EOM
 
-echo About to create $PAGE1 from $PAGE1_TEXT 
-echo $PAGE1_TEXT > $PAGE1
+# Generate 2 pages 1 subdirectory level down 
+read -r -d '' PAGE21 << EOM
+# Level 2 subdirectory, page 1
+[Page 2-2](page2-2.html)
+[Home](/index.html) 
+EOM
+
+read -r -d '' PAGE22 << EOM
+# Level 2 subdirectory, page 2
+[Page 2-1](page2-1.html)
+[Home](/index.html) 
+EOM
+
+# Generate pages 2 subdirectory levels down 
+read -r -d '' PAGE31 << EOM
+# Level 3 subdirectory, page 1
+### Click these Level 2 pages
+[Page 2-1](../page2-1.html)
+[Page 2-2](../page2-2.html)
+[Home](/index.html) 
+EOM
+
+echo "Got here"
+
+wait_for_enter "about to create $TMPDIR"
+
+poco -new $TMPDIR
+#echo About to create $PAGE1from $PAGE1_TEXT 
+echo $PAGE1_TEXT > $TMPDIR/$PAGE1.md
+
+echo $PAGE21 > $TMPDIR/level2/"page2-1.md"
+echo $PAGE22 > $TMPDIR/level2/"page2-2.md"
+echo $PAGE31 > $TMPDIR/level2/level3/"page3-1.md"
+read answer
+open $TMPDIR/WWW/index.html
 
 #generate_page() $PAGE1 $PAGE1_TEXT
-ls -lat $PAGE1
+echo  "Dir $TMPDIR/$PAGE1":
+ls -lat  ${TMPDIR}/page???.html
+ls -lat  ${TMPDIR}/level2/page???.html
+ls -lat  ${TMPDIR}/level2/level3/page???.html
+
 # Creates the page named $1 in directory $2
 function generate_page() {
   echo "Generating ${PAGE1}"
@@ -106,12 +115,6 @@ function generate_page() {
 
 
 ## CLEAN UP
-wait_for_yes "Delete temporary file ${tmpdir}?"
-if [ $? == 0 ]; then
-  rm -rf $tmpdir
-else
-  echo "Temporary file ${tmpdir} has not been deleted"
-fi
-
+#wait_for_yes "Delete temporary directory $TMPDIR?"
 
 
