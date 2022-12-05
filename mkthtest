@@ -14,10 +14,15 @@
 # * Global and local themes both, linked stylesheets 
 # * Global and local themes both, linked stylesheets, style sheet override on page
  
+# Location of directory for these tests.
+# REMEMBER it gets nuked every time this script gets run.
 MAINPROJECT=.themetest
 rm -rf $MAINPROJECT
 poco -new $MAINPROJECT
 cd $MAINPROJECT
+
+# Generate a simple page to choose between the
+# inline tree vs linked tree. 
 cat <<- EOF > ./index.md
 # Local/global themes test
 [Inline style sheet versions](inline/WWW/index.html)
@@ -25,6 +30,12 @@ cat <<- EOF > ./index.md
 [Linked style sheet versions](linked/WWW/index.html)
 EOF
 
+# Create the home page, which starts with
+# either linked or inline styles. Each is
+# the root of a directory tree.
+# Within each tree an identical set of scripts shows 
+# use of global themes, local themes, both at once,
+# and stylesheet overrides for each scope.
 declare -a projectTypes=(
   # Uses inline stylesheets
   'inline'
@@ -85,6 +96,9 @@ for projectType in "${projectTypes[@]}"
     #cat <<- EOF > ./$project
     #  The file $project is disposable.
 #EOF
+
+poco
+
 
 echo "Contents of ${MAINPROJECT}:"
 ls
