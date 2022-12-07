@@ -1,6 +1,5 @@
 // main.go
-// * Need to error when a theme can't be found
-// * Need to error when a theme's stylesheet can't be found
+// * Handle nested themes, such as poquito/news
 package main
 
 import (
@@ -922,7 +921,7 @@ func (c *config) inlineStylesheets(dir string) string {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet %s can't be found",
+				quit(1, nil, c, "Stylesheet \"%s\" in front matter can't be found",
 					filename)
 			}
 
@@ -945,8 +944,8 @@ func (c *config) inlineStylesheets(dir string) string {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet %s can't be found",
-					filename)
+					quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
+					filename, c.theme.name)
 			}
 
 			// For debugging purposes, add commment with filename
@@ -972,8 +971,8 @@ func (c *config) inlineStylesheets(dir string) string {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet %s can't be found",
-					filename)
+				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
+					filename, c.theme.name)
 			}
 
 			// For debugging purposes, add commment with filename
@@ -1232,6 +1231,7 @@ func (c *config) parseCommandLine() {
 
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
+  debug("webroot: %s", c.webroot)
 
 	// If it's somehting like poco -new ~/tmp/foo/bar,
 	// save that full pathname as c.root.
