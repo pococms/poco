@@ -25,14 +25,31 @@ function pause(){
   read nothing_at_all
 }
 
-function generate_square_svg() {
-cat <<EOM > $1/square.svg
-<svg width='256' height='128' xmlns='http://www.w3.org/2000/svg' version='1.1' >
-<rect width='256' height='128'  fill="white" stroke="black" stroke-width=".2"/>
-<text text-anchor="middle" x="50%" y="50%" dy=".35em" font-family="sans-serif" font-size="24px" fill="gray">$2</text>  
+
+# Placeholder SVG image creator
+# Creates simple rectange of default width 256, default height 128.
+# Puts optional text in the center, and allows an optional
+# filename (defaults to ./foo.svg).
+# Takes optional width, height, and text parameters, e.g.
+# svgplace 648 480 "IMAGE GOES HERE" box.svg
+funcion svgplace() {
+WIDTH=256
+HEIGHT=128
+TEXT=""
+FILENAME="./foo.svg"
+[ $1 ] && WIDTH=$1
+[ $2 ] && HEIGHT=$2
+[ $3 ] && TEXT=$3
+[ $4 ] && FILENAME=$4
+cat <<EOM > $FILENAME
+<svg width='$WIDTH' height='$HEIGHT' xmlns='http://www.w3.org/2000/svg' version='1.1' >
+<rect width="${WIDTH}" height="${HEIGHT}"  fill="lightgray" stroke="gray" stroke-width=".2"/>
+<text text-anchor="middle" x="50%" y="50%" dy=".35em" font-family="sans-serif" font-size="24px" font-weight="bold" fill="black">$3</text> 
 </svg>
 EOM
+echo "Created file ${FILENAME}"
 }
+
 
 # PARSE COMMAND LINE
 echo ""
@@ -258,7 +275,8 @@ EOM
 #echo "\nlevel3 dir:"
 #ls $tmpdir/level3
 
-generate_square_svg $tmpdir "256x128"
+svgplace 128 128 "128x128" "${tmpdir}/square.svg"
+
 echo $INDEX > $tmpdir/index.md
 echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
 echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
