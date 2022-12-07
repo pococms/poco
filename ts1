@@ -15,14 +15,24 @@
 #   ts1 --theme pocodocs
 #   ts1 --t pocodocs
 #
+
+# Default global theme. Can be altered with --theme command line option
+THEME=poquito
+
 # UTILITY FUNCTIONS
 function pause(){
   echo "Please press enter..."
   read nothing_at_all
 }
 
-# Default global theme. Can be altered with --theme command line option
-THEME=poquito
+function generate_square_svg() {
+cat <<EOM > $1/square.svg
+<svg width='256' height='128' xmlns='http://www.w3.org/2000/svg' version='1.1' >
+<rect width='256' height='128'  fill="white" stroke="black" stroke-width=".2"/>
+<text text-anchor="middle" x="50%" y="50%" dy=".35em" font-family="sans-serif" font-size="24px" fill="gray">$2</text>  
+</svg>
+EOM
+}
 
 # PARSE COMMAND LINE
 echo ""
@@ -76,13 +86,13 @@ then
 fi
 
 
-
+# xxx
 # Generate the page index.md from the text
 # directly under the read until the text directly
 # above the second EOM
 read -r -d '' INDEX << EOM
 ---
-theme: ".poco/themes/${THEME}"
+theme: "${THEME}"
 ---
 # Project build tests 
 ## Click these pages 1 directory levels down
@@ -95,7 +105,12 @@ theme: ".poco/themes/${THEME}"
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
+
+## Square SVG image
+
+![square image here?](./square.svg)
+
+[Home](index.html)
 EOM
 
 # Generate the page supress-header.md from the text
@@ -192,7 +207,7 @@ EOM
 read -r -d '' PAGE_2_1 << EOM
 ---
 title: "level2/page2-1"
-pagetheme: ".poco/themes/tufte"
+pagetheme: "tufte"
 ---
 # Subdirectory level1 is 1 level below root
 ## Page level2/page2-1.html
@@ -207,7 +222,7 @@ EOM
 read -r -d '' PAGE_2_2 << EOM
 ---
 title: "level2/page2-2"
-style-tags: 
+styles: 
 - "article>h2{font-weight:bold;color:red;}"
 - "article>p{font-size:1.25em;font-style:italic;font-family:'Times New Roman', Times, serif;}"
 ---
@@ -243,6 +258,7 @@ EOM
 #echo "\nlevel3 dir:"
 #ls $tmpdir/level3
 
+generate_square_svg $tmpdir "256x128"
 echo $INDEX > $tmpdir/index.md
 echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
 echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
@@ -261,7 +277,8 @@ else
   echo "Project created successfully"
   #echo "Opening in local browser and local server"
   open $tmpdir/WWW/index.html
-  cd $tmpdir
+
+  #
   #poco -serve
 fi
 
