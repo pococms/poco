@@ -214,12 +214,12 @@ func tagSurround(tag string, txt string, extra ...string) string {
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
 // These are literal tags, not filenases.
-// They're listed under "style-tags" in the front matter
+// They're listed under "styles" in the front matter
 // Returns them as a string. For clarity each tag is indented
 // and ends with a newline.
 // Example:
 //
-// style-tags:
+// styles:
 //   - "h1{color:blue;}"
 //   - "p{color:darkgray;}"
 //
@@ -806,7 +806,7 @@ func (c *config) setupGlobals() { //
 
 // styleTags() takes front matter that looks like this:
 //
-// style-tags:
+// styles:
 // - "article > p{color:red}"
 // - "aside > h1 {font-size:2em}"
 //
@@ -830,7 +830,7 @@ func (c *config) styleTags() string {
 
 // getStyleTags() converts front matter that looks like this
 //
-// style-tags:
+// styles:
 // - "article > p{color:red}"
 // - "aside > h1 {font-size:2em}"
 //
@@ -840,8 +840,7 @@ func (c *config) styleTags() string {
 // aside > h1 {font-size:2em}
 //
 func (c *config) getStyleTags(fm map[string]interface{}) string {
-	styleTagNames := fmStrSlice("style-tags", fm)
-	wait("StyleTagNames: %v", styleTagNames)
+	styleTagNames := fmStrSlice("styles", fm)
 	styleTags := ""
 	for _, tag := range styleTagNames {
 		s := fmt.Sprintf("\t\t%s\n", tag)
@@ -1050,13 +1049,9 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 		}
 	}
 
-	// xxx
-	// Strip path off theme to get its name
-	// .poco/themes/poquito/news
-	//theme.name = filepath.Base(dir)
-
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
+
 	// Get the front matter for this theme.
 	tmpConfig.fm = tmpConfig.getFm(themeReadme)
 
@@ -1170,7 +1165,7 @@ func (t *theme) readFm(fm map[string]interface{}) {
 	t.navFilename = fmStr("nav", fm)
 	t.asideFilename = fmStr("aside", fm)
 	t.footerFilename = fmStr("footer", fm)
-	t.styleTagNames = fmStrSlice("style-tags", fm)
+	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 }
 
