@@ -1,5 +1,4 @@
 // main.go
-// * Handle nested themes, such as poquito/news
 package main
 
 import (
@@ -895,7 +894,6 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 	}
 	var tags string
 	for _, sheet := range sheets {
-		// TODO: Should probably use portable path delimiters
 		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
 		tags += tag
 	}
@@ -1118,7 +1116,6 @@ func (c *config) getThemeData(filename string) {
 // It is possible at the home page to have both page theme
 // and global themes names. In that case the page theme takes priority
 // on the home page, as it would any other page.
-// TODO: docs
 func (c *config) loadTheme(filename string) {
 	// Obtain the front matter for this page.
 	// Any values such as header, footer, etc. will override
@@ -1468,13 +1465,9 @@ func (c *config) buildSite() {
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
-	// debug("Project tree:\n%+v", c.files)
 	// Create the webroot directory
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
-		// TODO: revisit this deleted code. It seemed to matter when I tried this
-		// from within the main poco directory:
-		// poco -new .poco/test/scope1
 		if err != nil && !os.IsExist(err) {
 			//if err != nil {
 			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
@@ -1898,7 +1891,6 @@ func writeDefaultHomePage(c *config, dir string) {
 // Searching a sorted slice is fast.
 // This tracks whether the slice has been sorted
 // and sorts it on first search.
-// TODO: document
 type searchInfo struct {
 	list   []string
 	sorted bool
