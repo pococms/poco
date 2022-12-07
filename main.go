@@ -1,4 +1,6 @@
 // main.go
+// * Need to error when a theme can't be found
+// * Need to error when a theme's stylesheet can't be found
 package main
 
 import (
@@ -1058,26 +1060,30 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
+  themeDir := filepath.Join(".poco", "themes")
+
+
 	// Check for a local theme on this page.
 	pageThemeDir := fmStr("pagetheme", c.pageFm)
   if pageThemeDir != "" {
-    debug("getThemeData(%s): pageThemeDir is %v", filename, pageThemeDir)
+    // xxx debug("getThemeData(%s): pageThemeDir is %v", filename, pageThemeDir)
+    pageThemeDir = filepath.Join(themeDir, pageThemeDir)
   }
 	if dirExists(pageThemeDir) {
 		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 	} else {
 		c.pageTheme = c.theme
-      debug("c.pageTheme is global %+v:", c.pageTheme)
+      //debug("c.pageTheme is global %+v:", c.pageTheme)
 	}
 
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
 		globalThemeDir := fmStr("theme", c.pageFm)
-    debug("\tglobalThemeDir is %+v\n\tpageFm is\t%+v", globalThemeDir, c.pageFm)
+    globalThemeDir = filepath.Join(themeDir, globalThemeDir)
 		if dirExists(globalThemeDir) {
 			c.theme = *c.themeDataStructures(globalThemeDir, true)
 		}
-    debug("\tHome page: global theme specified is %+v", c.theme)
+    //debug("\tHome page: global theme specified is %+v", c.theme)
 	}
 }
 
@@ -1105,7 +1111,6 @@ func (c *config) loadTheme(filename string) {
 	c.getThemeData(filename)
 	// If a page theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
-  debug("c.pageTheme: %+v", c.pageTheme)
 	if c.pageTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.pageTheme)
