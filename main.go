@@ -47,7 +47,7 @@ var loading = `
 if (document.readyState !== 'loading') {
     docReady();
 } else {
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOContentLoaded', function () {
         docReady();
     });
 }
@@ -892,9 +892,13 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 	if len(sheets) <= 0 {
 		return ""
 	}
-	var tags string
+	var tag, tags string
 	for _, sheet := range sheets {
-		tag := fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
+		if dir != "" {
+			tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
+		} else {
+			tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
+		}
 		tags += tag
 	}
 	return tags
