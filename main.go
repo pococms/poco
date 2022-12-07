@@ -385,8 +385,8 @@ type config struct {
 
 	// Contents of a theme directory: the theme for the current page,
 	// plus the global (default) theme directory.
-	pageTheme   theme
-	theme theme
+	pageTheme theme
+	theme     theme
 
 	// Command-line flag -themes shows installed themes
 	themeList bool
@@ -522,7 +522,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Return value
 	var theme theme
 	// Leave if no theme specified and no global theme specified.
-	//if themeDir == "" && !c.theme.present {
 	if themeDir == "" && !possibleGlobalTheme {
 		theme.present = false
 		return theme
@@ -693,25 +692,25 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	// Converted/templated HTML */
 	s := ""
-  suppress := fmStr(tag, c.pageFm) != "SUPPRESS"
+	suppress := fmStr(tag, c.pageFm) != "SUPPRESS"
 	switch tag {
 	case "header":
-		if t.headerFilename != "" && suppress  {
+		if t.headerFilename != "" && suppress {
 			t.headerFilename = regularize(t.dir, t.headerFilename)
 			filename = t.headerFilename
 		}
 	case "nav":
-		if t.navFilename != "" && suppress  {
+		if t.navFilename != "" && suppress {
 			t.navFilename = regularize(t.dir, t.navFilename)
 			filename = t.navFilename
 		}
 	case "aside":
-		if t.asideFilename != "" && suppress  {
+		if t.asideFilename != "" && suppress {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
 		}
 	case "footer":
-		if t.footerFilename != "" && suppress  {
+		if t.footerFilename != "" && suppress {
 			t.footerFilename = regularize(t.dir, t.footerFilename)
 			filename = t.footerFilename
 		}
@@ -1005,6 +1004,7 @@ func (c *config) stylesheets() string {
 // then set theme.present to true. Covers special case for the global
 // theme.
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
+	// xxx
 	// The theme is actually just a directory name.
 	var theme theme
 	theme.dir = dir
@@ -1060,36 +1060,45 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
-  themeDir := filepath.Join(".poco", "themes")
-
+	themeDir := filepath.Join(".poco", "themes")
 
 	// Check for a local theme on this page.
-	pageThemeDir := fmStr("pagetheme", c.pageFm)
-  if pageThemeDir != "" {
-    // xxx debug("getThemeData(%s): pageThemeDir is %v", filename, pageThemeDir)
-    pageThemeDir = filepath.Join(themeDir, pageThemeDir)
-  }
-	if dirExists(pageThemeDir) {
-		c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+	pageThemeName := fmStr("pagetheme", c.pageFm)
+	if pageThemeName != "" {
+		// Pagetheme was specified like this in front mattter:
+		// pagetheme: foo
+		pageThemeDir := filepath.Join(themeDir, pageThemeName)
+		if dirExists(pageThemeDir) {
+			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+		} else {
+			quit(1, nil, c, "Can't find a page theme named %s", pageThemeName)
+		}
 	} else {
+		// No page theme was specified.
+		// Use the global theme, if any
 		c.pageTheme = c.theme
-      //debug("c.pageTheme is global %+v:", c.pageTheme)
 	}
 
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
-		globalThemeDir := fmStr("theme", c.pageFm)
-    globalThemeDir = filepath.Join(themeDir, globalThemeDir)
-		if dirExists(globalThemeDir) {
-			c.theme = *c.themeDataStructures(globalThemeDir, true)
+		globalThemeName := fmStr("theme", c.pageFm)
+		// Global theme was specified like this in
+		// the home page front mattter:
+		// theme: foo
+		if globalThemeName != "" {
+			globalThemeDir := filepath.Join(themeDir, globalThemeName)
+			if dirExists(globalThemeDir) {
+				c.theme = *c.themeDataStructures(globalThemeDir, true)
+			} else {
+				quit(1, nil, c, "Can't find a theme named %s", globalThemeName)
+			}
 		}
-    //debug("\tHome page: global theme specified is %+v", c.theme)
 	}
 }
 
 // loadTheme() is passed the current source filename
 // (NOT the name of the theme, so filename could easily
-// be '/Users/tom/pococms/poco/tmp/index.md' or 
+// be '/Users/tom/pococms/poco/tmp/index.md' or
 // '/Users/tom/pococms/poco/pricing/comparek.md').
 // If a page theme is named in the front matter, its description
 // is read. If at the home page, it reads the global theme, if any.
@@ -2286,7 +2295,7 @@ func portBusy(port string) bool {
 
 // fmStr is passed a front matter "type" and retrievs
 // the value for the value passed in as key. Value
-// is case-insensitive. 
+// is case-insensitive.
 func fmStr(key string, fm map[string]interface{}) string {
 	v := fm[strings.ToLower(key)]
 	value, ok := v.(string)
