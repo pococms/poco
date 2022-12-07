@@ -841,6 +841,7 @@ func (c *config) styleTags() string {
 //
 func (c *config) getStyleTags(fm map[string]interface{}) string {
 	styleTagNames := fmStrSlice("style-tags", fm)
+	wait("StyleTagNames: %v", styleTagNames)
 	styleTags := ""
 	for _, tag := range styleTagNames {
 		s := fmt.Sprintf("\t\t%s\n", tag)
@@ -944,7 +945,7 @@ func (c *config) inlineStylesheets(dir string) string {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-					quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
+				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
 					filename, c.theme.name)
 			}
 
@@ -1023,6 +1024,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 	// assets required by the theme.
 	// Get its full path.
 	themeReadme := filepath.Join(theme.dir, "README.md")
+
 	if !fileExists(themeReadme) {
 		theme.present = false
 		quit(1, nil, c, "%s specified for %s can't be found", themeReadme,
@@ -1048,8 +1050,10 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 		}
 	}
 
+	// xxx
 	// Strip path off theme to get its name
-	theme.name = filepath.Base(dir)
+	// .poco/themes/poquito/news
+	//theme.name = filepath.Base(dir)
 
 	// Get a new config object to avoid stepping on c.config
 	tmpConfig := newConfig()
@@ -1081,6 +1085,7 @@ func (c *config) getThemeData(filename string) {
 		pageThemeDir := filepath.Join(themeDir, pageThemeName)
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
+			c.pageTheme.name = pageThemeName
 		} else {
 			quit(1, nil, c, "Can't find a page theme named %s", pageThemeName)
 		}
@@ -1093,6 +1098,7 @@ func (c *config) getThemeData(filename string) {
 	// If on the home page, check for a global theme.
 	if filename == c.homePage {
 		globalThemeName := fmStr("theme", c.pageFm)
+		// Theme name may be nested, e.g. "poquito/news/masthead".
 		// Global theme was specified like this in
 		// the home page front mattter:
 		// theme: foo
@@ -1100,6 +1106,7 @@ func (c *config) getThemeData(filename string) {
 			globalThemeDir := filepath.Join(themeDir, globalThemeName)
 			if dirExists(globalThemeDir) {
 				c.theme = *c.themeDataStructures(globalThemeDir, true)
+				c.theme.name = globalThemeName
 			} else {
 				quit(1, nil, c, "Can't find a theme named %s", globalThemeName)
 			}
@@ -1129,6 +1136,7 @@ func (c *config) loadTheme(filename string) {
 	// and local theme names.
 	// Load data structures for those themes.
 	c.getThemeData(filename)
+
 	// If a page theme has been named, the data structures are ready.
 	// Read in its style sheets, style tags, and page layout elements.
 	if c.pageTheme.present {
@@ -1231,7 +1239,6 @@ func (c *config) parseCommandLine() {
 
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
-  debug("webroot: %s", c.webroot)
 
 	// If it's somehting like poco -new ~/tmp/foo/bar,
 	// save that full pathname as c.root.
