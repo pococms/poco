@@ -721,7 +721,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		return
 	}
 
-	// If HTML file return unchanged
+	// If HTML file specified read it in.
 	if path.Ext(filename) == ".html" {
 		if fileExists(filename) {
 			s = c.fileToString(filename)
@@ -921,6 +921,11 @@ func (c *config) inlineStylesheets(dir string) string {
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet %s can't be found",
+					filename)
+			}
+
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
@@ -939,6 +944,10 @@ func (c *config) inlineStylesheets(dir string) string {
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet %s can't be found",
+					filename)
+			}
 
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
@@ -962,6 +971,10 @@ func (c *config) inlineStylesheets(dir string) string {
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet %s can't be found",
+					filename)
+			}
 
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
@@ -1004,7 +1017,6 @@ func (c *config) stylesheets() string {
 // then set theme.present to true. Covers special case for the global
 // theme.
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
-	// xxx
 	// The theme is actually just a directory name.
 	var theme theme
 	theme.dir = dir
@@ -1454,7 +1466,6 @@ func (c *config) buildSite() {
 	if err != nil {
 		quit(1, err, c, "Unable to get directory tree")
 	}
-	// xxx
 	// debug("Project tree:\n%+v", c.files)
 	// Create the webroot directory
 	if !dirExists(c.webroot) {
@@ -1485,7 +1496,6 @@ func (c *config) buildSite() {
 	for _, filename := range c.files {
 
 		// Full pathmame of file to be copied (may be converted to HTML first)
-		// xxxx
 		// In the project tree, directories are stored with
 		// a terminating path separator. Files aren't.
 		ending := filename[len(filename)-1:]
@@ -2340,7 +2350,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 // up that condition and helps stop you from
 // putting this project where it shouldn't be.
 func (c *config) newProject(dir string) {
-	// xxx
 	if !dirExists(dir) {
 		//if !dirExists(dir) {
 		// We're good. No directory by that name. Create it.
