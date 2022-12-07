@@ -315,7 +315,7 @@ var sliceToStylesheetStrTests = []struct {
 
 func TestSliceToStylesheetStr(t *testing.T) {
 	for _, tt := range sliceToStylesheetStrTests {
-		actual := strings.TrimSpace(sliceToStylesheetStr(tt.slice))
+		actual := strings.TrimSpace(sliceToStylesheetStr("", tt.slice))
 		if actual != tt.expected {
 			t.Errorf("%v should convert to:\n[%v]\nIt was actually:\n[%v]",
 				tt.slice, tt.expected, actual)
