@@ -36,8 +36,10 @@ const pocoDir = ".poco"
 
 // This directory gets embedded into the executable. It's
 // then copied into every new project.
+// I think without the "all:" it can't handle dot files correctly:
+// https://pkg.go.dev/embed#example-package
 //
-//go:embed .poco
+//go:embed all:.poco
 var pocoFiles embed.FS
 
 // If javascript files are included, need this to avoid
@@ -210,6 +212,7 @@ func tagSurround(tag string, txt string, extra ...string) string {
 	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
 
+// TODO: this comment is in the wrong place
 // StyleTags takes a list of tags and inserts them into right before the
 // closing head tag, so they can override anything that came before.
 // These are literal tags, not filenases.
@@ -226,6 +229,14 @@ func tagSurround(tag string, txt string, extra ...string) string {
 //
 //	"{color:blue;}\n\t\tp{color:darkgray;}\n"
 //
+
+// TODO: Document this
+const (
+	asideUnspecified int = 0
+	asideLeft            = 1
+	asideRight           = 2
+)
+
 // TODO: Document
 // theme contains all the (lightweight) files needed for a theme:
 // header.md, style sheets, etc.
@@ -244,6 +255,8 @@ type theme struct {
 
 	// One or more sentences selling the theme.
 	description string
+
+	asideType int
 
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
@@ -680,9 +693,16 @@ func (c *config) layoutElement(tag string, t *theme) {
 	//         but the home page didn't contain a theme designation.
 	//         In case 2 the layout file needs to be read in from the (non-global)
 	//         theme specified on this page.
+	// ASIDE:  Instead of a filename after "aside:" in the front matter, it's either
+	//         "left" or "right". That determines the placement of the sidebar
+	//        on the page.
+
+	// TODO: this is probably outmoded
 	const (
-		GLOBAL = 1
-		HTML   = 2
+		GLOBAL      = 1
+		HTML        = 2
+		ASIDE_LEFT  = 3
+		ASIDE_RIGHT = 4
 	)
 
 	state := GLOBAL
@@ -703,9 +723,24 @@ func (c *config) layoutElement(tag string, t *theme) {
 			filename = t.navFilename
 		}
 	case "aside":
+		// TODO: document
+		t.asideType = asideUnspecified
+		aside := fmStr("aside", c.pageFm)
+		debug("\taside is %s", aside)
+		// xxx
 		if t.asideFilename != "" && suppress {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
+		}
+		if aside == "right" {
+			state = ASIDE_RIGHT
+			t.asideType = asideRight
+			debug("\taside: right")
+		}
+		if aside == "left" {
+			state = ASIDE_LEFT
+			t.asideType = asideLeft
+			debug("\taside: left")
 		}
 	case "footer":
 		if t.footerFilename != "" && suppress {
@@ -817,12 +852,26 @@ func (c *config) setupGlobals() { //
 // </style>
 //
 func (c *config) styleTags() string {
+	// xxx
+	debug("styleTags()")
 	// Take the slice of tags and put each one
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
 	// Enclose these lines within "<style>" tags
+	// Handle aside orientation
+	// xxx
+	if c.theme.asideType == asideLeft {
+		debug("\taside: left")
+		t = t + "aside{float:left}"
+	}
+	if c.theme.asideType == asideRight {
+		debug("\taside: right")
+		t = t + "aside{float:right}"
+	}
+	// xxx
 	if t != "" {
 		t = tagSurround("style", t, "\n")
+		debug("\tWriting out tagstyles: %v", t)
 	}
 	return t
 }
@@ -1229,6 +1278,7 @@ func (c *config) parseCommandLine() {
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
+	debug("Verbose floag: %v", c.verboseFlag)
 
 	// webroot flag is the directory used to house the final generated website.
 	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
