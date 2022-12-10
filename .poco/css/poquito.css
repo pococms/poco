@@ -26,7 +26,7 @@ footer, header, hgroup, menu, nav, pre, section {
 article{width:80%;margin:0 0 2rem 2rem;padding:0 2rem 0 2rem}
 article ul>li,article>ol>li{margin-left:2em; padding-left:0em;}
 aside{ 
-  float:right; /* Change to float:left for left sidebar */
+  float:right; /* Determines which side of page it's on */
   width:15rem;
   padding:0 2rem 0 2rem;
   margin:10rem 2rem 0 0;
