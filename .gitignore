@@ -1,5 +1,8 @@
 WWW
 *.bak
-poco
 cpu.prof
+# The reason poco the executable isn't here is because
+# netlify uses it to generate the site
+
+
 
