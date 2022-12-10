@@ -2,11 +2,9 @@
 
 #### ASIDE
 
-Title is: {{ .Title }}
-This is an aside. 
-I need to test.
+Title is: {{ .title }}
 
-A lot could happen here
+## News
 
 * Item 1
 * Item 2
