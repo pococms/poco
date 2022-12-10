@@ -765,7 +765,15 @@ func (c *config) layoutElement(tag string, t *theme) {
 	}
 
 	if state != HTML {
+		var err error
+		// xxx
+		// TODO: If this works it may be too slow b/c of conversion from file to string
 		s = convertMdYAMLFileToHTMLFragmentStr(filename, c)
+		//if s, err = doTemplate("", c.fileToString(filename), c); err != nil {
+		if s, err = doTemplate("", s, c); err != nil {
+			quit(1, nil, c, "Unable to parse templates in %s", filename)
+		}
+
 		if s != "" {
 			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
 		}
@@ -1278,7 +1286,7 @@ func (c *config) parseCommandLine() {
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
-	debug("Verbose floag: %v", c.verboseFlag)
+	debug("Verbose flag: %v", c.verboseFlag)
 
 	// webroot flag is the directory used to house the final generated website.
 	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
