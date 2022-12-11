@@ -19,7 +19,6 @@
 # Default global theme. Can be altered with --theme command line option
 #THEME=pocodocs
 THEME=poquito
-
 # UTILITY FUNCTIONS
 function pause(){
   echo "Please press enter..."
@@ -33,7 +32,7 @@ function pause(){
 # filename (defaults to ./foo.svg).
 # Takes optional width, height, and text parameters, e.g.
 # svgplace 648 480 "IMAGE GOES HERE" box.svg
-funcion svgplace() {
+function svgplace() {
 WIDTH=256
 HEIGHT=128
 TEXT=""
@@ -60,8 +59,8 @@ while :; do
    	 -t|--theme)
    		 if [ -n "$2" ]; then
    			 THEME=$2
-         echo "Chose theme ${THEME}"
-         pause
+         #echo "Chose theme ${THEME}"
+         #pause
    			 shift 2
    			 continue
    		 else
@@ -102,6 +101,34 @@ then
   echo "Error creating subdirs"
 fi
 
+# Macro for a full demo document
+read -r -d '' MDEMO << EOM
+DEMO_TEXT=$(<.poco/demo/mdemo.md)
+EOM
+
+
+# Generate links used to demonstrate themes
+# of subdir navigation
+read -r -d '' THEME_NAV << EOM
+Try the [hack](hack-theme-demo.html) theme
+EOM
+
+
+
+# Generate links used to test support 
+# of subdir navigation
+read -r -d '' SUBDIR_NAV << EOM
+## Click these pages 1 directory levels down
+
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html) (Overrides parts of theme)
+
+## Click these pages 2 directory levels down
+
+* [Level 3 page 1](level2/level3/page3-1.html)
+
+EOM
+
 # Generate links used to test support 
 # of page layout elements
 read -r -d '' PGLAYOUT_NAV << EOM
@@ -117,7 +144,6 @@ read -r -d '' PGLAYOUT_NAV << EOM
 EOM
 
 
-# xxx
 # Generate the page index.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -139,19 +165,11 @@ styles:
 This page should have an aside on the **right**. 
 
 
-## Click these pages 1 directory levels down
-
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html) (Overrides parts of theme)
-
-## Click these pages 2 directory levels down
-
-* [Level 3 page 1](level2/level3/page3-1.html)
-
 ## Square SVG image
 
 ![square image here?](./square.svg)
-
+$THEME_NAV
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -176,12 +194,7 @@ styles:
 This page should have an aside on the **left**. 
 
 
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -202,13 +215,7 @@ styles:
 
 This page should have an aside on the **left**. 
 
-
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -228,14 +235,7 @@ styles:
 # Title of this page: {{ .title }}
 
 This page should have an aside on the **left**. 
-
-
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -247,12 +247,7 @@ read -r -d '' SUPPRESS_HEADER << EOM
 header: "SUPPRESS"
 ---
 # This page should have no header. 
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -264,12 +259,7 @@ read -r -d '' SUPPRESS_ASIDE << EOM
 aside: "SUPPRESS"
 ---
 # This page should have no aside. 
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -281,12 +271,7 @@ read -r -d '' SUPPRESS_NAV << EOM
 nav: "SUPPRESS"
 ---
 # This page should have no navbar. 
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -298,12 +283,7 @@ read -r -d '' SUPPRESS_FOOTER << EOM
 footer: "SUPPRESS"
 ---
 # This page should have no footer. 
-## Compare to [home page](index.html)
-## Click these pages 1 directory levels down
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html)
-## Click these pages 2 directory levels down
-* [Level 3 page 1](level2/level3/page3-1.html)
+$SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
@@ -361,6 +341,26 @@ title: "level3/page3-1"
 * [Home](./index.html)
 EOM
 
+# Generate the page named hack-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' HACK_THEME_DEMO << EOM
+---
+title: "hack theme"
+pagetheme: "hack"
+---
+# Demonstration of the {{ .theme }} theme.
+
+$MDEMO
+
+Normal text under an h1
+
+## Drilling down into an h2
+How amazing can this experience get?
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+EOM
+
 
 #echo "\nlevel2 dir:"
 #ls $tmpdir/level2
@@ -379,6 +379,7 @@ echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
 echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
+echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
 poco -verbose $tmpdir
 if [[ $? -gt 0 ]]
 then
