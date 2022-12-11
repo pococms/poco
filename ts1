@@ -17,6 +17,7 @@
 #
 
 # Default global theme. Can be altered with --theme command line option
+#THEME=pocodocs
 THEME=poquito
 
 # UTILITY FUNCTIONS
@@ -111,7 +112,12 @@ read -r -d '' INDEX << EOM
 ---
 title: "beat me"
 theme: "${THEME}"
-aside: "left"
+styles:
+- "header{background-color:lightgray}"
+- "aside{background-color:blue}"
+- "footer{background-color:red}" 
+- "article{background-color:gray}" 
+- "nav{background-color:green}" 
 ---
 # Project build tests 
 
@@ -132,6 +138,7 @@ This page should have an aside on the **right**.
 ## Theme variations
 
 * [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
@@ -150,6 +157,12 @@ EOM
 read -r -d '' ASIDE_LEFT << EOM
 ---
 aside: left
+styles:
+- "header{background-color:gray}"
+- "aside{background-color:blue}"
+- "inav{background-color:green}" 
+- "footer{background-color:red}" 
+- "article{background-color:lightgray}" 
 ---
 # Title of this page: {{ .title }}
 
@@ -163,12 +176,84 @@ This page should have an aside on the **left**.
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
-* [Aside on right](index.html)
+
+* [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
+
+EOM
+
+# Generate the page aside-right.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' ASIDE_RIGHT << EOM
+---
+aside: "right"
+styles:
+- "header{background-color:gray}"
+- "aside{background-color:blue}"
+- "inav{background-color:green}" 
+- "footer{background-color:red}" 
+- "article{background-color:lightgray}" 
+---
+# Title of this page: {{ .title }}
+
+This page should have an aside on the **left**. 
+
+
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+
+* [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+
+EOM
+
+# Generate the page aside-left.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' ASIDE_LEFT << EOM
+---
+aside: "left"
+styles:
+- "header{background-color:gray}"
+- "aside{background-color:blue}"
+- "inav{background-color:green}" 
+- "footer{background-color:red}" 
+- "article{background-color:lightgray}" 
+---
+# Title of this page: {{ .title }}
+
+This page should have an aside on the **left**. 
+
+
+## Compare to [home page](index.html)
+## Click these pages 1 directory levels down
+* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
+* [Level 2 page 2](level2/page2-2.html)
+## Click these pages 2 directory levels down
+* [Level 3 page 1](level2/level3/page3-1.html)
+## Theme variations
+
+* [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+
 EOM
 
 # Generate the page supress-header.md from the text
@@ -186,12 +271,14 @@ header: "SUPPRESS"
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
+
 * [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
+
 EOM
 
 # Generate the page supress-aside.md from the text
@@ -209,12 +296,13 @@ aside: "SUPPRESS"
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
+
 * [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
 EOM
 
 # Generate the page supress-nav.md from the text
@@ -232,12 +320,14 @@ nav: "SUPPRESS"
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
+
 * [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
+
 EOM
 
 # Generate the page supress-footer.md from the text
@@ -255,12 +345,14 @@ footer: "SUPPRESS"
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
 ## Theme variations
+
 * [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)
-* [Home](index.html)
+
 EOM
 
 # Generate the page named page2_1.md from the text
@@ -270,6 +362,7 @@ read -r -d '' PAGE_2_1 << EOM
 ---
 title: "level2/page2-1"
 pagetheme: "tufte"
+aside: "left"
 ---
 # Subdirectory level1 is 1 level below root
 #### Title of this page: {{ .title }}
@@ -326,6 +419,7 @@ svgplace 128 128 "128x128" "${tmpdir}/square.svg"
 
 echo $INDEX > $tmpdir/index.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
+echo $ASIDE_RIGHT > $tmpdir/aside-right.md
 echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
 echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
 echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
@@ -333,7 +427,7 @@ echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
 echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
-poco $tmpdir
+poco -verbose $tmpdir
 if [[ $? -gt 0 ]]
 then
   echo "Poco was unable to create the project"
@@ -341,9 +435,9 @@ then
   ls ${tmpdir}
 else
   echo "Project created successfully"
-  echo "Opening in local browser and local server"
+  #echo "Opening in local browser and local server"
   open $tmpdir/WWW/index.html
   cd $tmpdir
-  poco -serve
+  #poco -serve
 fi
 
