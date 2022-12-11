@@ -1824,11 +1824,11 @@ func fileExists(filename string) bool {
 	if filename == "" {
 		return false
 	}
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filename); err == nil {
+		return true
+	} else {
 		return false
 	}
-	return !info.IsDir()
 }
 
 // fileToBuf() reads the named file into a byte slice and returns
