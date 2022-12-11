@@ -591,6 +591,10 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 // If there's a local footer, return it.
 // If not and there's a global footer, return it.
 func (c *config) footer() string {
+  if c.suppress("footer") {
+    return ""
+  }
+
 	if c.pageTheme.present {
 		return c.pageTheme.footer
 	}
@@ -603,6 +607,10 @@ func (c *config) footer() string {
 // If there's a local aside, return it.
 // If not and there's a global aside, return it.
 func (c *config) aside() string {
+  if c.suppress("aside") {
+    return ""
+  }
+
 	if c.pageTheme.present {
 		return c.pageTheme.aside
 	}
@@ -615,6 +623,9 @@ func (c *config) aside() string {
 // If there's a local nav, return it.
 // If not and there's a global nav, return it.
 func (c *config) nav() string {
+  if c.suppress("nav") {
+    return ""
+  }
 	if c.pageTheme.present {
 		return c.pageTheme.nav
 	}
@@ -624,9 +635,22 @@ func (c *config) nav() string {
 	return ""
 }
 
+// TODO: Document
+func (c *config) suppress(tag string) bool {
+  suppress := fmStr(tag, c.pageFm)
+  if suppress == "SUPPRESS" {
+    return true
+  }
+  return false
+}
 // If there's a local header, return it.
 // If not and there's a global header, return it.
 func (c *config) header() string {
+  if c.suppress("header") {
+    return ""
+  }
+
+  // xxx
 	if c.pageTheme.present {
 		return c.pageTheme.header
 	}
@@ -712,23 +736,23 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	// Converted/templated HTML */
 	s := ""
-	suppress := fmStr(tag, c.pageFm) != "SUPPRESS"
+	suppress := fmStr(tag, c.pageFm) == "SUPPRESS"
 	switch tag {
 	case "header":
-		if t.headerFilename != "" && suppress {
+		if t.headerFilename != "" && !suppress {
 			t.headerFilename = regularize(t.dir, t.headerFilename)
 			filename = t.headerFilename
 		}
-	case "nav":
-		if t.navFilename != "" && suppress {
+ 	case "nav":
+		if t.navFilename != "" && !suppress {
 			t.navFilename = regularize(t.dir, t.navFilename)
 			filename = t.navFilename
-		}
+    }
 	case "aside":
 		// TODO: document
 		t.asideType = asideUnspecified
 		aside := fmStr("aside", c.pageFm)
-		if t.asideFilename != "" && suppress {
+		if t.asideFilename != "" && !suppress {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
 		}
@@ -741,13 +765,12 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
-		if t.footerFilename != "" && suppress {
+		if t.footerFilename != "" && !suppress {
 			t.footerFilename = regularize(t.dir, t.footerFilename)
 			filename = t.footerFilename
-		}
+    }
 	}
 
-	// Handle case 1.
 	if filename == "" {
 		return
 	}
@@ -774,12 +797,15 @@ func (c *config) layoutElement(tag string, t *theme) {
 			// This adds a unique id tag to each page layout element:
 			// <article id="article-poco">, <footer id="footer-poco">, etc.
 			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
-			//s = "<" + "/" + tag + ">"
 		}
 	}
 
 	switch tag {
 	case "header":
+    if s == "" {
+      wait("HEY")
+    }
+
 		t.header = s
 	case "nav":
 		t.nav = s
@@ -863,11 +889,8 @@ func (c *config) styleTags() string {
 	// Take the slice of tags and put each one
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
-	//debug("styleTags() on this page: %v", t)
 	// Enclose these lines within "<style>" tags
 	// Handle aside orientation
-	// xxx
-
 	aside := fmStr("aside", c.pageFm)
 	if aside == "left" {
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
@@ -876,7 +899,6 @@ func (c *config) styleTags() string {
 	if aside == "right" {
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
-	// xxx
 	if t != "" {
 		t = tagSurround("style", t, "\n")
 	}
@@ -927,7 +949,7 @@ func (c *config) linkStylesheets() string {
 		return themeStyles + pageStyles
 	}
 
-	// If there'a global theme, obtains its stylesheets
+	// If there'a global theme, obtain its stylesheets
 	if c.theme.present {
 		themeStyles := sliceToStylesheetStr(c.theme.dir, c.theme.stylesheetFilenames)
 		return themeStyles + pageStyles
@@ -1209,7 +1231,7 @@ func (c *config) loadTheme(filename string) {
 } // loadTheme (new version)
 
 func (c *config) addPageElements(t *theme) {
-	c.layoutElement("header", t)
+	  c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
 	c.layoutElement("footer", t)
