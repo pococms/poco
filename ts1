@@ -103,14 +103,18 @@ fi
 
 # Macro for a full demo document
 read -r -d '' MDEMO << EOM
-DEMO_TEXT=$(<.poco/demo/mdemo.md)
+$(<.poco/demo/mdemo.md)
+
 EOM
 
 
 # Generate links used to demonstrate themes
 # of subdir navigation
 read -r -d '' THEME_NAV << EOM
-Try the [hack](hack-theme-demo.html) theme
+## Theme demos
+* [hack](hack-theme-demo.html) theme
+* [probot](probot-theme-demo.html) theme
+
 EOM
 
 
@@ -162,12 +166,12 @@ styles:
 
 #### Title of this page: {{ .title }}
 
-This page should have an aside on the **right**. 
-
 
 ## Square SVG image
 
 ![square image here?](./square.svg)
+
+$MDEMO
 $THEME_NAV
 $SUBDIR_NAV
 $PGLAYOUT_NAV
@@ -341,6 +345,26 @@ title: "level3/page3-1"
 * [Home](./index.html)
 EOM
 
+# Generate the page named probot-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' PROBOT_THEME_DEMO << EOM
+---
+title: "probot theme"
+pagetheme: "probot"
+---
+# Demonstration of the {{ .pagetheme }} theme.
+
+$MDEMO
+
+Normal text under an h1
+
+## Drilling down into an h2
+How amazing can this experience get?
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+EOM
+
 # Generate the page named hack-theme-demo.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -348,8 +372,10 @@ read -r -d '' HACK_THEME_DEMO << EOM
 ---
 title: "hack theme"
 pagetheme: "hack"
+styles:
+- "body{margin:2em}"
 ---
-# Demonstration of the {{ .theme }} theme.
+# Demonstration of the {{ .pagetheme }} theme.
 
 $MDEMO
 
@@ -380,6 +406,7 @@ echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
+echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md
 poco -verbose $tmpdir
 if [[ $? -gt 0 ]]
 then
