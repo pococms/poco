@@ -128,7 +128,9 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
+		// xxx
+		//"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
+		"\n<article id=\"article\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
@@ -726,8 +728,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// TODO: document
 		t.asideType = asideUnspecified
 		aside := fmStr("aside", c.pageFm)
-		debug("\taside is %s", aside)
-		// xxx
 		if t.asideFilename != "" && suppress {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
@@ -735,12 +735,10 @@ func (c *config) layoutElement(tag string, t *theme) {
 		if aside == "right" {
 			state = ASIDE_RIGHT
 			t.asideType = asideRight
-			debug("\taside: right")
 		}
 		if aside == "left" {
 			state = ASIDE_LEFT
 			t.asideType = asideLeft
-			debug("\taside: left")
 		}
 	case "footer":
 		if t.footerFilename != "" && suppress {
@@ -766,16 +764,17 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	if state != HTML {
 		var err error
-		// xxx
 		// TODO: If this works it may be too slow b/c of conversion from file to string
 		s = convertMdYAMLFileToHTMLFragmentStr(filename, c)
-		//if s, err = doTemplate("", c.fileToString(filename), c); err != nil {
 		if s, err = doTemplate("", s, c); err != nil {
 			quit(1, nil, c, "Unable to parse templates in %s", filename)
 		}
 
 		if s != "" {
+			// This adds a unique id tag to each page layout element:
+			// <article id="article-poco">, <footer id="footer-poco">, etc.
 			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
+			//s = "<" + "/" + tag + ">"
 		}
 	}
 
@@ -832,7 +831,8 @@ func (c *config) setupGlobals() { //
 	c.verbose(c.currentFilename)
 
 	// Prevent the home page from being read and converted again.
-	c.skipPublish.AddStr(c.currentFilename)
+	// TODO: Ensure this prevents rebuilding the home page
+	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
 	// Make sure it's a valid site. If not, create a minimal home page.
 	if !isProject(c.root) {
@@ -860,26 +860,25 @@ func (c *config) setupGlobals() { //
 // </style>
 //
 func (c *config) styleTags() string {
-	// xxx
-	debug("styleTags()")
 	// Take the slice of tags and put each one
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
+	//debug("styleTags() on this page: %v", t)
 	// Enclose these lines within "<style>" tags
 	// Handle aside orientation
 	// xxx
-	if c.theme.asideType == asideLeft {
-		debug("\taside: left")
-		t = t + "aside{float:left}"
+
+	aside := fmStr("aside", c.pageFm)
+	if aside == "left" {
+		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
-	if c.theme.asideType == asideRight {
-		debug("\taside: right")
-		t = t + "aside{float:right}"
+
+	if aside == "right" {
+		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	// xxx
 	if t != "" {
 		t = tagSurround("style", t, "\n")
-		debug("\tWriting out tagstyles: %v", t)
 	}
 	return t
 }
@@ -966,6 +965,7 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string) string {
+	// xxx
 	// Return value
 	s := ""
 
@@ -1286,7 +1286,6 @@ func (c *config) parseCommandLine() {
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
-	debug("Verbose flag: %v", c.verboseFlag)
 
 	// webroot flag is the directory used to house the final generated website.
 	flag.StringVar(&c.webroot, "webroot", "WWW", "Subdirectory used for generated HTML files")
