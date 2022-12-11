@@ -89,7 +89,6 @@ while :; do
 done
 
 
-
 # Create a temporary directory.
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
@@ -102,6 +101,20 @@ if [[ $? -gt 0 ]]
 then
   echo "Error creating subdirs"
 fi
+
+# Generate links used to test support 
+# of page layout elements
+read -r -d '' PGLAYOUT_NAV << EOM
+## Page Layout variations
+
+* [Aside on left](aside-left.html)
+* [Aside on right](aside-right.html)
+* [Suppress header](suppress-header.html)
+* [Suppress nav](suppress-nav.html)
+* [Suppress aside](suppress-aside.html)
+* [Suppress footer](suppress-footer.html)
+[Home](/index.html)
+EOM
 
 
 # xxx
@@ -135,21 +148,15 @@ This page should have an aside on the **right**.
 
 * [Level 3 page 1](level2/level3/page3-1.html)
 
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
 ## Square SVG image
 
 ![square image here?](./square.svg)
 
-[Home](index.html)
+$PGLAYOUT_NAV
 EOM
+
+
+
 
 # Generate the page aside-left.md from the text
 # directly under the read until the text directly
@@ -175,15 +182,7 @@ This page should have an aside on the **left**.
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page aside-right.md from the text
@@ -210,15 +209,7 @@ This page should have an aside on the **left**.
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page aside-left.md from the text
@@ -245,15 +236,7 @@ This page should have an aside on the **left**.
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page supress-header.md from the text
@@ -270,15 +253,7 @@ header: "SUPPRESS"
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page supress-aside.md from the text
@@ -295,14 +270,7 @@ aside: "SUPPRESS"
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page supress-nav.md from the text
@@ -319,15 +287,7 @@ nav: "SUPPRESS"
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page supress-footer.md from the text
@@ -344,15 +304,7 @@ footer: "SUPPRESS"
 * [Level 2 page 2](level2/page2-2.html)
 ## Click these pages 2 directory levels down
 * [Level 3 page 1](level2/level3/page3-1.html)
-## Theme variations
-
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-
+$PGLAYOUT_NAV
 EOM
 
 # Generate the page named page2_1.md from the text
