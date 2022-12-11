@@ -736,15 +736,14 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	// Converted/templated HTML */
 	s := ""
-	suppress := fmStr(tag, c.pageFm) == "SUPPRESS"
 	switch tag {
 	case "header":
-		if t.headerFilename != "" && !suppress {
+		if t.headerFilename != "" {
 			t.headerFilename = regularize(t.dir, t.headerFilename)
 			filename = t.headerFilename
 		}
  	case "nav":
-		if t.navFilename != "" && !suppress {
+		if t.navFilename != "" {
 			t.navFilename = regularize(t.dir, t.navFilename)
 			filename = t.navFilename
     }
@@ -752,7 +751,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// TODO: document
 		t.asideType = asideUnspecified
 		aside := fmStr("aside", c.pageFm)
-		if t.asideFilename != "" && !suppress {
+		if t.asideFilename != "" {
 			t.asideFilename = regularize(t.dir, t.asideFilename)
 			filename = t.asideFilename
 		}
@@ -765,7 +764,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
-		if t.footerFilename != "" && !suppress {
+		if t.footerFilename != ""  {
 			t.footerFilename = regularize(t.dir, t.footerFilename)
 			filename = t.footerFilename
     }
@@ -802,10 +801,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	switch tag {
 	case "header":
-    if s == "" {
-      wait("HEY")
-    }
-
 		t.header = s
 	case "nav":
 		t.nav = s
