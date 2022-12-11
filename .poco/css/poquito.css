@@ -1,5 +1,16 @@
 /* poquito.css seems to work right with both left and right sidebars. 
  * requires my full reset.css of course */
+
+
+/* NOTE: 
+   1. Footer height must be same as #content-wrap padding-bottom 
+   2. The following heights must add up to 100:
+      Article + footer + header + nav  = 100
+ */
+article{width:80%;height:84vh;}                         
+footer {position:absolute;bottom:0;width:100%;height:10vh;}
+header{height:4vh;}
+nav{height:2vh;}
 #page-container { 
   position: relative;
   min-height: 100vh;
@@ -10,17 +21,7 @@
 }
 
 
-/*
-article{width:80%}
-article{height:100vh}
-aside{ 
-  width:20%;
-  padding:0 2rem 0 2rem;
-}
-*/
 
-article{width:80%}                         
-article{height:100vh}                
 aside{                                                                 
   width:20%;                                    
   padding:0 2rem 0 2rem;                          
@@ -41,17 +42,11 @@ aside{
 
 
 header,footer,nav,article{padding-left:4rem }
-body{
-  height:100vh;
-}
+
 
 code,kbd,pre{
   font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
 }
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position:absolute;bottom:0;width:100%;height:10vh;}
-header{height:4rem;}
-nav{height:2rem;}
 pre{
   background-color: ghostwhite;
   font-size: smaller;
