@@ -34,6 +34,14 @@ import (
 // IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
 
+// Used to prevent use of a page layout elment. So to 
+// prevent a header being dispallyed on the current page,
+// you'd add this to hour front matter:
+// ---
+// header: "SUPPRESS"
+// ---
+const suppressToken = "SUPPRESS"
+
 // This directory gets embedded into the executable. It's
 // then copied into every new project.
 // I think without the "all:" it can't handle dot files correctly:
@@ -636,7 +644,7 @@ func (c *config) nav() string {
 // TODO: Document
 func (c *config) suppress(tag string) bool {
 	suppress := fmStr(tag, c.pageFm)
-	if suppress == "SUPPRESS" {
+	if suppress == suppressToken {
 		return true
 	}
 	return false
@@ -664,6 +672,7 @@ func (c *config) header() string {
 // as header, nav, aside, article, and a few others
 // For more info on layout elements see:
 // https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Document_and_website_structure#html_layout_elements_in_more_detail
+// TODO: Docs are sadly outdated
 //
 // So, the priority order is:
 //
@@ -732,24 +741,43 @@ func (c *config) layoutElement(tag string, t *theme) {
 	state := GLOBAL
 	filename := ""
 
+  // xxx
 	// Converted/templated HTML */
 	s := ""
 	switch tag {
 	case "header":
+    // Was header overridden on this page?
+    // Example front matter:
+    // ---
+    // header: "newheader.md"
+    // ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != "SUPPRESS" {
+		if override != "" && override !=  suppressToken {
+      // Yes, on this page only, override the header.
+      // Use whatever filename was provided.
 			filename = override
 		} else {
+      // Common case: no override on this page.
+      // Use the theme's default header.
 			if t.headerFilename != "" {
 				t.headerFilename = regularize(t.dir, t.headerFilename)
 				filename = t.headerFilename
 			}
 		}
 	case "nav":
+    // Was nav overridden on this page?
+    // Example front matter:
+    // ---
+    // nav: "newnav.md"
+    // ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != "SUPPRESS" {
+		if override != "" && override != suppressToken {
+      // Yes, on this page only, override the nav.
+      // Use whatever filename was provided.
 			filename = override
 		} else {
+      // Common case: no override on this page.
+      // Use the theme's default nav.
 			if t.navFilename != "" {
 				t.navFilename = regularize(t.dir, t.navFilename)
 				filename = t.navFilename
@@ -772,10 +800,19 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
+    // Was footer overridden on this page?
+    // Example front matter:
+    // ---
+    // footer: "newfooter.html"
+    // ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != "SUPPRESS" {
+		if override != "" && override != suppressToken {
+      // Yes, on this page only, override the footer.
+      // Use whatever filename was provided.
 			filename = override
 		} else {
+      // Common case: no override on this page.
+      // Use the theme's default footer.
 			if t.footerFilename != "" {
 				t.footerFilename = regularize(t.dir, t.footerFilename)
 				filename = t.footerFilename
