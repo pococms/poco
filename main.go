@@ -589,9 +589,9 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 // If there's a local footer, return it.
 // If not and there's a global footer, return it.
 func (c *config) footer() string {
-  if c.suppress("footer") {
-    return ""
-  }
+	if c.suppress("footer") {
+		return ""
+	}
 
 	if c.pageTheme.present {
 		return c.pageTheme.footer
@@ -605,9 +605,9 @@ func (c *config) footer() string {
 // If there's a local aside, return it.
 // If not and there's a global aside, return it.
 func (c *config) aside() string {
-  if c.suppress("aside") {
-    return ""
-  }
+	if c.suppress("aside") {
+		return ""
+	}
 
 	if c.pageTheme.present {
 		return c.pageTheme.aside
@@ -621,9 +621,9 @@ func (c *config) aside() string {
 // If there's a local nav, return it.
 // If not and there's a global nav, return it.
 func (c *config) nav() string {
-  if c.suppress("nav") {
-    return ""
-  }
+	if c.suppress("nav") {
+		return ""
+	}
 	if c.pageTheme.present {
 		return c.pageTheme.nav
 	}
@@ -635,18 +635,19 @@ func (c *config) nav() string {
 
 // TODO: Document
 func (c *config) suppress(tag string) bool {
-  suppress := fmStr(tag, c.pageFm)
-  if suppress == "SUPPRESS" {
-    return true
-  }
-  return false
+	suppress := fmStr(tag, c.pageFm)
+	if suppress == "SUPPRESS" {
+		return true
+	}
+	return false
 }
+
 // If there's a local header, return it.
 // If not and there's a global header, return it.
 func (c *config) header() string {
-  if c.suppress("header") {
-    return ""
-  }
+	if c.suppress("header") {
+		return ""
+	}
 
 	if c.pageTheme.present {
 		return c.pageTheme.header
@@ -735,25 +736,25 @@ func (c *config) layoutElement(tag string, t *theme) {
 	s := ""
 	switch tag {
 	case "header":
-	  override := fmStr(tag, c.pageFm)
-    if override != "" && override != "SUPPRESS" {
-      filename = override
-    } else {
-      if t.headerFilename != "" {
-        t.headerFilename = regularize(t.dir, t.headerFilename)
-        filename = t.headerFilename
-      }
-    }
+		override := fmStr(tag, c.pageFm)
+		if override != "" && override != "SUPPRESS" {
+			filename = override
+		} else {
+			if t.headerFilename != "" {
+				t.headerFilename = regularize(t.dir, t.headerFilename)
+				filename = t.headerFilename
+			}
+		}
 	case "nav":
-	  override := fmStr(tag, c.pageFm)
-    if override != "" && override != "SUPPRESS" {
-      filename = override
-    } else {
-      if t.navFilename != "" {
-        t.navFilename = regularize(t.dir, t.navFilename)
-        filename = t.navFilename
-      }
-    }
+		override := fmStr(tag, c.pageFm)
+		if override != "" && override != "SUPPRESS" {
+			filename = override
+		} else {
+			if t.navFilename != "" {
+				t.navFilename = regularize(t.dir, t.navFilename)
+				filename = t.navFilename
+			}
+		}
 	case "aside":
 		// TODO: document
 		t.asideType = asideUnspecified
@@ -771,15 +772,15 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
-	  override := fmStr(tag, c.pageFm)
-    if override != "" && override != "SUPPRESS" {
-      filename = override
-    } else {
-      if t.footerFilename != ""  {
-        t.footerFilename = regularize(t.dir, t.footerFilename)
-        filename = t.footerFilename
-      }
-    }
+		override := fmStr(tag, c.pageFm)
+		if override != "" && override != "SUPPRESS" {
+			filename = override
+		} else {
+			if t.footerFilename != "" {
+				t.footerFilename = regularize(t.dir, t.footerFilename)
+				filename = t.footerFilename
+			}
+		}
 	}
 
 	if filename == "" {
@@ -1223,7 +1224,7 @@ func (c *config) loadTheme(filename string) {
 	if c.pageTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.pageTheme)
-    // Return because it overrides the global theme.
+		// Return because it overrides the global theme.
 		return
 	}
 
