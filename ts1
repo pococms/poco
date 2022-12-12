@@ -19,13 +19,11 @@
 # Default global theme. Can be altered with --theme command line option
 #THEME=pocodocs
 THEME=poquito
-# UTILITY FUNCTIONS
-function pause(){
-  echo "Please press enter..."
-  read nothing_at_all
-}
+
 
 # Quickie test page test-page.md
+# Putting it up here makes it easier to 
+# throw together ad hoc tests
 read -r -d '' TEST_PAGE << EOM
 ---
 header: "test-header.md"
@@ -43,6 +41,14 @@ read -r -d '' TEST_HEADER << EOM
 # TESTHEAD HERE ON THIS PAGE ONLY
 EOM
 
+
+
+
+# UTILITY FUNCTIONS
+function pause(){
+  echo "Please press enter..."
+  read nothing_at_all
+}
 
 # Placeholder SVG image creator
 # Creates simple rectange of default width 256, default height 128.
@@ -120,12 +126,44 @@ then
 fi
 
 # Macro for a full demo document
+# This inserts a file into the stream
 read -r -d '' MDEMO << EOM
 $(<.poco/demo/mdemo.md)
-
 EOM
 
 
+# Tests showing how to replace page elements
+# xxx
+read -r -d '' REPLACE_HEADER << EOM
+**Ugly replacement header**
+EOM
+
+read -r -d '' REPLACE_NAV << EOM
+**Ugly replacement NAV**
+EOM
+
+read -r -d '' REPLACE_FOOTER << EOM
+**Ugly replacement FOOTER**
+EOM
+
+echo $REPLACE_HEADER > $tmpdir/replace-header.md
+echo $REPLACE_NAV > $tmpdir/replace-nav.md
+echo $REPLACE_FOOTER > $tmpdir/replace-footer.md
+
+read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS << EOM
+---
+header: "replace-header.md"
+footer: "replace-footer.md"
+nav: "replace-nav.md"
+title: "Replace page elements on a per-page basis"
+---
+The header, footer, and nav for this page should be different
+EOM
+
+
+#
+#
+#
 # Generate links used to demonstrate themes
 # of subdir navigation
 read -r -d '' THEME_NAV << EOM
@@ -187,7 +225,7 @@ styles:
 hello, world.
 
 * [hack](hack-theme-demo.html) theme
-
+* Replace [page elements](page-elements.html) such as head, nav, etc. on a per-page basis
 * [Test page](test-page.html)
 
 $THEME_NAV
@@ -421,6 +459,7 @@ EOM
 svgplace 128 128 "128x128" "${tmpdir}/square.svg"
 
 echo $INDEX > $tmpdir/index.md
+echo $DEMO_REPLACE_PAGE_ELEMENTS > $tmpdir/page-elements.md
 echo $TEST_PAGE > $tmpdir/test-page.md
 echo $TEST_HEADER > $tmpdir/test-header.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
