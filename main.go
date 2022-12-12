@@ -128,9 +128,7 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		// xxx
-		//"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
-		"\n<article id=\"article\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
+		"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
@@ -650,7 +648,6 @@ func (c *config) header() string {
     return ""
   }
 
-  // xxx
 	if c.pageTheme.present {
 		return c.pageTheme.header
 	}
@@ -738,14 +735,24 @@ func (c *config) layoutElement(tag string, t *theme) {
 	s := ""
 	switch tag {
 	case "header":
-		if t.headerFilename != "" {
-			t.headerFilename = regularize(t.dir, t.headerFilename)
-			filename = t.headerFilename
-		}
- 	case "nav":
-		if t.navFilename != "" {
-			t.navFilename = regularize(t.dir, t.navFilename)
-			filename = t.navFilename
+	  override := fmStr(tag, c.pageFm)
+    if override != "" && override != "SUPPRESS" {
+      filename = override
+    } else {
+      if t.headerFilename != "" {
+        t.headerFilename = regularize(t.dir, t.headerFilename)
+        filename = t.headerFilename
+      }
+    }
+	case "nav":
+	  override := fmStr(tag, c.pageFm)
+    if override != "" && override != "SUPPRESS" {
+      filename = override
+    } else {
+      if t.navFilename != "" {
+        t.navFilename = regularize(t.dir, t.navFilename)
+        filename = t.navFilename
+      }
     }
 	case "aside":
 		// TODO: document
@@ -764,9 +771,14 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
-		if t.footerFilename != ""  {
-			t.footerFilename = regularize(t.dir, t.footerFilename)
-			filename = t.footerFilename
+	  override := fmStr(tag, c.pageFm)
+    if override != "" && override != "SUPPRESS" {
+      filename = override
+    } else {
+      if t.footerFilename != ""  {
+        t.footerFilename = regularize(t.dir, t.footerFilename)
+        filename = t.footerFilename
+      }
     }
 	}
 
@@ -982,7 +994,6 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string) string {
-	// xxx
 	// Return value
 	s := ""
 
@@ -1212,6 +1223,7 @@ func (c *config) loadTheme(filename string) {
 	if c.pageTheme.present {
 		// Local theme takes priority
 		c.addPageElements(&c.pageTheme)
+    // Return because it overrides the global theme.
 		return
 	}
 
@@ -1226,7 +1238,7 @@ func (c *config) loadTheme(filename string) {
 } // loadTheme (new version)
 
 func (c *config) addPageElements(t *theme) {
-	  c.layoutElement("header", t)
+	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
 	c.layoutElement("footer", t)
