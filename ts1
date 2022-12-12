@@ -25,6 +25,24 @@ function pause(){
   read nothing_at_all
 }
 
+# Quickie test page test-page.md
+read -r -d '' TEST_PAGE << EOM
+---
+header: "test-header.md"
+---
+
+
+# Quick tests
+
+Check the header for this page
+EOM
+
+
+# Quickie test header test-header.md
+read -r -d '' TEST_HEADER << EOM
+# TESTHEAD HERE ON THIS PAGE ONLY
+EOM
+
 
 # Placeholder SVG image creator
 # Creates simple rectange of default width 256, default height 128.
@@ -166,15 +184,22 @@ styles:
 
 #### Title of this page: {{ .title }}
 
+hello, world.
+
+* [hack](hack-theme-demo.html) theme
+
+* [Test page](test-page.html)
+
+$THEME_NAV
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+
+$MDEMO
 
 ## Square SVG image
 
 ![square image here?](./square.svg)
 
-$MDEMO
-$THEME_NAV
-$SUBDIR_NAV
-$PGLAYOUT_NAV
 EOM
 
 
@@ -396,6 +421,8 @@ EOM
 svgplace 128 128 "128x128" "${tmpdir}/square.svg"
 
 echo $INDEX > $tmpdir/index.md
+echo $TEST_PAGE > $tmpdir/test-page.md
+echo $TEST_HEADER > $tmpdir/test-header.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
 echo $ASIDE_RIGHT > $tmpdir/aside-right.md
 echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
