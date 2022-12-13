@@ -1,5 +1,9 @@
 /* poquito.css seems to work right with both left and right sidebars. 
- * requires my full reset.css of course */
+ * requires my full reset.css of course 
+ * REM VS EM
+ * - Use rem for font sizes and @media query, because
+ *   rem is based on browser settings.
+ * - Use em for margins, padding, etc. */
 
 
 /* NOTE: 
@@ -8,6 +12,8 @@
       Article + footer + header + nav  = 100
  */
 article{width:80%;height:84vh;}                         
+ol li, ul li  {margin-left:1em;}
+p {padding-bottom:1em;}
 footer {position:absolute;bottom:0;width:100%;height:10vh;}
 header{height:4vh;}
 nav{height:2vh;}
