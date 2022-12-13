@@ -1,11 +1,13 @@
 ---
-author: Tom Campbell
-branding: TEST THEME
-
+header: header.md
+nav: nav.md
+aside: aside.md
+footer: footer.md
 
 stylesheets:
-- https://fonts.xz.style/serve/inter.css 
-- https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css 
+- "../../css/reset.css"
+- "../../css/poquito.css"
+styles:
+- "article p{font-family:monospace}"
 ---
-# Test 
-Test is a test rig for themes
+
