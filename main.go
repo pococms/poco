@@ -34,7 +34,7 @@ import (
 // IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
 
-// Used to prevent use of a page layout elment. So to 
+// Used to prevent use of a page layout elment. So to
 // prevent a header being dispallyed on the current page,
 // you'd add this to hour front matter:
 // ---
@@ -131,15 +131,15 @@ func (c *config) assemble(filename string, article string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		"\n<div id=\"page-container\">" +
-		"\n<div id=\"content-wrap\">\n" +
+		//"\n<div id=\"page-container\">" +
+		//"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
-		"</div><!-- content-wrap -->\n" +
+		//"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
-		"</div><!-- page-container -->\n" +
+		//"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		"}\n</script>" + "\n" +
@@ -212,31 +212,11 @@ Learn more at [PocoCMS tutorials](https://pococms.com/docs/tutorials.html)
 // makes sense to include a newline after the closing tag.
 func tagSurround(tag string, txt string, extra ...string) string {
 	add := ""
-	if len(extra) < 1 {
-		add = ""
-	} else {
+	if len(extra) > 0 {
 		add = extra[0]
 	}
 	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
-
-// TODO: this comment is in the wrong place
-// StyleTags takes a list of tags and inserts them into right before the
-// closing head tag, so they can override anything that came before.
-// These are literal tags, not filenases.
-// They're listed under "styles" in the front matter
-// Returns them as a string. For clarity each tag is indented
-// and ends with a newline.
-// Example:
-//
-// styles:
-//   - "h1{color:blue;}"
-//   - "p{color:darkgray;}"
-//
-// Would yield:
-//
-//	"{color:blue;}\n\t\tp{color:darkgray;}\n"
-//
 
 // TODO: Document this
 const (
@@ -315,6 +295,10 @@ type theme struct {
 	// into this string. It's injected straight into the HTML for
 	// each file using this theme.
 	styleTags string
+
+	// Version as a string. This isn't well thought-out
+	// so I'm using a less-than-optimal identifier
+	ver string
 }
 
 // there are no configuration files (yet) but this holds
@@ -582,7 +566,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// A temporary config object has been created.
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
-	theme.readFm(tmpConfig.fm)
+	theme.readThemeFm(tmpConfig.fm)
 	if possibleGlobalTheme && !c.theme.present {
 		// If this is a globaltheme declaration, read that
 		// into c
@@ -741,43 +725,42 @@ func (c *config) layoutElement(tag string, t *theme) {
 	state := GLOBAL
 	filename := ""
 
-  // xxx
 	// Converted/templated HTML */
 	s := ""
 	switch tag {
 	case "header":
-    // Was header overridden on this page?
-    // Example front matter:
-    // ---
-    // header: "newheader.md"
-    // ---
+		// Was header overridden on this page?
+		// Example front matter:
+		// ---
+		// header: "newheader.md"
+		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override !=  suppressToken {
-      // Yes, on this page only, override the header.
-      // Use whatever filename was provided.
+		if override != "" && override != suppressToken {
+			// Yes, on this page only, override the header.
+			// Use whatever filename was provided.
 			filename = override
 		} else {
-      // Common case: no override on this page.
-      // Use the theme's default header.
+			// Common case: no override on this page.
+			// Use the theme's default header.
 			if t.headerFilename != "" {
 				t.headerFilename = regularize(t.dir, t.headerFilename)
 				filename = t.headerFilename
 			}
 		}
 	case "nav":
-    // Was nav overridden on this page?
-    // Example front matter:
-    // ---
-    // nav: "newnav.md"
-    // ---
+		// Was nav overridden on this page?
+		// Example front matter:
+		// ---
+		// nav: "newnav.md"
+		// ---
 		override := fmStr(tag, c.pageFm)
 		if override != "" && override != suppressToken {
-      // Yes, on this page only, override the nav.
-      // Use whatever filename was provided.
+			// Yes, on this page only, override the nav.
+			// Use whatever filename was provided.
 			filename = override
 		} else {
-      // Common case: no override on this page.
-      // Use the theme's default nav.
+			// Common case: no override on this page.
+			// Use the theme's default nav.
 			if t.navFilename != "" {
 				t.navFilename = regularize(t.dir, t.navFilename)
 				filename = t.navFilename
@@ -787,20 +770,20 @@ func (c *config) layoutElement(tag string, t *theme) {
 		override := fmStr(tag, c.pageFm)
 		t.asideType = asideUnspecified
 		if override != "left" &&
-      override != "right" &&
-      override != "" &&
-      override != suppressToken {
-      // Yes, on this page only, override the aside.
-      // Use whatever filename was provided.
+			override != "right" &&
+			override != "" &&
+			override != suppressToken {
+			// Yes, on this page only, override the aside.
+			// Use whatever filename was provided.
 			filename = override
 		} else {
-      // Common case: no override on this page.
-      // Use the theme's default nav.
+			// Common case: no override on this page.
+			// Use the theme's default nav.
 			if t.asideFilename != "" {
-        t.asideFilename = regularize(t.dir, t.asideFilename)
-        filename = t.asideFilename
-      }
-    }
+				t.asideFilename = regularize(t.dir, t.asideFilename)
+				filename = t.asideFilename
+			}
+		}
 		if override == "right" {
 			state = ASIDE_RIGHT
 			t.asideType = asideRight
@@ -810,19 +793,19 @@ func (c *config) layoutElement(tag string, t *theme) {
 			t.asideType = asideLeft
 		}
 	case "footer":
-    // Was footer overridden on this page?
-    // Example front matter:
-    // ---
-    // footer: "newfooter.html"
-    // ---
+		// Was footer overridden on this page?
+		// Example front matter:
+		// ---
+		// footer: "newfooter.html"
+		// ---
 		override := fmStr(tag, c.pageFm)
 		if override != "" && override != suppressToken {
-      // Yes, on this page only, override the footer.
-      // Use whatever filename was provided.
+			// Yes, on this page only, override the footer.
+			// Use whatever filename was provided.
 			filename = override
 		} else {
-      // Common case: no override on this page.
-      // Use the theme's default footer.
+			// Common case: no override on this page.
+			// Use the theme's default footer.
 			if t.footerFilename != "" {
 				t.footerFilename = regularize(t.dir, t.footerFilename)
 				filename = t.footerFilename
@@ -945,6 +928,7 @@ func (c *config) styleTags() string {
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
 	// Enclose these lines within "<style>" tags
+
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
 	if aside == "left" {
@@ -991,12 +975,12 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 // See also inlineStylesheets(), which inserts stylesheet
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
-
 	// Get any style tags on this page that might override
 	// the other stylesheets
-	pageStyles := c.getStyleTags(c.fm)
-
+	pageStyles = c.styleTags()
 	// If there's a page theme, obtain its stylesheets.
+	//if c.pageTheme.present slice = c.pageTheme.stylesheetFilenames
+
 	if c.pageTheme.present {
 		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
 		// It overrides any global stylesheet so exit if
@@ -1044,7 +1028,7 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 func (c *config) inlineStylesheets(dir string) string {
 	// Return value
 	s := ""
-
+	// xxx
 	// Look for stylesheets named on this page,
 	// which have the highest priority.
 	slice := fmStrSlice("stylesheets", c.fm)
@@ -1092,6 +1076,8 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
+			// Insert theme name
+			s = "\n/* PocoCMS theme: " + c.theme.name + " */\n" + s
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1118,6 +1104,8 @@ func (c *config) inlineStylesheets(dir string) string {
 			stylesheets = stylesheets + s + overrides + "\n"
 		}
 		if s != "" {
+			// Insert theme name
+			s = "\n/* PocoCMS theme: " + c.theme.name + " */\n" + s
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1194,7 +1182,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 	// A temporary config object has been created.
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
-	theme.readFm(tmpConfig.fm)
+	theme.readThemeFm(tmpConfig.fm)
 
 	return &theme
 }
@@ -1292,9 +1280,12 @@ func (c *config) addPageElements(t *theme) {
 	c.layoutElement("footer", t)
 }
 
-func (t *theme) readFm(fm map[string]interface{}) {
+// readThemeFm() happens when a theme is being
+// loaded and parsed.
+func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
+	t.ver = fmStr("ver", fm)
 	t.description = fmStr("description", fm)
 	t.headerFilename = fmStr("header", fm)
 	t.navFilename = fmStr("nav", fm)
