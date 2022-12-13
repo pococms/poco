@@ -18,21 +18,36 @@
 
 # Default global theme. Can be altered with --theme command line option
 #THEME=pocodocs
-THEME=poquito
+THEME=test
+
+# Macro for a full demo document
+# This inserts a file into the stream
+read -r -d '' MDEMO << EOM
+$(<.poco/demo/mdemo.md)
+EOM
 
 
 # Quickie test page test-page.md
 # Putting it up here makes it easier to 
 # throw together ad hoc tests
+# xxx
 read -r -d '' TEST_PAGE << EOM
 ---
-header: "test-header.md"
+pagetheme: "test"
+styles:
+- "header{background-color:lightgray}"
+- "aside{background-color:blue}"
+- "footer{background-color:red}" 
+- "article{background-color:gray}" 
+- "nav{background-color:green}" 
 ---
 
+Theme: {{ .theme }}
 
-# Quick tests
+Try scrolling this page
 
-Check the header for this page
+$MDEMO
+
 EOM
 
 
@@ -94,6 +109,11 @@ while :; do
    		 fi
    		 ;;
    		 
+   	 -l|--link-styles)
+       LINK_STYLES="--link-styles"
+       shift
+       ;;
+
    	 --)
    		 shift
    		 break
@@ -124,12 +144,6 @@ if [[ $? -gt 0 ]]
 then
   echo "Error creating subdirs"
 fi
-
-# Macro for a full demo document
-# This inserts a file into the stream
-read -r -d '' MDEMO << EOM
-$(<.poco/demo/mdemo.md)
-EOM
 
 
 # Tests showing how to replace page elements
@@ -264,6 +278,7 @@ styles:
 - "nav{background-color:green}" 
 ---
 # Project build tests 
+* [Test page](test-page.html)
 
 #### Title of this page: {{ .title }}
 
@@ -272,7 +287,6 @@ styles:
 hello, world.
 
 * [hack](hack-theme-demo.html) theme
-* [Test page](test-page.html)
 
 $THEME_NAV
 $SUBDIR_NAV
@@ -520,7 +534,7 @@ echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
 echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md
-poco -verbose $tmpdir
+poco -verbose $LINK_STYLES $tmpdir
 if [[ $? -gt 0 ]]
 then
   echo "Poco was unable to create the project"
@@ -528,8 +542,8 @@ then
   ls ${tmpdir}
 else
   echo "Project created successfully"
-  #echo "Opening in local browser and local server"
   open $tmpdir/WWW/index.html
+  #echo "Opening in local browser and local server"
   cd $tmpdir
   #poco -serve
 fi
