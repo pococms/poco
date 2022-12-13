@@ -287,7 +287,7 @@ EOM
 # above the second EOM
 read -r -d '' INDEX << EOM
 ---
-title: "beat me"
+title: "PocoCMS home"
 theme: "${THEME}"
 styles:
 - "header{background-color:lightgray}"
@@ -298,6 +298,8 @@ styles:
 ---
 # Project build tests 
 * [Test page](test-page.html)
+
+Is ftime working? {{ .ftime }}
 
 #### Title of this page: {{ .title }}
 
