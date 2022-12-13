@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	ytembed "github.com/13rac1/goldmark-embed"
+	cp "github.com/otiai10/copy"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -323,8 +324,8 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
-	// linkStyles true means stylesheets will not be inlined.
-	linkStyles bool
+	// linkStylesOption true means stylesheets will not be inlined.
+	linkStylesOption bool
 
 	// List of all files being processed
 	files []string
@@ -977,10 +978,11 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 func (c *config) linkStylesheets() string {
 	// Get any style tags on this page that might override
 	// the other stylesheets
-	pageStyles = c.styleTags()
+	pageStyles := c.styleTags()
 	// If there's a page theme, obtain its stylesheets.
 	//if c.pageTheme.present slice = c.pageTheme.stylesheetFilenames
 
+	// xxx
 	if c.pageTheme.present {
 		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
 		// It overrides any global stylesheet so exit if
@@ -1011,9 +1013,16 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 	}
 	var tag, tags string
 	for _, sheet := range sheets {
-		if dir != "" {
-			tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
+		// Handle case where the stylesheet is a URL
+		if !strings.HasPrefix(sheet, "http") {
+			// It's a local styleshet. May have a directory designation.
+			if dir != "" {
+				tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s/%s\">\n", dir, sheet)
+			} else {
+				tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
+			}
 		} else {
+			// It's a URL not a local stylesheet
 			tag = fmt.Sprintf("\t<link rel=\"stylesheet\" href=\"%s\">\n", sheet)
 		}
 		tags += tag
@@ -1028,7 +1037,6 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 func (c *config) inlineStylesheets(dir string) string {
 	// Return value
 	s := ""
-	// xxx
 	// Look for stylesheets named on this page,
 	// which have the highest priority.
 	slice := fmStrSlice("stylesheets", c.fm)
@@ -1115,14 +1123,28 @@ func (c *config) inlineStylesheets(dir string) string {
 	return ""
 }
 
+// copyPocoDirToWebroot copies the .poco directory
+// to the web publish directory. Only needed (so far)
+// when -link-stylesheets is active.
+func (c *config) copyPocoDirToWebroot() {
+	target := filepath.Join(c.webroot, pocoDir)
+	if err := cp.Copy(pocoDir, target); err != nil {
+		// TODO: better error message
+		// xxxxx
+		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s",
+			c.currentFilename)
+	}
+}
+
 // stylesheets() generates stylesheet tags required by themes
 // priority.
 func (c *config) stylesheets() string {
 	// Return value
 	s := ""
-	if c.linkStyles {
+	if c.linkStylesOption {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
+		c.copyPocoDirToWebroot()
 		s = c.linkStylesheets()
 	} else {
 		// Inline stylesheets as usual
@@ -1313,8 +1335,8 @@ func (c *config) parseCommandLine() {
 	// debugFrontmatter command-line option shows the front matter of each page
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
-	// linkStyles controls whether stylesheets are inlined (normally they are)
-	flag.BoolVar(&c.linkStyles, "link-styles", false, "Link to stylesheets instead of inlining them")
+	// linkStylesOption controls whether stylesheets are inlined (normally they are)
+	flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -2184,7 +2206,7 @@ func (c *config) dumpSettings() {
 	print("Ignore: %v", c.skipPublish.list)
 	print("Source directory: %s", c.root)
 	print("Webroot directory: %s", c.webroot)
-	print("Inline stylesheets: %v", !c.linkStyles)
+	print("Inline stylesheets: %v", !c.linkStylesOption)
 	print("%s directory: %s", pocoDir, filepath.Join(executableDir(), pocoDir))
 	print("Home page: %s", c.homePage)
 }
@@ -2476,7 +2498,6 @@ func (c *config) newProject(dir string) {
 	if !dirExists(dir) {
 		//if !dirExists(dir) {
 		// We're good. No directory by that name. Create it.
-		//err := os.MkdirAll(c.root, os.ModePerm)
 		err := os.MkdirAll(dir, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
 			quit(1, err, c, "Unable to create new project directory %s", c.root)
