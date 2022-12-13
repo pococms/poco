@@ -133,7 +133,8 @@ EOM
 
 
 # Tests showing how to replace page elements
-# xxx
+# The next few constants work together
+# and are used on the DEMO_REPLACE_PAGE_ELEMENTS constant
 read -r -d '' REPLACE_HEADER << EOM
 **Ugly replacement header**
 EOM
@@ -142,12 +143,17 @@ read -r -d '' REPLACE_NAV << EOM
 **Ugly replacement NAV**
 EOM
 
+read -r -d '' REPLACE_ASIDE << EOM
+**Ugly replacement ASIDE**
+EOM
+
 read -r -d '' REPLACE_FOOTER << EOM
 **Ugly replacement FOOTER**
 EOM
 
 echo $REPLACE_HEADER > $tmpdir/replace-header.md
 echo $REPLACE_NAV > $tmpdir/replace-nav.md
+echo $REPLACE_ASIDE > $tmpdir/replace-aside.md
 echo $REPLACE_FOOTER > $tmpdir/replace-footer.md
 
 read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS << EOM
@@ -155,15 +161,54 @@ read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS << EOM
 header: "replace-header.md"
 footer: "replace-footer.md"
 nav: "replace-nav.md"
+aside: "replace-aside.md"
 title: "Replace page elements on a per-page basis"
 ---
-The header, footer, and nav for this page should be different
+# WHAT THIS PAGE DEMONSTRATES:
+
+This page shows how to replace page elments
+(that is header, footer, nav, and aside) on a per
+page bases using this front matter:
+
+    ---
+    header: "replace-header.md"
+    footer: "replace-footer.md"
+    nav: "replace-nav.md"
+    aside: "replace-aside.md"
+    title: "Replace page elements on a per-page basis"
+    ---
+
+The header, footer, aside, and nav for this page should 
+all have *ugly replacments*.
+
+
+See this same with the [default page elements](page-elements-default.html)
+supplied by the theme.
+
+$MDEMO
+EOM
+
+read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT << EOM
+---
+title: "Default page elements"
+---
+# WHAT THIS PAGE DEMONSTRATES:
+
+This page uses the same theme as [page-elements.md](page-elements.html)
+but uses the theme's default page elements (header, nav, aside, and footer).
+
+
+$MDEMO
+
+hi
+
 EOM
 
 
-#
-#
-#
+
+
+
+
 # Generate links used to demonstrate themes
 # of subdir navigation
 read -r -d '' THEME_NAV << EOM
@@ -222,10 +267,11 @@ styles:
 
 #### Title of this page: {{ .title }}
 
+* Replace [page elements](page-elements.html) such as head, nav, etc. on a per-page basis (default version [here](page-elements-default.html))
+
 hello, world.
 
 * [hack](hack-theme-demo.html) theme
-* Replace [page elements](page-elements.html) such as head, nav, etc. on a per-page basis
 * [Test page](test-page.html)
 
 $THEME_NAV
@@ -460,6 +506,7 @@ svgplace 128 128 "128x128" "${tmpdir}/square.svg"
 
 echo $INDEX > $tmpdir/index.md
 echo $DEMO_REPLACE_PAGE_ELEMENTS > $tmpdir/page-elements.md
+echo $DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT > $tmpdir/page-elements-default.md
 echo $TEST_PAGE > $tmpdir/test-page.md
 echo $TEST_HEADER > $tmpdir/test-header.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
