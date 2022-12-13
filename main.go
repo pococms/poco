@@ -784,18 +784,28 @@ func (c *config) layoutElement(tag string, t *theme) {
 			}
 		}
 	case "aside":
-		// TODO: document
+		override := fmStr(tag, c.pageFm)
 		t.asideType = asideUnspecified
-		aside := fmStr("aside", c.pageFm)
-		if t.asideFilename != "" {
-			t.asideFilename = regularize(t.dir, t.asideFilename)
-			filename = t.asideFilename
-		}
-		if aside == "right" {
+		if override != "left" &&
+      override != "right" &&
+      override != "" &&
+      override != suppressToken {
+      // Yes, on this page only, override the aside.
+      // Use whatever filename was provided.
+			filename = override
+		} else {
+      // Common case: no override on this page.
+      // Use the theme's default nav.
+			if t.asideFilename != "" {
+        t.asideFilename = regularize(t.dir, t.asideFilename)
+        filename = t.asideFilename
+      }
+    }
+		if override == "right" {
 			state = ASIDE_RIGHT
 			t.asideType = asideRight
 		}
-		if aside == "left" {
+		if override == "left" {
 			state = ASIDE_LEFT
 			t.asideType = asideLeft
 		}
