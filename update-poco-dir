@@ -1,0 +1,70 @@
+#!/bin/zsh
+# Copies the original .poco directory to the current directory,
+# thereby replacing the contents of the current .poco directory.
+#
+# WARNING: Again, it replaces the contents of the .poco directory under this one.
+#
+# Use this when you've added themes to the original directory
+# and want them propagated over to an older site.
+#
+# Thank you to https://stackoverflow.com/a/3915420
+# for showing how to get a fully qualified pathname
+here=$(pwd)
+poco=$(which poco)
+#[ ! -d $poco ] && echo "${poco} missing" && exit 1
+#[ -d $poco ] && echo $poco is here 
+here=$here/.poco
+
+# Strip the executable name from the poco path.
+poco=$(echo "$(cd "$(dirname -- "$poco")" >/dev/null; pwd -P)/")
+poco=$poco/.poco
+
+source="$(cd "$(dirname -- "$poco")" >/dev/null; pwd -P)/$(basename -- "$poco")"
+target=$(echo "$(cd "$(dirname -- "$here")" >/dev/null; pwd -P)/$(basename -- "$here")")
+
+[ ! -d $target ] && echo "There's no poco directory at to copy to at ${target}. Quitting." && exit 1
+[ ! -d $source ] && echo "There's no poco directory to copy from at ${source}. Quitting." && exit 1
+
+# Displays prompt, and waits for user to answer 
+# with either a Y or N. Repeats prompt until
+# it gets one of those two.
+# Return 0 if answer was Y,
+# return 1 if answer was N.
+# 
+# Answer is in the global variable $?
+#
+# Example usage:
+# if wait_for_yes "Did I say yes?"; then
+#  echo "YES"
+# else
+#  echo "NO"
+# fi
+
+wait_for_yes() {
+  while :; do
+    echo -n "${1} "
+    read answer
+    case "$answer" in
+      [Yy])
+        return 0
+        ;;
+      [Nn])
+        return 1
+        ;;
+      *)
+        ;;
+    esac
+  done
+}
+
+
+
+if [[ $target == $source ]]
+then
+  echo "${target} and ${source} are the same place. Quitting." && exit 1
+else
+  echo "About to copy from ${source} to  ${target}."
+  if wait_for_yes "This will REPLACE older copies in ${target}.\nSure you want to continue? Y/N"; then
+    cp -R $source $target 
+  fi
+fi
