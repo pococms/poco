@@ -19,8 +19,8 @@ import (
 var fmAllStr = `---
 title: "PocoCMS title"
 author: "Tom Campbell"
-theme: "tufte"
-global-theme: "pocodocs"
+pagetheme: "tufte"
+theme: "pocodocs"
 branding: "PocoCMS for the win!"
 description: "Build informational websites friction-free"
 
@@ -36,8 +36,8 @@ type strTest struct {
 var fmStrTests = []strTest{
 	{"title", "PocoCMS title"},
 	{"author", "Tom Campbell"},
-	{"theme", "tufte"},
-	{"global-theme", "pocodocs"},
+	{"pagetheme", "tufte"},
+	{"theme", "pocodocs"},
 	{"branding", "PocoCMS for the win!"},
 	{"description", "Build informational websites friction-free"},
 }
@@ -370,12 +370,12 @@ hello, world.
 		// Contents of Markdown file
 		// note: YAML front matter contains description key.
 		`---
-description: "Poco baby"
+description: "PocoCMS"
 ---
 hello, {{ .description }}!
 `,
 		// Expected output when Markdown file is converted to HTML
-		`<p>hello, Poco baby!</p>`,
+		`<p>hello, PocoCMS!</p>`,
 	},
 
 	// TEST RECORD
