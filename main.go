@@ -2,6 +2,7 @@
 package main
 
 import (
+	"html/template"
 	"bufio"
 	"bytes"
 	"embed"
@@ -28,7 +29,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"text/template"
+	//"text/template"
 	"time"
 )
 
@@ -329,6 +330,9 @@ type config struct {
 
 	// List of all files being processed
 	files []string
+
+	// All built-in functions must appear here to be publicly available
+	funcs map[string]interface{}
 
 	// Front matter
 	// front matter for current theme
@@ -1409,6 +1413,8 @@ func (c *config) parseCommandLine() {
 func main() {
 
 	c := newConfig()
+	// Add snazzy Go template functions like ftime() etc.
+	c.addTemplateFunctions()
 
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
@@ -2537,3 +2543,29 @@ func (c *config) themeDirContents() string {
 	}
 	return s
 }
+
+// TEMPLATE FUNCTION UTILITIES
+func (c *config) addTemplateFunctions() {
+	c.funcs = template.FuncMap{
+		"ftime":    c.ftime,
+	}
+}
+
+// ftime() returns the current, local, formatted time.
+// Can pass in a formatting string
+// https://golang.org/pkg/time/#Time.Format
+// Example: TODO:
+func (c *config) ftime(param ...string) string {
+	var ref = "Mon Jan 2 15:04:05 -0700 MST 2006"
+	var format string
+
+	if len(param) < 1 {
+		format = ref
+	} else {
+		format = param[0]
+	}
+	t := time.Now()
+	return t.Format(format)
+}
+
+
