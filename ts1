@@ -30,7 +30,6 @@ EOM
 # Quickie test page test-page.md
 # Putting it up here makes it easier to 
 # throw together ad hoc tests
-# xxx
 read -r -d '' TEST_PAGE << EOM
 ---
 pagetheme: "test"
@@ -64,6 +63,17 @@ function pause(){
   echo "Please press enter..."
   read nothing_at_all
 }
+
+# xxx
+function print_help(){
+  echo "Options:"
+  echo "\t-t|--theme" >&2
+  echo "\tChange default theme for tests. The default is ${THEME}. Example:\n\t${1} --theme pocodocs\n" >&2
+  echo "\t-l|--link-stylesheets" >&2
+  echo "\tLink to stylesheets instead of inlining in the HTML. The default is inline. Example:\n\t${1} -l\n" >&2
+}
+
+
 
 # Placeholder SVG image creator
 # Creates simple rectange of default width 256, default height 128.
@@ -114,13 +124,21 @@ while :; do
        shift
        ;;
 
+   	 -h|--help)
+        # xxx
+       print_help $0
+       exit 1
+       ;;
+
    	 --)
    		 shift
    		 break
    		 ;;
    		 
    	 --?*)
-   		 printf 'WARNING: Unknown option %s ignored\n' "$1" >&2
+   		 printf 'WARNING: Unknown option %s\n' "$1" >&2
+       exit 1
+       break
    		 ;;
    		 
    	 *)
@@ -227,6 +245,7 @@ EOM
 # of subdir navigation
 read -r -d '' THEME_NAV << EOM
 ## Theme demos
+* [newman](newman-theme-demo.html) theme
 * [hack](hack-theme-demo.html) theme
 * [probot](probot-theme-demo.html) theme
 
@@ -488,6 +507,21 @@ $SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
+# Generate the page named newman-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' NEWMAN_THEME_DEMO << EOM
+---
+title: "{{ .theme }} theme"
+pagetheme: "newman"
+aside: "SUPPRESS"
+---
+# Demonstration of the {{ .pagetheme }} theme.
+
+$MDEMO
+EOM
+
+
 # Generate the page named hack-theme-demo.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -533,6 +567,7 @@ echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
+echo $NEWMAN_THEME_DEMO > $tmpdir/newman-theme-demo.md
 echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md
 poco -verbose $LINK_STYLES $tmpdir
 if [[ $? -gt 0 ]]
