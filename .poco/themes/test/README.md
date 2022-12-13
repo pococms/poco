@@ -7,7 +7,6 @@ footer: footer.md
 stylesheets:
 - "../../css/reset.css"
 - "../../css/poquito.css"
-styles:
-- "article p{font-family:monospace}"
+- "test.css"
 ---
 
