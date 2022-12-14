@@ -8,10 +8,7 @@
 article{width:80%;}                         
 ol li, ul li  {margin-left:1em;}
 p {padding-bottom:1em;}
-ifooter {position:absolute;bottom:0;width:100%;height:10vh;}
-footer {width:100%;height:10vh;}
-header{height:4vh;}
-nav{height:2vh;}
+footer {width:100%;}
 #page-container { 
   position: relative;
   min-height: 100vh;
