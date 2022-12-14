@@ -1,0 +1,3 @@
+#!/bin/zsh
+echo "ffs-Finds contents, including *.go files, in the CURRENT source directory and below"
+grep -r -n --include='*.go' "$1" ~/pococms/poco | sed -e 's/^\s*//' -e '/^$/d'
