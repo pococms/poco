@@ -1135,8 +1135,8 @@ func (c *config) copyPocoDirToWebroot() {
 	if err := cp.Copy(pocoDir, target); err != nil {
 		// TODO: better error message
 		// xxxxx
-		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s",
-			c.currentFilename)
+		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
+
 	}
 }
 
