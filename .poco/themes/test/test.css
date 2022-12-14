@@ -1,1 +1,41 @@
-/* */
+article > dl > dt {font-weight:bold}
+article > dl > dd {margin-left:0;padding-bottom:1rem;}
+article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
+article > ul > li {font-size:larger;line-height:1.75rem;}
+p>code,p>pre,p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;} /* inline not block */
+pre{border:1px solid gray;padding:1rem;width:80%;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-bottom:2rem;color:blue;}
+article>h2{padding-top:2.5rem;}
+
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:4rem;}
+header > ul {list-style-type:none;}
+header > ul > li{display:inline;padding-right:.5rem;font-size:1.25rem;} 
+header > ul > li > a,
+header > ul > li > a:link,
+header > ul > li > a:visited
+	{color:blue;font-weight:bold;text-decoration:none;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-right:1rem;padding-left:0}
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;}
+
