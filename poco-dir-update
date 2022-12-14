@@ -11,13 +11,14 @@
 # for showing how to get a fully qualified pathname
 here=$(pwd)
 poco=$(which poco)
+pocodir=.poco
 #[ ! -d $poco ] && echo "${poco} missing" && exit 1
 #[ -d $poco ] && echo $poco is here 
-here=$here/.poco
+here=$here
 
 # Strip the executable name from the poco path.
 poco=$(echo "$(cd "$(dirname -- "$poco")" >/dev/null; pwd -P)/")
-poco=$poco/.poco
+poco=$poco/$pocodir
 
 source="$(cd "$(dirname -- "$poco")" >/dev/null; pwd -P)/$(basename -- "$poco")"
 target=$(echo "$(cd "$(dirname -- "$here")" >/dev/null; pwd -P)/$(basename -- "$here")")
@@ -63,8 +64,8 @@ if [[ $target == $source ]]
 then
   echo "${target} and ${source} are the same place. Quitting." && exit 1
 else
-  echo "About to copy from ${source} to  ${target}."
-  if wait_for_yes "This will REPLACE older copies in ${target}.\nSure you want to continue? Y/N"; then
+  echo "About to copy from ${source} to  ${target}/${pocodir}"
+  if wait_for_yes "This will REPLACE older copies in ${target}/${pocodir}\nSure you want to continue? Y/N"; then
     cp -R $source $target 
   fi
 fi
