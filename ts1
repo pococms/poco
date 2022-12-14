@@ -33,12 +33,12 @@ EOM
 read -r -d '' TEST_PAGE << EOM
 ---
 pagetheme: "test"
-styles:
-- "header{background-color:lightgray}"
-- "aside{background-color:blue}"
-- "footer{background-color:red}" 
-- "article{background-color:gray}" 
-- "nav{background-color:green}" 
+# styles:
+# - "header{background-color:lightgray}"
+# - "aside{background-color:blue}"
+# - "footer{background-color:red}" 
+# - "article{background-color:gray}" 
+# - "nav{background-color:green}" 
 ---
 
 Theme: {{ .theme }}
