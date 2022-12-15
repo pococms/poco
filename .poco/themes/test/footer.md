@@ -1,1 +1,1 @@
-#### [About](#) [Privacy](#) [Terms of service](#)
+[About](#) [Privacy](#) [Terms of service](#)

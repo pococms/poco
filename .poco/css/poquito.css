@@ -1,14 +1,11 @@
-/* p.css seems to work right with both left and right sidebars. 
- * requires my full reset.css of course 
+/* Works with optional headers, footers, nav, and 
+ * both left and right asides. 
+ * Must preced with reset.css of course 
  * REM VS EM
  * - Use rem for font sizes and @media query, because
  *   rem is based on browser settings.
  * - Use em for margins, padding, etc.
  */
-article{width:80%;}                         
-ol li, ul li  {margin-left:1em;}
-p {padding-bottom:1em;}
-footer {width:100%;}
 #page-container { 
   position: relative;
   min-height: 100vh;
@@ -18,11 +15,19 @@ footer {width:100%;}
   padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
 }
 
-
-
+article{width:80%;}                         
+ol li, ul li  {margin-left:1em;}
+p {padding-bottom:1em;}
+footer {width:100%;position:fixed;bottom:0;height:10vh;}
 aside{                                                                 
   width:20%;                                    
   padding:0 2rem 0 2rem;                          
+}  
+
+/* Article on the right, aside on the left */
+article{float:right;clear:right;}    
+aside{
+  float:left;                                
 }  
 
 /* Article on the left, aside on the right */
@@ -31,11 +36,6 @@ aside{
   float:right;
 }
 
-/* Article on the right, aside on the left */
-article{float:right;clear:right;}    
-aside{
-  float:left;                                
-}  
 code,kbd,pre{
   font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
 }
