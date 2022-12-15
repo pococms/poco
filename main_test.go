@@ -277,11 +277,10 @@ func TestGetFm(t *testing.T) {
 	for _, tt := range getFmTests {
 		c := newConfig()
 
-
 		// Create a Markdown file on the fly (with optional
 		// front matter). Obtain its front matter.
 		fm := c.getFm(stringToFile(c, tt.filename, tt.code))
-    defer os.Remove(tt.filename)
+		defer os.Remove(tt.filename)
 		value := fmStr(tt.fmKey, fm)
 		if value != tt.fmExpectedValue {
 			t.Errorf("Frontmatter error. fmStr(%v) should was %v. Expected %v",
