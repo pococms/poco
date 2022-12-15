@@ -131,8 +131,8 @@ func (c *config) assemble(filename string, article string) string {
 		c.metatags() +
 		c.linktags() +
     c.importRules() +
-		c.styleTags() +
 		c.stylesheets() +
+		c.styleTags() +
 		"</head>\n<body>" +
 		"\n<div id=\"page-container\">" +
 		"\n<div id=\"content-wrap\">\n" +
