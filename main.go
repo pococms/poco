@@ -130,8 +130,9 @@ func (c *config) assemble(filename string, article string) string {
 		c.titleTag() +
 		c.metatags() +
 		c.linktags() +
-		c.stylesheets() +
+    c.importRules() +
 		c.styleTags() +
+		c.stylesheets() +
 		"</head>\n<body>" +
 		"\n<div id=\"page-container\">" +
 		"\n<div id=\"content-wrap\">\n" +
@@ -271,6 +272,10 @@ type theme struct {
 	footer string
 	// Filename for footer specified in front matter.
 	footerFilename string
+
+  // List of rules to import
+  importRuleNames []string
+  importRulesStr string
 
 	// Contents of LICENSE file. Can't be empty
 	license string
@@ -943,7 +948,7 @@ func (c *config) styleTags() string {
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	if t != "" {
-		t = tagSurround("style", t, "\n")
+		t = "\n" + tagSurround("style", t, "\n") 
 	}
 	return t
 }
@@ -968,6 +973,60 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 	return styleTags
 }
 
+
+
+// sliceToImportRulesStr gets a slice of @import rules, such as
+// ["url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Oswald:wght@200&display=swap');"]
+// and converts the list into a string
+// containg the tags separated by newlines:
+// 
+// @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Oswald:wght@200&display=swap'); 
+//
+// NOTE:
+// They must appear above all style rules
+//
+func sliceToImportsRulesStr(importRuleNames []string) string {
+	if len(importRuleNames) <= 0 {
+		return ""
+	}
+	var rules string
+	for _, rule := range importRuleNames {
+    // Add a semicolon to the end of the rule if
+    // one is not already present.
+    if rule[len(rule)-1:] != ";" {
+      rule += ";"
+    }
+   // If @import is already added, skip it.
+    if strings.HasPrefix(rule, "@import") {
+      rule = fmt.Sprintf("\t%s\n", rule) 
+    } else {
+      // Otherwise add the @import
+      rule = fmt.Sprintf("\n\t@import %s\n", rule)
+    }
+		rules += rule
+	}
+	return  rules
+}
+
+
+
+func (c *config) importRules() string  {
+  // xxx
+	if c.pageTheme.present {
+    c.pageTheme.importRulesStr =
+      sliceToImportsRulesStr(c.pageTheme.importRuleNames)
+		  return "\n" + tagSurround("style", c.pageTheme.importRulesStr, "\n")
+	}
+
+	if c.theme.present {
+    c.theme.importRulesStr =
+      sliceToImportsRulesStr(c.theme.importRuleNames)
+		return "\n" + tagSurround("style", c.theme.importRulesStr, "\n") 
+	}
+  return ""
+}
+
+
 // linkStylesheets() extracts stylesheet references and
 // creates link tags for them.
 // By this time loadTheme() has been called. c.fm has hardcoded
@@ -981,10 +1040,9 @@ func (c *config) linkStylesheets() string {
 	// Get any style tags on this page that might override
 	// the other stylesheets
 	pageStyles := c.styleTags()
+  // xxx
 	// If there's a page theme, obtain its stylesheets.
-	//if c.pageTheme.present slice = c.pageTheme.stylesheetFilenames
 
-	// xxx
 	if c.pageTheme.present {
 		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
 		// It overrides any global stylesheet so exit if
@@ -1067,6 +1125,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
 		slice = c.pageTheme.stylesheetFilenames
+
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -1131,8 +1190,6 @@ func (c *config) inlineStylesheets(dir string) string {
 func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
 	if err := cp.Copy(pocoDir, target); err != nil {
-		// TODO: better error message
-		// xxxxx
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
 
 	}
@@ -1310,6 +1367,7 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
 	t.ver = fmStr("ver", fm)
+	t.importRuleNames  = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
 	t.headerFilename = fmStr("header", fm)
 	t.navFilename = fmStr("nav", fm)
