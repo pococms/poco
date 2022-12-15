@@ -8,6 +8,7 @@ real world.
 ## Table of contents 
 
 * [Common text formatting](#common-text-formatting)
+  - [Horizontal rule](#horizontal-rule)
 * [Links](#links)
 * [Bookmarks](#bookmarks)
   - [Linking inside a document](#linking-inside-a-document)
@@ -28,23 +29,31 @@ real world.
 * [HTML Forms](#html-forms)
 
 
+The general principle with Markdown is that things
+you might type if you didn't have formatting get
+replaced with their formatted HTML equivalent.
+What follows is most of the Markdown supported by PocoCMS.
 
-## Markdown syntax
-
-Here's how markdown appears in the **{{.theme }}** theme
 ## Common text formatting
 
 #### You type:
+
 ```
 Normal body text, **strong**, ~~strikethrough~~, and with *emphasis*.
 ```
 
 #### It shows as:
+
 Normal body text, **strong**, ~~strikethrough~~, and with *emphasis*.
 
-Horizontal rule:
+## Horizontal rule
+
+You can get a line (horizontal rule) that stretches across the
+page, depending on how it's styled. Just use a line consisting
+of nothing but `--`.
 
 #### You type:
+
 ```
 ---
 ```
@@ -55,6 +64,7 @@ Horizontal rule:
 ## Links
 
 #### You type:
+
 ```
 [HTML color names](https://htmlcolorcodes.com/color-names/)
 ```
@@ -135,6 +145,7 @@ Try it now: [Learn about blockquotes](#jump-here)
 You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:
 
 #### You type:
+
 ```
 [History of futbol](https://en.wikipedia.org/wiki/Association_football#History)
 ```
@@ -147,6 +158,7 @@ You can also link to an anchor to other websites, if they have anchors. Here's a
 ## Header styles
 
 #### You type:
+
 ```
 # h1
 ## h2
@@ -178,6 +190,7 @@ You can format text inline as `code`, or go block style:
 You can specify a color scheme for a particular programming language by including its name after the first 3 tick marks of the code block.
 
 #### You type:
+
     ```python
     print ("This is a code block")
     ```
@@ -202,6 +215,7 @@ fmt.Println("This is a code block")
 ## There are 2 or 3 kinds of list types
 
 #### You type:
+
 ```
 ### Ordered lists
 
@@ -226,6 +240,7 @@ Unordered lists are normally represented as bullets They're always
 the same, whereas ordered lists show as automatically generated sequences of letters or number
 
 #### You type:
+
 ```
 Reasons people hate bullet lists
 
@@ -259,6 +274,7 @@ A definition list lets you display things like an item
 and its meaning in a distinct way:
 
 #### You type:
+
 ```
 Definition list
 : A way to show a visual relationship between a word or phrase
@@ -306,8 +322,8 @@ but `:|` on the row of dashes right-aligns a column, and  `|:-` and  `-:|` cente
 Headers are always centered.
 
 #### You type:
-```
 
+```
 | Left-justified Contents  |  Centered Contents   | Right-justified Contents   |
 | ------------------------ |:--------------------:| --------------------------:|
 | Row 1, Col 1             | Row 1, Col 2         | Row 1, Col 3               |
@@ -326,6 +342,7 @@ And here's what results from the table markdown shown above:
 ## Block quote
 
 #### You type:
+
 ```
 >Hypocrisy waits silently for us all. 
 ```
