@@ -303,6 +303,9 @@ type theme struct {
 	// each file using this theme.
 	styleTags string
 
+  // ON progbation: features this theme supports
+  supportedFeatures []string
+
 	// Version as a string. This isn't well thought-out
 	// so I'm using a less-than-optimal identifier
 	ver string
@@ -1010,8 +1013,8 @@ func sliceToImportsRulesStr(importRuleNames []string) string {
 
 
 
+// TODO: Document
 func (c *config) importRules() string  {
-  // xxx
 	if c.pageTheme.present {
     c.pageTheme.importRulesStr =
       sliceToImportsRulesStr(c.pageTheme.importRuleNames)
@@ -1375,6 +1378,8 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
+	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
+
 }
 
 // newConfig allocates a config object.
