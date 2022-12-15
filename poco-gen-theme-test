@@ -1,0 +1,172 @@
+#!/bin/zsh
+# Generates a test of the following theme features:
+# - Article only with no header,nav,aside, or footer
+# - Header on/off
+# - Nav on/off
+# - Footer on/off
+# - Aside on/off
+# - Aside left
+# - Aside aside right
+#
+echo ""
+theme=$1
+
+if [ -z "$theme" ]
+then
+  echo "Please add a theme name. Example:\n\n\t${0} mytheme\n" && exit 1
+fi
+
+# Get a temporary directory name
+tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+# Append to the filename and make in a Markdown file(name).
+filename=$tmpdir/index.md
+
+wait_for_yes() {
+  while :; do
+    echo -n "${1} "
+    read answer
+    case "$answer" in
+      [Yy])
+        return 0
+        ;;
+      [Nn])
+        return 1
+        ;;
+      *)
+        ;;
+    esac
+  done
+}
+
+read -r -d '' MAIN_LINKS << EOM
+* [Default version of theme](default.html)
+* [Header suppressed](suppress-header.html)
+* [Nav suppressed](suppress-nav.html)
+* [Aside suppressed](suppress-aside.html)
+* [Aside right](aside-right.html)
+* [Aside left](aside-left.html)
+* [Footer suppressed](suppress-footer.html)
+* [Article only](article-only.html)
+EOM
+
+
+# Macro for a full demo document
+# This inserts a file into the stream
+# and assigns the whole thing to the
+# variable $MDEMO
+read -r -d '' MDEMO << EOM
+$MAIN_LINKS
+$(<.poco/demo/mdemo.md)
+EOM
+
+
+read -r -d '' DEFAULT << EOM
+# Theme with default options
+$MDEMO
+EOM
+
+read -r -d '' ARTICLE_ONLY << EOM
+---
+header: "SUPPRESS"
+nav: "SUPPRESS"
+aside: "SUPPRESS"
+footer: "SUPPRESS"
+---
+# Article only
+
+$MDEMO
+EOM
+
+read -r -d '' SUPPRESS_HEADER << EOM
+---
+header: "SUPPRESS"
+---
+# Header suppressed
+$MDEMO
+EOM
+
+read -r -d '' SUPPRESS_NAV << EOM
+---
+nav: "SUPPRESS"
+---
+# Nav suppressed
+$MDEMO
+EOM
+
+read -r -d '' SUPPRESS_ASIDE << EOM
+---
+aside: "SUPPRESS"
+---
+# Aside suppressed
+$MDEMO
+EOM
+
+read -r -d '' ASIDE_RIGHT << EOM
+---
+aside: "right"
+---
+# Aside right 
+$MDEMO
+EOM
+
+read -r -d '' ASIDE_LEFT << EOM
+---
+aside: "left"
+---
+# Aside left 
+$MDEMO
+EOM
+
+read -r -d '' SUPPRESS_FOOTER << EOM
+---
+footer: "SUPPRESS"
+---
+# Footer suppressed
+$MDEMO
+EOM
+
+read -r -d '' INDEX << EOM
+---
+theme: $theme
+---
+# Tests for theme $theme
+$MAIN_LINKS
+EOM
+
+function generate_theme() {
+  echo "Generating theme ${theme}"
+  poco -new $tmpdir
+  echo $INDEX > $tmpdir/index.md
+  echo $DEFAULT > $tmpdir/default.md
+  echo $ARTICLE_ONLY > $tmpdir/article-only.md
+  echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
+  echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
+  echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
+  echo $ASIDE_RIGHT > $tmpdir/aside-right.md
+  echo $ASIDE_LEFT > $tmpdir/aside-left.md
+  echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
+  cd $tmpdir
+  echo "Created file ${tmpdir}/index.md"
+  ls $tmpdir/index.html
+  poco -verbose $tmpdir
+  open WWW/index.html
+}
+
+
+if [ -f "$theme" ]
+then
+  echo "Already a file named ${theme}"
+  if wait_for_yes "Replace it?" 
+  then
+    echo "OK!" 
+    generate_theme && exit 0
+  else
+    echo "No file named ${theme} will be created."
+  fi
+else
+
+    echo "Generate ${theme}"
+    generate_theme && exit 0
+fi
+
+
