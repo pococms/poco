@@ -2,7 +2,6 @@
 package main
 
 import (
-	"html/template"
 	"bufio"
 	"bytes"
 	"embed"
@@ -19,6 +18,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
+	"html/template"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -842,8 +842,8 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 		if s != "" {
 			// This adds a unique id tag to each page layout element:
-			// <article id="article-poco">, <footer id="footer-poco">, etc.
-			s = "<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
+			// <footer id="footer-poco">, etc.
+			s = "\n<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
 		}
 	}
 
@@ -921,13 +921,12 @@ func (c *config) setupGlobals() { //
 // - "article > p{color:red}"
 // - "aside > h1 {font-size:2em}"
 //
-// And generates this code
+// # And generates this code
 //
 // <style>
 // article > p{color:red}
 // aside > h1 {font-size:2em}
 // </style>
-//
 func (c *config) styleTags() string {
 	// Take the slice of tags and put each one
 	// on its own line.
@@ -959,7 +958,6 @@ func (c *config) styleTags() string {
 //
 // article > p{color:red}
 // aside > h1 {font-size:2em}
-//
 func (c *config) getStyleTags(fm map[string]interface{}) string {
 	styleTagNames := fmStrSlice("styles", fm)
 	styleTags := ""
@@ -2547,7 +2545,7 @@ func (c *config) themeDirContents() string {
 // TEMPLATE FUNCTION UTILITIES
 func (c *config) addTemplateFunctions() {
 	c.funcs = template.FuncMap{
-		"ftime":    c.ftime,
+		"ftime": c.ftime,
 	}
 }
 
@@ -2567,5 +2565,3 @@ func (c *config) ftime(param ...string) string {
 	t := time.Now()
 	return t.Format(format)
 }
-
-
