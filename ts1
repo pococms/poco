@@ -33,7 +33,11 @@ EOM
 read -r -d '' TEST_PAGE << EOM
 ---
 pagetheme: "test"
-# styles:
+importrules:
+- "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');"
+
+styles:
+- "article>h1{font-family:'Oswald',sans-serif;}"
 # - "header{background-color:lightgray}"
 # - "aside{background-color:blue}"
 # - "footer{background-color:red}" 
@@ -41,9 +45,7 @@ pagetheme: "test"
 # - "nav{background-color:green}" 
 ---
 
-Theme: {{ .theme }}
-
-Try scrolling this page
+# SO IS THIS OSWALD
 
 $MDEMO
 
