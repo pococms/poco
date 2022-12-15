@@ -40,6 +40,7 @@ wait_for_yes() {
 
 read -r -d '' MAIN_LINKS << EOM
 * [Default version of theme](default.html)
+* [Default theme with background shaded](shaded.html)
 * [Header suppressed](suppress-header.html)
 * [Nav suppressed](suppress-nav.html)
 * [Aside suppressed](suppress-aside.html)
@@ -62,6 +63,20 @@ EOM
 
 read -r -d '' DEFAULT << EOM
 # Theme with default options
+$MDEMO
+EOM
+
+read -r -d '' SHADED << EOM
+---
+styles:
+- "header{background-color:gainsboro;}"
+- "nav{background-color:silver;}"
+- "article{background-color:gray;}"
+- "aside{background-color:lightslategray;}"
+- "footer{background-color:darkslategray;}"
+---
+# Theme with default options but shading added
+# to all page layout elements
 $MDEMO
 EOM
 
@@ -138,6 +153,7 @@ function generate_theme() {
   poco -new $tmpdir
   echo $INDEX > $tmpdir/index.md
   echo $DEFAULT > $tmpdir/default.md
+  echo $SHADED > $tmpdir/shaded.md
   echo $ARTICLE_ONLY > $tmpdir/article-only.md
   echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
   echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
