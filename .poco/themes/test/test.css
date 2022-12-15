@@ -13,9 +13,9 @@ header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 header > ul {line-height:4rem;}
 header > ul, nav > ul  {list-style-type:none;}
 header > ul > li{font-size:1.25rem;}
-header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;} 
-header > ul > li > a, nav > ul > li > a,
-header > ul > li > a:link, nav > ul > li > a:link,
+header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
+header > ul > li > a,
+header > ul > li > a:link, 
 header > ul > li > a:visited
 	{color:blue;font-weight:normal;text-decoration:none;}
 
@@ -36,7 +36,10 @@ header>ul>li:first-child>a>del{text-decoration:none;color:red;}
 
 
 nav>ul{line-height:2rem;}
-nav,nav>ul>li>a,nav>ul>li>a:visited{background-color:blue;color:white;}
+nav,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited{background-color:blue;color:white;text-decoration:none}
+nav>ul>li>a:hover,nav>ul>li>a:active{text-decoration:underline;}
+
+
 
 article{height:100%;}
 article,nav,header,footer{padding-left:10%;}
@@ -44,7 +47,7 @@ article>dl>dt {font-weight:bold;padding-top:1rem;}
 article>dl>dd {margin-left:0;padding-bottom:.5rem;}
 article>p {font-size:larger;line-height:1.75rem;padding:.25rem 0 .25rem} /* inline not block */
 pre{border:1px solid gray;padding:1rem;width:90%;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
-article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-bottom:2rem;color:blue;}
+article>h1{font-family:'Fredoka One',cursive;font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-bottom:2rem;color:blue;}
 article>h2{font-size:2rem;padding-top:2.5rem;padding-bottom:.75rem}
 article>h3{font-size:1.5rem;padding-top:1.5rem;;padding-bottom:.5rem}
 article>h4{font-weight:bold;}
