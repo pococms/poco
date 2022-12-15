@@ -7,7 +7,7 @@
 # - Aside on/off
 # - Aside left
 # - Aside aside right
-#
+# - and more
 echo ""
 theme=$1
 
@@ -146,6 +146,13 @@ theme: $theme
 ---
 # Tests for theme $theme
 $MAIN_LINKS
+
+Supported  features: {{ .supportedfeatures }}
+
+theme: {{ .theme }}
+
+footer: {{ .footer }}
+
 EOM
 
 function generate_theme() {

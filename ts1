@@ -283,6 +283,17 @@ read -r -d '' PGLAYOUT_NAV << EOM
 [Home](/index.html)
 EOM
 
+# Checklist of things to look for when viewing a theme
+read -r -d '' CHECKLIST << EOM
+## Things to look for in a theme
+
+* **Resize** the page to smaller dimensions such as a phone
+* **Footer**
+  - On long pages, does the footer obscure the text?
+
+[Home](/index.html)
+EOM
+
 
 # Generate the page index.md from the text
 # directly under the read until the text directly
@@ -291,12 +302,6 @@ read -r -d '' INDEX << EOM
 ---
 title: "PocoCMS home"
 theme: "${THEME}"
-styles:
-- "header{background-color:lightgray}"
-- "aside{background-color:blue}"
-- "footer{background-color:red}" 
-- "article{background-color:gray}" 
-- "nav{background-color:green}" 
 ---
 # Project build tests 
 * [Test page](test-page.html)
@@ -549,14 +554,10 @@ $PGLAYOUT_NAV
 EOM
 
 
-#echo "\nlevel2 dir:"
-#ls $tmpdir/level2
-#echo "\nlevel3 dir:"
-#ls $tmpdir/level3
-
 svgplace 128 128 "128x128" "${tmpdir}/square.svg"
 
 echo $INDEX > $tmpdir/index.md
+echo $CHECKLIST > $tmpdir/checklist.md
 echo $DEMO_REPLACE_PAGE_ELEMENTS > $tmpdir/page-elements.md
 echo $DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT > $tmpdir/page-elements-default.md
 echo $TEST_PAGE > $tmpdir/test-page.md
