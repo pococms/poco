@@ -15,9 +15,12 @@
   padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
 }
 
-article{width:80%;height:90vh}                         
+/* NOTE: padding-bottom on article shold be same as footer-height */
+article{width:80%;height:90vh;padding-bottom:10vh;}                         
 ol li, ul li  {margin-left:1em;}
 p {padding-bottom:1em;}
+
+/* Note: footer height should be same as article padding-bottom */
 footer {width:100%;position:fixed;bottom:0;height:10vh;}
 aside{                                                                 
   width:20%;                                    
