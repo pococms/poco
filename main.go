@@ -130,7 +130,7 @@ func (c *config) assemble(filename string, article string) string {
 		c.titleTag() +
 		c.metatags() +
 		c.linktags() +
-    c.importRules() +
+		c.importRules() +
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
@@ -261,11 +261,23 @@ type theme struct {
 	// Filename for nav specified in front matter.
 	navFilename string
 
-	// Holds converted and template-parsed markdown source
-	// for the <aside> tag.
+	// aside can be "SUPPRESS", "left", "right", or a filename.
+	// What if you want to supply a filename AND control
+	// which side it's on? Use asideleft or asideright,
+	// represented by asideLeftFilename and asideRightFilename
 	aside string
+
 	// Filename for aside specified in front matter.
 	asideFilename string
+
+	// Filename for when 1) The user wants to use a filename,
+	// and 2) wants to ensure it's on the left.
+	asideLeftFilename string
+
+	// Filename for when 1) The user wants to use a filename,
+	// and 2) wants to ensure it's on the right.
+	// Supersedes aside.
+	asideRightFilename string
 
 	// Holds converted and template-parsed markdown source
 	// for the <footer> tag.
@@ -273,9 +285,9 @@ type theme struct {
 	// Filename for footer specified in front matter.
 	footerFilename string
 
-  // List of rules to import
-  importRuleNames []string
-  importRulesStr string
+	// List of rules to import
+	importRuleNames []string
+	importRulesStr  string
 
 	// Contents of LICENSE file. Can't be empty
 	license string
@@ -303,8 +315,8 @@ type theme struct {
 	// each file using this theme.
 	styleTags string
 
-  // ON progbation: features this theme supports
-  supportedFeatures []string
+	// ON progbation: features this theme supports
+	supportedFeatures []string
 
 	// Version as a string. This isn't well thought-out
 	// so I'm using a less-than-optimal identifier
@@ -580,6 +592,10 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
 	theme.readThemeFm(tmpConfig.fm)
+
+	// Check for conflicts between "aside", "asideleft", etc.
+	//c.validateAside(&theme)
+
 	if possibleGlobalTheme && !c.theme.present {
 		// If this is a globaltheme declaration, read that
 		// into c
@@ -797,14 +813,31 @@ func (c *config) layoutElement(tag string, t *theme) {
 				filename = t.asideFilename
 			}
 		}
-		if override == "right" {
+		switch override {
+		case "right":
 			state = ASIDE_RIGHT
 			t.asideType = asideRight
-		}
-		if override == "left" {
+		case "left":
 			state = ASIDE_LEFT
 			t.asideType = asideLeft
 		}
+
+	case "asideleft":
+		t.asideLeftFilename = fmStr(tag, c.pageFm)
+    // Check for conflicts between "aside", "asideleft", etc.
+    c.validateAside(t)
+		state = ASIDE_LEFT
+		t.asideType = asideLeft
+		filename = t.asideLeftFilename 
+
+	case "asideright":
+		t.asideRightFilename = fmStr(tag, c.pageFm)
+    // Check for conflicts between "aside", "asideleft", etc.
+    c.validateAside(t)
+		state = ASIDE_RIGHT
+		t.asideType = asideRight
+		filename = t.asideRightFilename
+
 	case "footer":
 		// Was footer overridden on this page?
 		// Example front matter:
@@ -862,6 +895,10 @@ func (c *config) layoutElement(tag string, t *theme) {
 		t.nav = s
 	case "aside":
 		t.aside = s
+	case "asideright":
+    t.aside = s
+	case "asideleft":
+    t.aside = s
 	case "footer":
 		t.footer = s
 	}
@@ -951,7 +988,7 @@ func (c *config) styleTags() string {
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	if t != "" {
-		t = "\n" + tagSurround("style", t, "\n") 
+		t = "\n" + tagSurround("style", t, "\n")
 	}
 	return t
 }
@@ -967,7 +1004,7 @@ func (c *config) styleTags() string {
 // article > p{color:red}
 // aside > h1 {font-size:2em}
 func (c *config) getStyleTags(fm map[string]interface{}) string {
-	styleTagNames := fmStrSlice("styles", fm)
+	styleTagNames := fmStrSlice("styles", c.pageFm)
 	styleTags := ""
 	for _, tag := range styleTagNames {
 		s := fmt.Sprintf("\t\t%s\n", tag)
@@ -976,14 +1013,12 @@ func (c *config) getStyleTags(fm map[string]interface{}) string {
 	return styleTags
 }
 
-
-
 // sliceToImportRulesStr gets a slice of @import rules, such as
 // ["url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Oswald:wght@200&display=swap');"]
 // and converts the list into a string
 // containg the tags separated by newlines:
-// 
-// @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Oswald:wght@200&display=swap'); 
+//
+// @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Oswald:wght@200&display=swap');
 //
 // NOTE:
 // They must appear above all style rules
@@ -994,41 +1029,38 @@ func sliceToImportsRulesStr(importRuleNames []string) string {
 	}
 	var rules string
 	for _, rule := range importRuleNames {
-    // Add a semicolon to the end of the rule if
-    // one is not already present.
-    if rule[len(rule)-1:] != ";" {
-      rule += ";"
-    }
-   // If @import is already added, skip it.
-    if strings.HasPrefix(rule, "@import") {
-      rule = fmt.Sprintf("\t%s\n", rule) 
-    } else {
-      // Otherwise add the @import
-      rule = fmt.Sprintf("\n\t@import %s\n", rule)
-    }
+		// Add a semicolon to the end of the rule if
+		// one is not already present.
+		if rule[len(rule)-1:] != ";" {
+			rule += ";"
+		}
+		// If @import is already added, skip it.
+		if strings.HasPrefix(rule, "@import") {
+			rule = fmt.Sprintf("\t%s\n", rule)
+		} else {
+			// Otherwise add the @import
+			rule = fmt.Sprintf("\n\t@import %s\n", rule)
+		}
 		rules += rule
 	}
-	return  rules
+	return rules
 }
 
-
-
 // TODO: Document
-func (c *config) importRules() string  {
+func (c *config) importRules() string {
 	if c.pageTheme.present {
-    c.pageTheme.importRulesStr =
-      sliceToImportsRulesStr(c.pageTheme.importRuleNames)
-		  return "\n" + tagSurround("style", c.pageTheme.importRulesStr, "\n")
+		c.pageTheme.importRulesStr =
+			sliceToImportsRulesStr(c.pageTheme.importRuleNames)
+		return "\n" + tagSurround("style", c.pageTheme.importRulesStr, "\n")
 	}
 
 	if c.theme.present {
-    c.theme.importRulesStr =
-      sliceToImportsRulesStr(c.theme.importRuleNames)
-		return "\n" + tagSurround("style", c.theme.importRulesStr, "\n") 
+		c.theme.importRulesStr =
+			sliceToImportsRulesStr(c.theme.importRuleNames)
+		return "\n" + tagSurround("style", c.theme.importRulesStr, "\n")
 	}
-  return ""
+	return ""
 }
-
 
 // linkStylesheets() extracts stylesheet references and
 // creates link tags for them.
@@ -1043,9 +1075,7 @@ func (c *config) linkStylesheets() string {
 	// Get any style tags on this page that might override
 	// the other stylesheets
 	pageStyles := c.styleTags()
-  // xxx
 	// If there's a page theme, obtain its stylesheets.
-
 	if c.pageTheme.present {
 		themeStyles := sliceToStylesheetStr(c.pageTheme.dir, c.pageTheme.stylesheetFilenames)
 		// It overrides any global stylesheet so exit if
@@ -1127,6 +1157,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
+		// pageTheme := "/* PocoCMS pagetheme dude: " + c.pageTheme.name + " */\n"
 		slice = c.pageTheme.stylesheetFilenames
 
 		// Collect all the stylesheets mentioned.
@@ -1148,8 +1179,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
-			// Insert theme name
-			s = "\n/* PocoCMS theme: " + c.theme.name + " */\n" + s
+			//return pageTheme + "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1157,6 +1187,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the global theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.theme.present {
+		//theme := "/* PocoCMS global theme: " + c.theme.name + " */\n"
 		slice = c.theme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1176,8 +1207,6 @@ func (c *config) inlineStylesheets(dir string) string {
 			stylesheets = stylesheets + s + overrides + "\n"
 		}
 		if s != "" {
-			// Insert theme name
-			s = "\n/* PocoCMS theme: " + c.theme.name + " */\n" + s
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1361,7 +1390,53 @@ func (c *config) addPageElements(t *theme) {
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
+	c.layoutElement("asideleft", t)
+	c.layoutElement("asideright", t)
 	c.layoutElement("footer", t)
+}
+
+// validateAside() handles conflicts between aside,
+// asideleft, and asideright.
+// xxx
+// TODO: If this works, document
+// - Can't use SUPPRESS
+// - Only for filenames
+// - Overridden by aside: "SUPPRESS"
+func (c *config) validateAside(t *theme) {
+  if t.asideLeftFilename != "" {
+    debug("validateAside(): asideleft %v", t.asideLeftFilename)
+  }
+	if t.asideLeftFilename == "" &&
+		t.asideRightFilename == "" {
+		return
+	}
+
+	// asideright and asideleft only accept a filename,
+	// not "left" or "right" the way aside can.
+	if t.asideLeftFilename == "left" ||
+		t.asideLeftFilename == "right" ||
+		t.asideRightFilename == "left" ||
+		t.asideRightFilename == "right" {
+		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name", suppressToken)
+		return
+	}
+
+	// asideright and asideleft won't accept "SUPPRESS".
+	// If aside is set to it then they will be suppressed.
+	if t.asideLeftFilename == suppressToken ||
+		t.asideRightFilename == suppressToken {
+		quit(1, nil, nil, "Can't use %s for asideleft or asideright, only a filenames", suppressToken)
+		return
+	}
+
+	// asideright and asideleft can't be used to specify a filename
+	// at the same time.
+	if t.asideLeftFilename != "" &&
+		t.asideRightFilename != "" {
+		quit(1, nil, nil, "Can't only use asideleft or asideright. Not both.")
+		return
+	}
+
 }
 
 // readThemeFm() happens when a theme is being
@@ -1370,16 +1445,20 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
 	t.ver = fmStr("ver", fm)
-	t.importRuleNames  = fmStrSlice("importrules", fm)
+	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
 	t.headerFilename = fmStr("header", fm)
 	t.navFilename = fmStr("nav", fm)
 	t.asideFilename = fmStr("aside", fm)
+  // TODO: Are the next 2 needed? Thisis only at theme reading time, not
+  // page generation, correct?
+	t.asideLeftFilename = fmStr("asideleft", fm)
+  //debug("HEY t.asideLeftFilename: %s", t.asideLeftFilename)
+	t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
-
 }
 
 // newConfig allocates a config object.
