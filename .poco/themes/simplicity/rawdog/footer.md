@@ -1,0 +1,1 @@
+Footer for `Simplicity` theme

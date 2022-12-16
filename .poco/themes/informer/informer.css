@@ -1,23 +1,62 @@
 /* informer.css */
-html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
-header > ul {list-style-type:none;display:inline;}
-header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
+
+
+header,nav{white-space:nowrap;overflow:hidden;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:4rem;}
+header > ul, nav > ul  {list-style-type:none;}
+header > ul > li{font-size:1.25rem;}
+header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
+header > ul > li > a,
+header > ul > li > a:link, 
+header > ul > li > a:visited
+	{color:blue;font-weight:normal;text-decoration:none;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
 header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
-header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
-header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
-nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-header{margin-left:0}
-nav{padding:1rem 0 1rem 0;/* border-top: 1px solid gray;border-bottom: 1px dotted gray */ background-color:black;color:white;height:auto}
-nav > p > a {color:white; text-decoration:none;padding:none;padding-right:1em;}
-header > ul,nav > ul{text-decoration:none}
-header > ul > li:first-child > a {color:red;padding:0 1em 0 1em;text-align:left}
-article,body{margin:0}
-article {width:70rem}
-article > img, article > p > img {width:70%}
-aside{border-left:1px dotted gray;padding-right:1rem;}
-article > h2{padding-bottom:0}
-article > h2 > strong {color:red}
-article > h3{color:dimgray}
+
+
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;}
+
+
+nav>ul{line-height:2rem;}
+nav,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited{background-color:blue;color:white;text-decoration:none}
+nav>ul>li>a:hover,nav>ul>li>a:active{text-decoration:underline;}
+
+
+
+/* article{height:100%;} */
+article,nav,header,footer{padding-left:5%;} 
+article>dl>dt {font-weight:bold;padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+article>p {font-size:larger;line-height:1.75rem;padding:.25rem 0 .25rem} /* inline not block */
 article > p, article > ul, article > ol {font-size:x-large;font-family:Cambria, "Hoefler Text", Utopia, "Liberation Serif", "Nimbus Roman No9 L Regular", Times, "Times New Roman", serif;}
-article > ul, article > ol {padding-left:1rem;}
-aside > h3 {color:blue;font-height:smaller;font-weight:lighter;}
+
+pre{border:1px solid gray;padding:1rem;width:90%;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
+article>h2{font-size:2rem;padding-top:2.5rem;padding-bottom:.75rem}
+article>h3{color:dimgray;font-size:1.5rem;padding-top:1.5rem;;padding-bottom:.5rem}
+article>h4{font-weight:bold;}
+
+table{margin-top:1rem;}
+footer{line-height:2rem;}
+footer,footer>p,footer>p>a{color:white;background-color:blue;}

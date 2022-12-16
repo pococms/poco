@@ -1,5 +1,10 @@
 ---
-StyleFiles:
+header: "header.md"
+nav: "nav.md"
+aside: "aside.md"
+footer: "footer.md"
+
+stylesheets:
 - simplicity.css
 ---
 

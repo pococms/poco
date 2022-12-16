@@ -56,6 +56,24 @@ td, th{
   padding: 0.5rem;
   border: 1px solid;
 }
+
+article,nav,header,footer,aside{padding-left:5%;}
+article,nav,header,footer,aside{background-color:white;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+
+article>dl>dt {font-weight:bold;padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+
+header>ul,nav>ul{list-style-type:none;}
+header>ul>li,nav>ul>li{display:inline;padding-right:.5rem;}
+header>ul>li>a,header>ul>li> a:link,header>ul>li>a:visited
+	{font-weight:normal;text-decoration:none;}
+
+nav,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited
+  {text-decoration:none}
+
+footer>p,footer>p>a,footer>ul>li{display:inline;text-decoration:none;}
+
 @media (max-width:1080px){
   aside{display:none}
   article{padding:1rem;}

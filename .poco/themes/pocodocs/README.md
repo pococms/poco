@@ -6,7 +6,7 @@ footer: "footer.md"
 aside: "aside.md"
 stylesheets:
 - "../../css/reset.css"
-- "../../css/pococms.css"
+- "../../css/poquito.css"
 - "pocodocs.css"
 styletags:
 - "article>p{color:blue;}"
