@@ -824,16 +824,16 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	case "asideleft":
 		t.asideLeftFilename = fmStr(tag, c.pageFm)
-    // Check for conflicts between "aside", "asideleft", etc.
-    c.validateAside(t)
+		// Check for conflicts between "aside", "asideleft", etc.
+		c.validateAside(t)
 		state = ASIDE_LEFT
 		t.asideType = asideLeft
-		filename = t.asideLeftFilename 
+		filename = t.asideLeftFilename
 
 	case "asideright":
 		t.asideRightFilename = fmStr(tag, c.pageFm)
-    // Check for conflicts between "aside", "asideleft", etc.
-    c.validateAside(t)
+		// Check for conflicts between "aside", "asideleft", etc.
+		c.validateAside(t)
 		state = ASIDE_RIGHT
 		t.asideType = asideRight
 		filename = t.asideRightFilename
@@ -882,7 +882,10 @@ func (c *config) layoutElement(tag string, t *theme) {
 		}
 
 		if s != "" {
-			// This adds a unique id tag to each page layout element:
+			if tag == "asideleft" || tag == "asideright" {
+				tag = "aside"
+			}
+			// Add a unique id tag to each page layout element:
 			// <footer id="footer-poco">, etc.
 			s = "\n<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
 		}
@@ -896,9 +899,9 @@ func (c *config) layoutElement(tag string, t *theme) {
 	case "aside":
 		t.aside = s
 	case "asideright":
-    t.aside = s
+		t.aside = s
 	case "asideleft":
-    t.aside = s
+		t.aside = s
 	case "footer":
 		t.footer = s
 	}
@@ -981,10 +984,12 @@ func (c *config) styleTags() string {
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
 	if aside == "left" {
+	//if t.asideType == asideLeft
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
 
 	if aside == "right" {
+	//if t.asideType == asideRight
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	if t != "" {
@@ -1403,9 +1408,6 @@ func (c *config) addPageElements(t *theme) {
 // - Only for filenames
 // - Overridden by aside: "SUPPRESS"
 func (c *config) validateAside(t *theme) {
-  if t.asideLeftFilename != "" {
-    debug("validateAside(): asideleft %v", t.asideLeftFilename)
-  }
 	if t.asideLeftFilename == "" &&
 		t.asideRightFilename == "" {
 		return
@@ -1450,11 +1452,11 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.headerFilename = fmStr("header", fm)
 	t.navFilename = fmStr("nav", fm)
 	t.asideFilename = fmStr("aside", fm)
-  // TODO: Are the next 2 needed? Thisis only at theme reading time, not
-  // page generation, correct?
-	t.asideLeftFilename = fmStr("asideleft", fm)
-  //debug("HEY t.asideLeftFilename: %s", t.asideLeftFilename)
-	t.asideRightFilename = fmStr("asideright", fm)
+	// TODO: Are the next 2 needed? Thisis only at theme reading time, not
+	// page generation, correct?
+	//t.asideLeftFilename = fmStr("asideleft", fm)
+	//debug("HEY t.asideLeftFilename: %s", t.asideLeftFilename)
+	//t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
