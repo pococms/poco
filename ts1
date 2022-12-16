@@ -279,8 +279,11 @@ read -r -d '' PGLAYOUT_NAV << EOM
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)
-[Home](/index.html)
+* [Suppress footer](suppress-footer.html)  
+
+[Home](/index.html)  
+
+
 EOM
 
 # Checklist of things to look for when viewing a theme
