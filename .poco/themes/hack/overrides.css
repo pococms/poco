@@ -7,6 +7,6 @@ aside{float:left;}
 /* Article on the left, aside on the right  */
 article{float:left;clear:left;}
 aside{float:right;}
-footer {width:100%;position:fixed;bottom:0;height:10vh;}
+footer {background-color:white;width:100%;position:fixed;bottom:0;height:10vh;}
 footer>p,footer>p>a,footer>ul>li{display:inline;text-decoration:none;}
 
