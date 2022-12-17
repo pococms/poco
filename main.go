@@ -654,7 +654,10 @@ func (c *config) nav() string {
 	return ""
 }
 
-// TODO: Document
+// supporess checks to see if the value of a tag
+// such as "header" or "footer" is given
+// the value "SUPPRESS", which means it
+// shouldn't have code generated for that tag.
 func (c *config) suppress(tag string) bool {
 	suppress := fmStr(tag, c.pageFm)
 	if suppress == suppressToken {
@@ -729,21 +732,7 @@ func (c *config) header() string {
 // the file was named in the front matter) and insert it before the
 // body of the document.
 func (c *config) layoutElement(tag string, t *theme) {
-	// Possible states.
-	// GLOBAL: No layout file specified, but a global theme is present.
-	//         This is the case where the home page has Theme: "foo" in the front matter.
-	//         The current page doesn't have a theme specified in its front Matter.
-	//         The global theme HTML is already in c.theme.header etc.
-	// LOCAL:  No global theme was specified, but a layout file was specified.
-	//         This is the case where there's a Theme: "foobar" on the current page
-	//         but the home page didn't contain a theme designation.
-	//         In case 2 the layout file needs to be read in from the (non-global)
-	//         theme specified on this page.
-	// ASIDE:  Instead of a filename after "aside:" in the front matter, it's either
-	//         "left" or "right". That determines the placement of the sidebar
-	//        on the page.
 
-	// TODO: this is probably outmoded
 	const (
 		GLOBAL      = 1
 		HTML        = 2
@@ -875,7 +864,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	if state != HTML {
 		var err error
-		// TODO: If this works it may be too slow b/c of conversion from file to string
 		s = convertMdYAMLFileToHTMLFragmentStr(filename, c)
 		if s, err = doTemplate("", s, c); err != nil {
 			quit(1, nil, c, "Unable to parse templates in %s", filename)
@@ -948,7 +936,6 @@ func (c *config) setupGlobals() { //
 	c.verbose(c.currentFilename)
 
 	// Prevent the home page from being read and converted again.
-	// TODO: Ensure this prevents rebuilding the home page
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
 	// Make sure it's a valid site. If not, create a minimal home page.
@@ -1051,7 +1038,7 @@ func sliceToImportsRulesStr(importRuleNames []string) string {
 	return rules
 }
 
-// TODO: Document
+// importRules
 func (c *config) importRules() string {
 	if c.pageTheme.present {
 		c.pageTheme.importRulesStr =
@@ -1077,6 +1064,11 @@ func (c *config) importRules() string {
 // See also inlineStylesheets(), which inserts stylesheet
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
+	//sliceToImportsRulesStr(c.pageTheme.importRuleNames)
+	// styleTagNames []string
+	// styleTags string
+
+
 	// Get any style tags on this page that might override
 	// the other stylesheets
 	pageStyles := c.styleTags()
@@ -1133,12 +1125,12 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string) string {
+  overrides := ""
 	// Return value
 	s := ""
 	// Look for stylesheets named on this page,
 	// which have the highest priority.
 	slice := fmStrSlice("stylesheets", c.fm)
-	overrides := ""
 	if len(slice) > 0 {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1192,7 +1184,34 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the global theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.theme.present {
-		//theme := "/* PocoCMS global theme: " + c.theme.name + " */\n"
+
+    // See if there are any styles listed in the
+    // theme's README.md. If the README's 
+    // front matter contains something like this, the
+    // article text will become purple.
+    //
+    // ---
+    // styles:
+    // - "article>p{color:purple;}"
+    // ---
+    //
+    themePageStyles := ""
+    for _, tag := range c.theme.styleTagNames {
+      s := fmt.Sprintf("\t\t%s\n", tag)
+      themePageStyles = themePageStyles + s
+    }
+
+    // See if there are any stylesheets listed in the
+    // theme's README.md. This example would get
+    // "base.css" from the css directory and "mytheme.css"
+    // from the theme directory.
+    //
+    // ---
+    // stylesheets:
+    // - "../../css/base.css"
+    // - "mytheme.css"
+    // ---
+    //
 		slice = c.theme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1209,10 +1228,10 @@ func (c *config) inlineStylesheets(dir string) string {
 				// If the file is local, read it in.
 				// If it's at a URL, download it.
 				c.getWebOrLocalFileStr(fullPath)
-			stylesheets = stylesheets + s + overrides + "\n"
+			stylesheets = stylesheets + s + themePageStyles + "\n"
 		}
 		if s != "" {
-			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
+			return "<style>\n" + stylesheets + "</style>" + "\n"
 		}
 	}
 	if overrides != "" {
