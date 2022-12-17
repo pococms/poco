@@ -1,13 +1,55 @@
-header,footer{width:50rem;margin-left:8rem;margin-right:8rem;text-align:left;padding-bottom:4rem;}
-article > dl > dt {font-weight:bold}
-article > dl > dd {margin-left:0;padding-bottom:1rem;}
-article > p {font-size:larger;line-height:1.75rem;padding-bottom:1rem;}
-article > ul > li {font-size:larger;line-height:1.75rem;}
-aside{float:left}
-article{margin:0 8rem 0 8rem}
-article>p>code,article>p>pre,article>p>kbd{font-size:.9rem;overflow:auto;padding:.25rem .5rem .25rem .5rem;margin:0} /* inline not block */
-article{width:50rem;padding:auto 4rem auto 4rem;}
-article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;margin:0;padding-bottom:2rem;color:blue;}
-article>h2{padding-top:2.5rem;}
-pre{border:1px solid gray;padding:1rem;width:50rem;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
+header,nav{white-space:nowrap;overflow:hidden;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:4rem;}
+header > ul, nav > ul  {list-style-type:none;}
+header > ul > li{font-size:1.25rem;}
+header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
+header > ul > li > a,
+header > ul > li > a:link, 
+header > ul > li > a:visited
+	{color:blue;font-weight:normal;text-decoration:none;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-right:1rem;padding-left:0}
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;}
+
+
+nav>ul{line-height:2rem;}
+nav,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited{background-color:blue;color:white;text-decoration:none}
+nav>ul>li>a:hover,nav>ul>li>a:active{text-decoration:underline;}
+
+
+
+article>dl>dt {font-weight:bold;padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+article>p {font-size:larger;line-height:1.75rem;padding:.25rem 0 .25rem} /* inline not block */
+pre{border:1px solid gray;padding:1rem;width:90%;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
+article>h1{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-bottom:2rem;color:blue;}
+article>h2{font-size:2rem;padding-top:2.5rem;padding-bottom:.75rem}
+article>h3{color:blue;font-size:1.5rem;padding-top:1.5rem;padding-bottom:.5rem;font-weight:bold;}
+article>h4{font-weight:bold;}
+
+table{margin-top:1rem;}
+footer{line-height:2rem;}
+footer,footer>p,footer>p>a{color:white;background-color:blue;}

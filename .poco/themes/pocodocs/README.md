@@ -5,8 +5,7 @@ header: "header.md"
 footer: "footer.md"
 aside: "aside.md"
 stylesheets:
-- "../../css/reset.css"
-- "../../css/poquito.css"
+- "../../css/base.css"
 - "pocodocs.css"
 styletags:
 - "article>p{color:blue;}"

@@ -5,8 +5,7 @@ aside: "aside.md"
 footer: "footer.md"
 
 stylesheets:
-- ../../css/reset.css
-- ../../css/poquito.css
+- "../../css/base.css"
 - simplicity.css
 ---
 
