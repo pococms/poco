@@ -340,12 +340,6 @@ EOM
 read -r -d '' ASIDE_LEFT << EOM
 ---
 aside: left
-styles:
-- "header{background-color:gray}"
-- "aside{background-color:blue}"
-- "inav{background-color:green}" 
-- "footer{background-color:red}" 
-- "article{background-color:lightgray}" 
 ---
 # Title of this page: {{ .title }}
 
@@ -362,12 +356,6 @@ EOM
 read -r -d '' ASIDE_RIGHT << EOM
 ---
 aside: "right"
-styles:
-- "header{background-color:gray}"
-- "aside{background-color:blue}"
-- "inav{background-color:green}" 
-- "footer{background-color:red}" 
-- "article{background-color:lightgray}" 
 ---
 # Title of this page: {{ .title }}
 
@@ -384,11 +372,6 @@ read -r -d '' ASIDE_LEFT << EOM
 ---
 aside: "left"
 styles:
-- "header{background-color:gray}"
-- "aside{background-color:blue}"
-- "inav{background-color:green}" 
-- "footer{background-color:red}" 
-- "article{background-color:lightgray}" 
 ---
 # Title of this page: {{ .title }}
 
@@ -541,8 +524,6 @@ read -r -d '' HACK_THEME_DEMO << EOM
 ---
 title: "hack theme"
 pagetheme: "hack"
-styles:
-- "body{margin:2em}"
 ---
 # Demonstration of the {{ .pagetheme }} theme.
 
