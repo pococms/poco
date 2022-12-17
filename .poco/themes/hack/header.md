@@ -1,1 +1,1 @@
-**Hack theme** header
+# HACK THEME

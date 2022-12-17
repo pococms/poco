@@ -26,6 +26,11 @@ read -r -d '' MDEMO << EOM
 $(<.poco/demo/mdemo.md)
 EOM
 
+# Explanation of how to test the theme interactively
+read -r -d '' INTERACTIVE_TESTING << EOM
+## How to test this theme
+* Stretch it wide and shrink it to phone proportions to ensure it's responsive
+EOM
 
 # Quickie test page test-page.md
 # Putting it up here makes it easier to 
@@ -33,8 +38,8 @@ EOM
 read -r -d '' TEST_PAGE << EOM
 ---
 pagetheme: "test"
-importrules:
-- "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');"
+#importrules:
+#- "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');"
 
 styles:
 - "article>h1{font-family:'Oswald',sans-serif;}"
@@ -45,7 +50,7 @@ styles:
 # - "nav{background-color:green}" 
 ---
 
-# SO IS THIS OSWALD
+$INTERACTIVE_TESTING 
 
 $MDEMO
 
@@ -272,6 +277,9 @@ EOM
 # Generate links used to test support 
 # of page layout elements
 read -r -d '' PGLAYOUT_NAV << EOM
+
+$INTERACTIVE_TESTING
+
 ## Page Layout variations
 
 * [Aside on left](aside-left.html)
@@ -544,6 +552,7 @@ echo $INDEX > $tmpdir/index.md
 echo $CHECKLIST > $tmpdir/checklist.md
 echo $DEMO_REPLACE_PAGE_ELEMENTS > $tmpdir/page-elements.md
 echo $DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT > $tmpdir/page-elements-default.md
+echo $INTERACTIVE_TESTING > $tmpdir/interactive-testing.md
 echo $TEST_PAGE > $tmpdir/test-page.md
 echo $TEST_HEADER > $tmpdir/test-header.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
@@ -565,6 +574,7 @@ then
   echo "Contents of the directory:"
   ls ${tmpdir}
 else
+  print_help
   echo "Project created successfully"
   open $tmpdir/WWW/index.html
   #echo "Opening in local browser and local server"

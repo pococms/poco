@@ -38,7 +38,15 @@ wait_for_yes() {
   done
 }
 
+# Explanation of how to test the theme interactively
+read -r -d '' INTERACTIVE_TESTING << EOM
+### How to test a theme
+* Stretch it wide and shrink it to phone proportions to ensure it's responsive
+* Make sure it works well with a [long article](default.html)
+EOM
+
 read -r -d '' MAIN_LINKS << EOM
+$INTERACTIVE_TESTING
 * [Default version of theme](default.html)
 * [Default theme with background shaded](shaded.html)
 * [Header suppressed](suppress-header.html)

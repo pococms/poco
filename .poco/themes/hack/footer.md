@@ -1,1 +1,1 @@
-**Hack theme** footer
+**Hack theme** Powered by [PocoCMS](https://pococms.com)
