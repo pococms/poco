@@ -47,6 +47,8 @@ EOM
 
 read -r -d '' MAIN_LINKS << EOM
 $INTERACTIVE_TESTING
+* [Article from file](article-from-file.html)
+* [Article suppressed](suppress-article.html)
 * [Default version of theme](default.html)
 * [Default theme with background shaded](shaded.html)
 * [Header suppressed](suppress-header.html)
@@ -55,6 +57,7 @@ $INTERACTIVE_TESTING
 * [Aside right](aside-right.html)
 * [Aside left](aside-left.html)
 * [Footer suppressed](suppress-footer.html)
+* [Article only](article-only.html)
 * [Article only](article-only.html)
 EOM
 
@@ -100,11 +103,43 @@ footer: "SUPPRESS"
 $MDEMO
 EOM
 
+# This will create a filenamed article-file.md to use
+# the filename feature where front matter can look like
+# this:
+# ---
+# article: "article-file.md"
+# ---
+read -r -d '' ARTICLE_FILE << EOM
+# This is a replacement article.
+
+It was generated using an exterior file,
+using front matter like this:
+
+---
+article: "article-file.md"
+---
+EOM
+
+read -r -d '' ARTICLE_FROM_FILE << EOM
+---
+article: "article-file.md"
+---
+EOM
+
 read -r -d '' SUPPRESS_HEADER << EOM
 ---
 header: "SUPPRESS"
 ---
 # Header suppressed
+$MDEMO
+EOM
+
+read -r -d '' SUPPRESS_ARTICLE << EOM
+---
+article: "SUPPRESS"
+---
+# Article suppressed.
+**This text should NOT be visible**
 $MDEMO
 EOM
 
@@ -163,6 +198,8 @@ footer: {{ .footer }}
 
 EOM
 
+
+
 function generate_theme() {
   echo "Generating theme ${theme}"
   poco -new $tmpdir
@@ -170,6 +207,9 @@ function generate_theme() {
   echo $DEFAULT > $tmpdir/default.md
   echo $SHADED > $tmpdir/shaded.md
   echo $ARTICLE_ONLY > $tmpdir/article-only.md
+  echo $ARTICLE_FILE > $tmpdir/article-file.md
+  echo $ARTICLE_FROM_FILE > $tmpdir/article-from-file.md
+  echo $SUPPRESS_ARTICLE > $tmpdir/suppress-article.md
   echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
   echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
   echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
