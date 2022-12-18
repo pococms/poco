@@ -20,8 +20,30 @@
 #THEME=pocodocs
 THEME=test
 
-# Macro for a full demo document
-# This inserts a file into the stream
+
+
+# This will create a filenamed article-file.md to use
+# the filename feature where front matter can look like
+# this:
+# ---
+# article: "article-file.md"
+# ---
+read -r -d '' ARTICLE_FILE << EOM
+# This is a replacement article.
+
+It was inserted from a file
+
+EOM
+
+
+read -r -d '' FILE_TO_ARTICLE << EOM
+---
+article: "article-file.md"
+---
+# This text should not appear
+EOM
+
+ 
 read -r -d '' MDEMO << EOM
 $(<.poco/demo/mdemo.md)
 EOM
@@ -252,6 +274,7 @@ EOM
 # of subdir navigation
 read -r -d '' THEME_NAV << EOM
 ## Theme demos
+* [Article from file](file-to-article.html)
 * [newman](newman-theme-demo.html) theme
 * [hack](hack-theme-demo.html) theme
 * [probot](probot-theme-demo.html) theme
@@ -281,13 +304,15 @@ read -r -d '' PGLAYOUT_NAV << EOM
 $INTERACTIVE_TESTING
 
 ## Page Layout variations
-
+* [Article from file](file-to-article.html)
 * [Aside on left](aside-left.html)
 * [Aside on right](aside-right.html)
+* [Suppress article](suppress-article.html)
 * [Suppress header](suppress-header.html)
 * [Suppress nav](suppress-nav.html)
 * [Suppress aside](suppress-aside.html)
 * [Suppress footer](suppress-footer.html)  
+* [Suppress everything](suppress-everything.html)  
 
 [Home](/index.html)  
 
@@ -388,6 +413,20 @@ $SUBDIR_NAV
 $PGLAYOUT_NAV
 EOM
 
+#
+# Generate the page supress-article.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_ARTICLE << EOM
+---
+article: "SUPPRESS"
+---
+# This shouldn't show up because article is suppressed
+# This page should have no header. 
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+EOM
+
 # Generate the page supress-header.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -434,6 +473,24 @@ footer: "SUPPRESS"
 # This page should have no footer. 
 $SUBDIR_NAV
 $PGLAYOUT_NAV
+EOM
+
+# Generate the page supress-everything.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SUPPRESS_EVERYTHING << EOM
+---
+header: "SUPPRESS"
+nav: "SUPPRESS"
+article: "SUPPRESS"
+aside: "SUPPRESS"
+footer: "SUPPRESS"
+---
+# This shouldn't show up because...
+
+article 
+(AND everything else!) is suppressed
+This page should have no header. 
 EOM
 
 # Generate the page named page2_1.md from the text
@@ -557,10 +614,14 @@ echo $TEST_PAGE > $tmpdir/test-page.md
 echo $TEST_HEADER > $tmpdir/test-header.md
 echo $ASIDE_LEFT > $tmpdir/aside-left.md
 echo $ASIDE_RIGHT > $tmpdir/aside-right.md
+echo $ARTICLE_FILE > $tmpir/article-file.md
+echo $FILE_TO_ARTICLE > $tmpir/file-to-article.md
+echo $SUPPRESS_ARTICLE > $tmpdir/suppress-article.md
 echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
 echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
 echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
 echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
+echo $SUPPRESS_EVERYTHING > $tmpdir/suppress-everything.md
 echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
