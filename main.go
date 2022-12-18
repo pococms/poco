@@ -110,12 +110,6 @@ func (c *config) assemble(filename string) string {
 		quit(1, err, c, "%v: template error", filename)
 	}
 
-	// If it's the home page, and a timestamp was requested,
-	// insert it in a paragraph at the top of the article.
-	timestamp := ""
-	if c.timestamp && c.currentFilename == c.homePage {
-		timestamp = "\n<p>" + theTime() + "</p>\n"
-	}
 	// Get Javascript that goes after the body
 	scriptAfterStr := c.scriptAfter()
 	if scriptAfterStr != "" {
@@ -138,7 +132,7 @@ func (c *config) assemble(filename string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article-poco\">\n" + timestamp + c.article() + "\n" + "</article>" + "\n" +
+		c.article() +
 		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
@@ -146,15 +140,30 @@ func (c *config) assemble(filename string) string {
 		c.documentReady() +
 		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
+	// TODO: This has code smell. Why doesn't it have to be
+	// done for other page layout elements?
+	c.articleReplaced = ""
 	return htmlFile
 } //   assemble
+
+func (c *config) timestamp() string {
+	// If it's the home page, and a timestamp was requested,
+	// insert it in a paragraph at the top of the article.
+	if c.timestampFlag && c.currentFilename == c.homePage {
+		return "\n<p>" + theTime() + "</p>\n"
+	}
+	return ""
+}
 
 func (c *config) article() string {
 	if c.suppress("article") {
 		return ""
 	}
-
-	return c.articleParsed
+	if c.articleReplaced == "" {
+		return "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
+	} else {
+		return "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleReplaced + "\n" + "</article>" + "\n"
+	}
 }
 
 // THEME
@@ -338,8 +347,9 @@ type theme struct {
 type config struct {
 
 	// TODO: document
-	articleParsed  string
-	articleRawHTML string
+	articleParsed   string
+	articleRawHTML  string
+	articleReplaced string
 
 	// Command-line -cleanup flag determines
 	// whether or not the publish (aka WWW) directory gets deleted on start.
@@ -433,7 +443,7 @@ type config struct {
 
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
-	timestamp bool
+	timestampFlag bool
 
 	// The --verbose flag. It shows progress as the site is created.
 	// Required by the verbose() function.
@@ -758,6 +768,18 @@ func (c *config) layoutElement(tag string, t *theme) {
 	// Converted/templated HTML */
 	s := ""
 	switch tag {
+	case "article":
+		// Was article overridden on this page?
+		// Example front matter:
+		// ---
+		// article: "myarticle.md"
+		// ---
+		override := fmStr(tag, c.pageFm)
+		if override != "" && override != suppressToken {
+			// Yes, on this page only, override the article.
+			// Use whatever filename was provided.
+			filename = override
+		}
 	case "header":
 		// Was header overridden on this page?
 		// Example front matter:
@@ -892,6 +914,8 @@ func (c *config) layoutElement(tag string, t *theme) {
 	}
 
 	switch tag {
+	case "article":
+		c.articleReplaced = s
 	case "header":
 		t.header = s
 	case "nav":
@@ -1422,6 +1446,7 @@ func (c *config) loadTheme(filename string) {
 } // loadTheme (new version)
 
 func (c *config) addPageElements(t *theme) {
+	c.layoutElement("article", t)
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
@@ -1548,7 +1573,7 @@ func (c *config) parseCommandLine() {
 
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
-	flag.BoolVar(&c.timestamp, "timestamp", false, "Insert timestamp at top of home page article")
+	flag.BoolVar(&c.timestampFlag, "timestamp", false, "Insert timestamp at top of home page article")
 
 	// Verbose shows progress as site is generated.
 	flag.BoolVar(&c.verboseFlag, "verbose", false, "Display information about project as it's generated")
