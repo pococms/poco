@@ -100,15 +100,14 @@ func (c *config) scriptAfter() string {
 // assemble takes the raw converted HTML in article,
 // uses it to generate finished HTML document, and returns
 // that document as a string.
-func (c *config) assemble(filename string, article string) string {
+func (c *config) assemble(filename string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
 	// Execute templates. That way {{ .Title }} will be converted into
 	// whatever frontMatter["title"] is set to, etc.
-	if parsedArticle, err := doTemplate("", article, c); err != nil {
+	var err error
+	if c.articleParsed, err = doTemplate("", c.articleRawHTML, c); err != nil {
 		quit(1, err, c, "%v: template error", filename)
-	} else {
-		article = parsedArticle
 	}
 
 	// If it's the home page, and a timestamp was requested,
@@ -139,7 +138,7 @@ func (c *config) assemble(filename string, article string) string {
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
-		"\n<article id=\"article-poco\">\n" + timestamp + article + "\n" + "</article>" + "\n" +
+		"\n<article id=\"article-poco\">\n" + timestamp + c.article() + "\n" + "</article>" + "\n" +
 		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
 		"</div><!-- page-container -->\n" +
@@ -149,6 +148,14 @@ func (c *config) assemble(filename string, article string) string {
 		"</body>\n</html>\n"
 	return htmlFile
 } //   assemble
+
+func (c *config) article() string {
+	if c.suppress("article") {
+		return ""
+	}
+
+	return c.articleParsed
+}
 
 // THEME
 
@@ -329,6 +336,11 @@ type theme struct {
 // That stuff lives in the front matter of the home
 // page (first checks for README.md, then checks for index.md)
 type config struct {
+
+	// TODO: document
+	articleParsed  string
+	articleRawHTML string
+
 	// Command-line -cleanup flag determines
 	// whether or not the publish (aka WWW) directory gets deleted on start.
 	cleanup bool
@@ -971,12 +983,12 @@ func (c *config) styleTags() string {
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
 	if aside == "left" {
-	//if t.asideType == asideLeft
+		//if t.asideType == asideLeft
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
 
 	if aside == "right" {
-	//if t.asideType == asideRight
+		//if t.asideType == asideRight
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	if t != "" {
@@ -1068,7 +1080,6 @@ func (c *config) linkStylesheets() string {
 	// styleTagNames []string
 	// styleTags string
 
-
 	// Get any style tags on this page that might override
 	// the other stylesheets
 	pageStyles := c.styleTags()
@@ -1125,7 +1136,7 @@ func sliceToStylesheetStr(dir string, sheets []string) string {
 // See also linkStylesheets(), which links to stylesheet
 // instead of inserting directly into the HTML document
 func (c *config) inlineStylesheets(dir string) string {
-  overrides := ""
+	overrides := ""
 	// Return value
 	s := ""
 	// Look for stylesheets named on this page,
@@ -1185,33 +1196,33 @@ func (c *config) inlineStylesheets(dir string) string {
 	// It overrides any global theme so exit afterwards.
 	if c.theme.present {
 
-    // See if there are any styles listed in the
-    // theme's README.md. If the README's 
-    // front matter contains something like this, the
-    // article text will become purple.
-    //
-    // ---
-    // styles:
-    // - "article>p{color:purple;}"
-    // ---
-    //
-    themePageStyles := ""
-    for _, tag := range c.theme.styleTagNames {
-      s := fmt.Sprintf("\t\t%s\n", tag)
-      themePageStyles = themePageStyles + s
-    }
+		// See if there are any styles listed in the
+		// theme's README.md. If the README's
+		// front matter contains something like this, the
+		// article text will become purple.
+		//
+		// ---
+		// styles:
+		// - "article>p{color:purple;}"
+		// ---
+		//
+		themePageStyles := ""
+		for _, tag := range c.theme.styleTagNames {
+			s := fmt.Sprintf("\t\t%s\n", tag)
+			themePageStyles = themePageStyles + s
+		}
 
-    // See if there are any stylesheets listed in the
-    // theme's README.md. This example would get
-    // "base.css" from the css directory and "mytheme.css"
-    // from the theme directory.
-    //
-    // ---
-    // stylesheets:
-    // - "../../css/base.css"
-    // - "mytheme.css"
-    // ---
-    //
+		// See if there are any stylesheets listed in the
+		// theme's README.md. This example would get
+		// "base.css" from the css directory and "mytheme.css"
+		// from the theme directory.
+		//
+		// ---
+		// stylesheets:
+		// - "../../css/base.css"
+		// - "mytheme.css"
+		// ---
+		//
 		slice = c.theme.stylesheetFilenames
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1698,8 +1709,9 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 	c.loadTheme(filename)
 	// This will be the proposed name for the completed HTML file.
 	dest := ""
+	var err error
 	// Convert the Markdown file to an HTML string
-	if rawHTML, err := mdYAMLFileToHTMLString(c, filename); err != nil {
+	if c.articleRawHTML, err = mdYAMLFileToHTMLString(c, filename); err != nil {
 		quit(1, err, c, "Error converting Markdown file %v to HTML", filename)
 		return "", ""
 	} else {
@@ -1707,7 +1719,7 @@ func buildFileToTemplatedString(c *config, filename string) (string, string) {
 		// the destination files' extension HTML
 		dest = replaceExtension(filename, "html")
 		// Take the raw converted HTML and use it to generate a complete HTML document in a string
-		finishedDocument := c.assemble(c.currentFilename, rawHTML)
+		finishedDocument := c.assemble(c.currentFilename)
 		// Return the finishled document and its filename
 		return finishedDocument, dest
 	}
