@@ -13,17 +13,16 @@ real world.
 * [Links](#links)
 * [Bookmarks](#bookmarks)
   - [Linking inside a document](#linking-inside-a-document)
-  - [All headers are automatically bookmarks](#automatic-bookmarks)
-  - [Bookmarks must be unique in an HTML document](#bookmarks-unique)
-  - [How to create bookmarks manually](#how-to-create-bookmarks-manually)
+  - [All headers are automatically bookmarks](#all-headers-are-automatically-bookmarks-too)
+  - [Bookmarks must be unique in an HTML document](bookmarks-unique#)
   - [Linking to bookmarks on other webstes](#linking-other-websites)
 * [Header styles](#header-styles)
 * [Coding styles](#coding-styles)
-  - [Choosing the programming language](#choose-pl)
+  - [Choosing the programming language](#choosing-the-programming-language)
 * [Ordered lists](#ordered-lists-37)
 * [Unordered, or bullet lists](#unordered-lists)
-* [The "third" list type: definition lists](#def-lists)
-* [Creating clickable image links in Markdown](#clickable-images)
+* [The "third" list type: definition lists](#the-third-list-type-definition-lists)
+* [Creating clickable image links in Markdown](#creating-clickable-image-links-in-markdown)
 * [Tables](#tables)
 * [Block quote](#block-quote)
 * [Footer](#footer)
@@ -94,8 +93,6 @@ The result will be this (click the link, then use your browser's Back button to 
 
 Jump to the [tables](#tables) section.
 
-<a name="automatic-bookmarks"></a>
-
 ### All headers are automatically bookmarks too
 
 Metabuzz automatically generates an `id` attribute for each header from h1 to h6 by taking the text of the link itself, reducing it to lowercase, and either replacing spaces and other non-letter characters with hyphens, or removing them altogether. If you look at the HTML for this page you'll see the `Tables` header looks like this:
@@ -115,33 +112,10 @@ And the more complicated example of the header named "The 'third' list type: def
 ```
 <h3 id="the-third-list-type-definition-lists">The "third" list type: definition lists</h3>
 ```
-<a name="bookmarks-unique"></a>
 ### Bookmarks must be unique in an HTML document
 
 The `id` attribute must be unique within a document. Notice how on this page there are many headers simply called `You type:`? Metabuzz keeps track of them and turns each of them into unique IDs by naming them `you-type-1`, `you-type-2`, and so forth.
 
-### How to create bookmarks manually
-
-Suppose you want a bookmark that's not a header? You can insert one anywhere by starting a Markdown line with the pure HTML code for anchors. (HTML is [allowed in Markdown with a few restrictions](https://spec.commonmark.org/0.29/#html-blocks)).
-
-
-You type:
-
-```
-<a id="jump-here"></a>
-```
-
-Then you create a link to it by adding the `#jump-here` portion to a link, which is noted by the web browser but not displayed:
-
-```
-[Learn about blockquotes](#jump-here)
-```
-
-Try it now: [Learn about blockquotes](#jump-here)
-
-<a id=linking-other-websites></a>
-
-### Linking to bookmarks on other websites
 
 You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:
 
@@ -185,7 +159,6 @@ You can format text inline as `code` by surrounding text with `` ` ``tick marks`
 ```
 You can format text inline as `code`, or go block style:
 ```
-<a name="choose-pl"></a>
 ### Choosing the programming language
 
 You can specify a color scheme for a particular programming language by including its name after the first 3 tick marks of the code block.
@@ -227,6 +200,7 @@ fmt.Println("This is a code block")
 
 
 #### It shows as:
+
 ### Ordered lists
 
 1. Ordered lists have numeric sequences
@@ -268,7 +242,6 @@ Reasons people hate bullet lists
     - Any more levels than 3 makes it hard for the reader
       + Therefore the Metabuzz theme framework seldom covers indentation levels as deep as this bullet point
 
-<a name="def-lists"></a>
 ### The "third" list type: definition lists
 
 A definition list lets you display things like an item
@@ -295,7 +268,6 @@ Markdown
 : A convention for generating HTML from a more human-readable 
 source format.
 
-<a name="clickable-images"></a>
 ### Creating clickable image links in Markdown
 
 Remember that a Markdown link looks like this:
