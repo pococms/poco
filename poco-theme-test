@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Generates a test of the following theme features:
+# Generates pages test such theme features as:
 # - Article only with no header,nav,aside, or footer
 # - Header on/off
 # - Nav on/off
@@ -47,18 +47,11 @@ EOM
 
 read -r -d '' MAIN_LINKS << EOM
 $INTERACTIVE_TESTING
-* [Article from file](article-from-file.html)
-* [Article suppressed](suppress-article.html)
 * [Default version of theme](default.html)
-* [Default theme with background shaded](shaded.html)
-* [Header suppressed](suppress-header.html)
-* [Nav suppressed](suppress-nav.html)
-* [Aside suppressed](suppress-aside.html)
-* [Aside right](aside-right.html)
-* [Aside left](aside-left.html)
-* [Footer suppressed](suppress-footer.html)
-* [Article only](article-only.html)
-* [Article only](article-only.html)
+* **Article** [from file](article-from-file.html), [suppressed](suppress-article.html), [article only](article-only.html)
+* [Header suppressed](suppress-header.html), [Nav suppressed](suppress-nav.html), [Footer suppressed](suppress-footer.html)
+* **Aside** [suppressed](suppress-aside.html), [right](aside-right.html), [left](aside-left.html)
+* Diagnostics: [Default theme with background shaded](shaded.html)
 EOM
 
 
@@ -189,13 +182,7 @@ theme: $theme
 ---
 # Tests for theme $theme
 $MAIN_LINKS
-
 Supported  features: {{ .supportedfeatures }}
-
-theme: {{ .theme }}
-
-footer: {{ .footer }}
-
 EOM
 
 
