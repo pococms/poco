@@ -467,22 +467,22 @@ func (c *config) findHomePage() {
 		return
 	}
 
-  /*
-	if !dirEmpty(c.root) {
-		// No home page.
-		// Directory has files.
-		// User may not wish to create a new project.
-		if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
-			c.newSite()
+	/*
+		if !dirEmpty(c.root) {
+			// No home page.
+			// Directory has files.
+			// User may not wish to create a new project.
+			if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
+				c.newSite()
+			} else {
+				quit(1, nil, c, "Can't build a project without an index.md or README.md")
+			}
 		} else {
-			quit(1, nil, c, "Can't build a project without an index.md or README.md")
+			// Empty dir, so create home page
+			c.newSite()
+			//writeDefaultHomePage(c, c.root)
 		}
-	} else {
-		// Empty dir, so create home page
-		c.newSite()
-		//writeDefaultHomePage(c, c.root)
-	}
-  */
+	*/
 	c.currentFilename = c.homePage
 }
 
@@ -1260,11 +1260,11 @@ func (c *config) inlineStylesheets(dir string) string {
 // when -link-stylesheets is active.
 func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
-  source := filepath.Join(c.root, pocoDir)
+	source := filepath.Join(c.root, pocoDir)
 	//if err := cp.Copy(pocoDir, target); err != nil {
-  wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
+	wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
 	if err := cp.Copy(source, target); err != nil {
-  //wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
+		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
 
 	}
@@ -1631,13 +1631,18 @@ func main() {
 	}
 
 	switch {
-  case !dirExists && !c.newProjectFlag:
-    // Dir doesn't exist. 
-    // User did not request a new project.
+	case !dirExists && !c.newProjectFlag:
+		// Dir doesn't exist.
+		// User did not request a new project.
 		if promptYes("Create a PocoCMS project at %v? (Y/N) ", c.root) {
 			c.newSite()
+		} else {
+			quit(1, nil, nil, "Quitting.")
 		}
-	case dirExists && hasFiles && !validProject:
+
+	case dirExists && !validProject && !c.newProjectFlag:
+	case dirExists && !validProject && hasFiles:
+    // There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
 		// dir into a project.
@@ -1646,21 +1651,13 @@ func main() {
 		}
 	case !dirExists && c.newProjectFlag:
 		// New project requested for dir that doesn't exist.
-		// They probably want to create a project there.
-    print("Creating new project at %v", c.root)
-    c.newSite()
-	case dirExists && !validProject && !c.newProjectFlag:
+		// Create a project there.
+		c.newSite()
+    //
 	case dirExists && !hasFiles:
 		// There's an existing directory but it's empty.
 		// They probably want to create a project there.
 		c.newSite()
-    /*
-		if promptYes("Create a PocoCMS project at %v? (Y/N) ", c.root) {
-			c.newSite()
-		} else {
-      quit(1,nil,nil,"")
-    }
-    */
 	case dirExists && validProject && c.newProjectFlag:
 		// Weird.Why create a project where a valid one exists?
 		quit(1, nil, nil, "There's already a project at %v. Quitting.", c.root)
@@ -1670,7 +1667,6 @@ func main() {
 		quit(1, nil, nil, "Missed a case!")
 	}
 
-
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
 	// Set values accordingly.
@@ -1679,17 +1675,17 @@ func main() {
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
-    debug("BROKEN XXX")
-	// ---- START HERE
-    /*
-		if dirExists(c.webroot) {
-			c.serve()
-		} else {
-			// Or more likely it quits silently
-			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
-		}
-    */
-	// ---- END HERE
+		debug("BROKEN XXX")
+		// ---- START HERE
+		/*
+			if dirExists(c.webroot) {
+				c.serve()
+			} else {
+				// Or more likely it quits silently
+				quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
+			}
+		*/
+		// ---- END HERE
 	}
 
 	// If -settings flag just show config values and quit
@@ -2077,7 +2073,7 @@ func executableDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
-	debug("\t\tcopyFile(%s,%s)", source, target)
+	//debug("\t\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -2111,13 +2107,13 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 		dir = currDir()
 	}
 
-  source := filepath.Join(executableDir(), pocoDir)
-	target := dir 
+	source := filepath.Join(executableDir(), pocoDir)
+	target := dir
 	//if err := cp.Copy(pocoDir, target); err != nil {
 	if err := cp.Copy(source, target); err != nil {
 		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
 	}
-  return nil
+	return nil
 
 }
 
@@ -2250,22 +2246,20 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 // Pre:
 //   parseCommandLine()
 func (c *config) newSite() {
-  debug("newSite() at %v", c.root)
-  dir := filepath.Join(c.root, pocoDir)
+	debug("newSite() at %v", c.root)
+	dir := filepath.Join(c.root, pocoDir)
 	//err := os.MkdirAll(c.root, os.ModePerm)
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		quit(1, err, c, "Unable to create new project directory %s", dir)
 	}
-  debug("\tdir %v created", dir)
-  debug("\tWriting home page")
+	debug("\tdir %v created", dir)
+	debug("\tWriting home page")
 	writeDefaultHomePage(c, c.root)
 
-  //target := filepath.Join(c.root, pocoDir)
-  target :=  dir
+	//target := filepath.Join(c.root, pocoDir)
+	target := dir
 	c.copyPocoDir(pocoFiles, target)
-
-
 
 	//c.copyPocoDir(pocoFiles, "")
 }
