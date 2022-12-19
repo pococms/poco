@@ -138,6 +138,7 @@ func (c *config) assemble(filename string) string {
 		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
+    c.endJs() + 
 		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	// TODO: This has code smell. Why doesn't it have to be
@@ -199,6 +200,34 @@ func (c *config) getFm(filename string) map[string]interface{} {
 func (c *config) documentReady() string {
 	return c.fileToString(".poco/js/docready.js")
 }
+
+
+// endJs() inserts Javascript files just before the body ends.
+// The files are named in the front matter, like this:
+//
+// ---
+// endjs:
+// - "foobar.js"
+// - "yomama.js"
+// ---
+//
+func (c *config) endJs() string {
+	filenames := fmStrSlice("endjs", c.fm)
+  if len(filenames) == 0 {
+    return ""
+  }
+  files := ""
+  s := ""
+	for _, filename := range filenames {
+    path := filepath.Join(c.endJsDir, filename)
+    s = c.fileToString(path)
+    debug("Path: %v", path)
+    files = files + s
+  }
+  return files
+}
+// xxx
+//	target := filepath.Join(c.webroot, pocoDir)
 
 // defaultHomePage() Generates a simple home page as an HTML string
 // Uses the file segment of dir as the the H1 title.
@@ -367,6 +396,10 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
+  // Directory holding source files to read in at bottom of
+  // script tag area 
+  endJsDir string
+
 	// linkStylesOption true means stylesheets will not be inlined.
 	linkStylesOption bool
 
@@ -385,6 +418,9 @@ type config struct {
 
 	// front matter for current page
 	pageFm map[string]interface{}
+
+  // Fully qualified pathname for the .poco directory
+  pocoDir string
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -1441,7 +1477,6 @@ func (c *config) addPageElements(t *theme) {
 
 // validateAside() handles conflicts between aside,
 // asideleft, and asideright.
-// xxx
 // TODO: If this works, document
 // - Can't use SUPPRESS
 // - Only for filenames
@@ -1617,13 +1652,18 @@ func main() {
 	// Add snazzy Go template functions like ftime() etc.
 	c.addTemplateFunctions()
 
-	// Collect command-line flags, directory to build, etc.
+	// Collect command-line flags, directory to build, 
+  // learn root location, etc.
 	c.parseCommandLine()
 
-	dirExists := dirExists(c.root)
+  // Save location of directories so they don't have to be recomputed
+  c.pocoDir = filepath.Join(c.root, pocoDir)
+  c.endJsDir = filepath.Join(c.pocoDir, "endjs")
+
+	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
 	validProject := isProject(c.root)
-	debug("Dir exists? %v\nc.root: %v\nValid project: %v\nHas files? %v\nNew requested? %v\n", dirExists, c.root, validProject, hasFiles, c.newProjectFlag)
+	//debug("Dir exists? %v\nc.root: %v\nValid project: %v\nHas files? %v\nNew requested? %v\n", is, c.root, validProject, hasFiles, c.newProjectFlag)
 
 	// Quit if running in main application directory
 	if executableDir() == c.root {
@@ -1631,7 +1671,7 @@ func main() {
 	}
 
 	switch {
-	case !dirExists && !c.newProjectFlag:
+	case !rootDirPresent && !c.newProjectFlag:
 		// Dir doesn't exist.
 		// User did not request a new project.
 		if promptYes("Create a PocoCMS project at %v? (Y/N) ", c.root) {
@@ -1640,8 +1680,8 @@ func main() {
 			quit(1, nil, nil, "Quitting.")
 		}
 
-	case dirExists && !validProject && !c.newProjectFlag:
-	case dirExists && !validProject && hasFiles:
+	case rootDirPresent && !validProject && !c.newProjectFlag:
+	case rootDirPresent && !validProject && hasFiles:
     // There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
@@ -1649,19 +1689,19 @@ func main() {
 		if promptYes("\n%v has files in it already but it's not yet a PocoCMS project.\nIf you start a new project here, everything is reversible:\n\n* No files will be destroyed.\n* A hidden directory named %v will be added. You can delete it anytime.\n* A directory called %v will be added. You can delete it anytime as well.\n\nCreate a project at %s? (Y/N) ", c.root, pocoDir, c.webroot, c.root) {
 			c.newSite()
 		}
-	case !dirExists && c.newProjectFlag:
+	case !rootDirPresent && c.newProjectFlag:
 		// New project requested for dir that doesn't exist.
 		// Create a project there.
 		c.newSite()
     //
-	case dirExists && !hasFiles:
+	case rootDirPresent && !hasFiles:
 		// There's an existing directory but it's empty.
 		// They probably want to create a project there.
 		c.newSite()
-	case dirExists && validProject && c.newProjectFlag:
+	case rootDirPresent && validProject && c.newProjectFlag:
 		// Weird.Why create a project where a valid one exists?
 		quit(1, nil, nil, "There's already a project at %v. Quitting.", c.root)
-	case dirExists && validProject:
+	case rootDirPresent && validProject:
 		//debug("Valid project at %v so just dropping through", c.root)
 	default:
 		quit(1, nil, nil, "Missed a case!")
@@ -1675,17 +1715,14 @@ func main() {
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
-		debug("BROKEN XXX")
-		// ---- START HERE
-		/*
+    if dirExists(c.webroot) {
+    }
 			if dirExists(c.webroot) {
 				c.serve()
 			} else {
 				// Or more likely it quits silently
 				quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
 			}
-		*/
-		// ---- END HERE
 	}
 
 	// If -settings flag just show config values and quit
