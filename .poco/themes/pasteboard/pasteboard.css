@@ -10,7 +10,7 @@ article>ul>li>a,article>p>a{font-weight:normal}
 article>h1{font-size:2rem;font-weight:bold;letter-spacing:-.1rem;padding-bottom:2rem;}
 article>h2{font-size:1.75rem;padding-top:2.5rem;padding-bottom:.75rem}
 article>h3{font-size:1.5rem;padding-top:1.5rem;padding-bottom:.5rem;font-weight:bold;}
-article>h4{font-weight:bold;}
+article>h4{color:gray;font-weight:bold;}
 aside>h2{color:DimGray;font-weight:bold;}
 aside>h3{padding-top:.75rem;padding-bottom:none;font-weight:bold;}
 aside>p{margin:0;line-height:1.2rem;padding-bottom:1rem;}

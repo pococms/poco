@@ -7,3 +7,6 @@ table>thead>tr>th{width:12rem}
 th:first-child,td:first-child{width:1rem;}
 table>tbody>tr{white-space:no-wrap;}
 
+/* Left-align all text in rows */
+table>tbody>tr>td{text-align:left}
+table{border:none;}

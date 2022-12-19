@@ -67,8 +67,6 @@ footer, header, hgroup, menu, nav, pre, section {
  * FRAMEWORK WITH SUPPORT FOR HEADER, NAV, ASIDE, FOOTER
  ***************************************************** */
 
-
-
 #page-container { 
   position: relative;
   min-height: 100vh;
@@ -127,6 +125,7 @@ header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 
 article>dl>dt {font-weight:bold;padding-top:1rem;}
 article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+article h4{font-weight:bold;color:gray}
 
 header>ul,nav>ul{list-style-type:none;}
 header>ul>li,nav>ul>li{display:inline;padding-right:.5rem;}
