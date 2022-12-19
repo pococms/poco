@@ -103,14 +103,15 @@ EOM
 # article: "article-file.md"
 # ---
 read -r -d '' ARTICLE_FILE << EOM
+
 # This is a replacement article.
 
 It was generated using an exterior file,
 using front matter like this:
 
----
-article: "article-file.md"
----
+      ---
+      article: "article-file.md"
+      ---
 EOM
 
 read -r -d '' ARTICLE_FROM_FILE << EOM

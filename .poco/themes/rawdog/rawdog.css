@@ -1,5 +1,9 @@
 body{margin:5rem}
-html{background-color:gray}
-article{background-color:white;padding:4rem;margin:6em;}
+article{background-color:white;padding:4rem;border:1px solid gray;box-shadow:3px 3px gray;}
 pre{background-color: ghostwhite;font-size: smaller;overflow: auto;padding: .5em}
+@media (max-width:720px){
+  body{margin:1rem;}
+  article{padding:1rem;margin:1rem;}
+  html{font-size:20px;}
+}
 

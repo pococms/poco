@@ -1,0 +1,12 @@
+@media (max-width:1080px){
+  aside{display:none}
+  article{float:left;clear:left;width:100%}
+  html{font-size:20px;}
+}
+@media (max-width:720px){
+  header,nav,aside,footer{display:none}
+  article{padding:1rem;}
+  article{float:left;clear:left;width:100%}
+  html{font-size:20px;}
+}
+
