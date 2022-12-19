@@ -25,7 +25,6 @@ real world.
 * [Creating clickable image links in Markdown](#creating-clickable-image-links-in-markdown)
 * [Tables](#tables)
 * [Block quote](#block-quote)
-* [Footer](#footer)
 * [HTML Forms](#html-forms)
 
 
@@ -332,9 +331,6 @@ And here's what results from the table markdown shown above:
 <input autocomplete="on" name="q" placeholder="Search reddit.com" required="required"  type="text">
 <button class="button" type="submit">Search</button>
 </form>
-
-
-## Footer
 
 Return to the [Bookmarks](#handmade-anchor)
 
