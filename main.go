@@ -20,7 +20,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"html/template"
 	"io"
-	"io/fs"
+	//"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -402,7 +402,8 @@ type config struct {
 	markdownExtensions searchInfo
 
 	// Command-line flag -new generates a new project by this name
-	newProjectStr string
+	newProjectFlag bool
+	//newProjectStr string
 
 	// Port localhost server runs on
 	port string
@@ -466,6 +467,7 @@ func (c *config) findHomePage() {
 		return
 	}
 
+  /*
 	if !dirEmpty(c.root) {
 		// No home page.
 		// Directory has files.
@@ -480,35 +482,14 @@ func (c *config) findHomePage() {
 		c.newSite()
 		//writeDefaultHomePage(c, c.root)
 	}
+  */
 	c.currentFilename = c.homePage
-}
-
-// setRoot() obtains a fully qualified pathname for the home page source filename
-// and its root directory.
-// Pre: parseComandLine()
-func (c *config) setRoot() {
-	var err error
-	// Determine home page, which may have been passed on command line.
-	if c.root == "." || c.root == "" {
-		// Handle most common case: no params, just process this directory.
-		c.root = currDir()
-	}
-	if !filepath.IsAbs(c.root) {
-		c.root, err = filepath.Abs(c.root)
-		if err != nil {
-			quit(1, err, nil, "Can't get absolute path for home page")
-		}
-	}
-	// c.root finally established. Does it even exist?
-	if !dirExists(c.root) {
-		quit(1, nil, c, "Can't find the directory %v. You may want to create a new site by running %s -new %s.", c.root, filepath.Base(os.Args[0]), flag.Arg(0))
-	}
 }
 
 // setWebroot() obtains a fully qualified pathname for the webroot, where all HTML output files
 // and assets go.
 // Creates webroot if it doesn't exist
-// Pre: parseComandLine(), setRoot()
+// Pre: parseComandLine()
 func (c *config) setWebroot() {
 	// Webroot either defaulted to WWW or was given a new location from command line.
 	// Don't know if it's valid.
@@ -939,7 +920,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 func (c *config) setupGlobals() { //
 
 	// Determine home page directory and filename
-	c.setRoot()
 
 	// If a file ends in any one of these extensions then
 	// it gets converted to HTML.
@@ -975,9 +955,9 @@ func (c *config) setupGlobals() { //
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(c.root) {
-		quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
-	}
+	//if !isProject(c.root) {
+	//	quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
+	//}
 
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
@@ -1280,7 +1260,11 @@ func (c *config) inlineStylesheets(dir string) string {
 // when -link-stylesheets is active.
 func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
-	if err := cp.Copy(pocoDir, target); err != nil {
+  source := filepath.Join(c.root, pocoDir)
+	//if err := cp.Copy(pocoDir, target); err != nil {
+  wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
+	if err := cp.Copy(source, target); err != nil {
+  //wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
 
 	}
@@ -1546,7 +1530,8 @@ func (c *config) parseCommandLine() {
 	// new creates a directory, sample index.md, and pocoDir
 	// This fails in the case of
 	//   poco -new
-	flag.StringVar(&c.newProjectStr, "new", "", "Create a new site")
+	//flag.StringVar(&c.newProjectStr, "new", "", "Create a new site")
+	flag.BoolVar(&c.newProjectFlag, "new", false, "Create a new site")
 
 	// Port server runs on
 	flag.StringVar(&c.port, "port", ":54321", "Port to use for localhost web server")
@@ -1584,17 +1569,17 @@ func (c *config) parseCommandLine() {
 	// Process command line flags such as --verbose, --title and so on.
 	flag.Parse()
 
-	// If it's somehting like poco -new ~/tmp/foo/bar,
-	// save that full pathname as c.root.
-	if filepath.IsAbs(c.newProjectStr) {
-		c.root = c.newProjectStr
+	// Figure out the starting directory
+	c.root = flag.Arg(0)
+	if c.root == "" || c.root == "." {
+		// If blank or ., use cuerrent directory
+		c.root = currDir()
 	} else {
-		// If it's something like poco -new fred, expand fred to be a full pathname
-		// and then save to c.root
 		var err error
-		c.root, err = filepath.Abs(c.newProjectStr)
+		// Otherwise get the proposed full dir path of the project
+		c.root, err = filepath.Abs(c.root)
 		if err != nil {
-			quit(1, err, nil, "Can't get absolute path for %s", c.newProjectStr)
+			quit(1, err, nil, "Can't get absolute path for %s", c.root)
 		}
 	}
 
@@ -1603,6 +1588,25 @@ func (c *config) parseCommandLine() {
 	if c.themeList {
 		print(c.themeDirContents())
 		os.Exit(0)
+	}
+
+}
+
+// promptYes() displays a prompt, then awaits
+// keyboard input followed by Enter.
+// Forces first letter of answer to lowercase.
+// If the answer starts with 'y',
+// returns true. Otherwise, loop until
+// 'y' or 'n' is entered.
+// See also inputString(), promptString()
+func promptYes(format string, ss ...interface{}) bool {
+	s := fmt.Sprintf(fmtMsg(format, ss...))
+	for {
+		answer := promptString(s)
+		if strings.HasPrefix(strings.ToLower(answer), "y") ||
+			strings.HasPrefix(strings.ToLower(answer), "n") {
+			return strings.HasPrefix(strings.ToLower(answer), "y")
+		}
 	}
 
 }
@@ -1616,35 +1620,56 @@ func main() {
 	// Collect command-line flags, directory to build, etc.
 	c.parseCommandLine()
 
-	// New project requested?
-	if c.newProjectStr != "" {
-		c.newProject(c.newProjectStr)
-	} else {
-		// -new not used on command line.
-		// If there was a directory name left on the command line,
-		// make it the root project
-		// Example command line:
-		//   poco foo
-		c.root = flag.Arg(0)
-		if c.root == "" {
-			// No directory named on command line.
-			// Assume the current directory is the
-			// intended project.
-			c.root = currDir()
-		}
-		if !isProject(c.root) {
-			quit(1, nil, c, "%s is not a Poco project", c.root)
-		}
-	}
+	dirExists := dirExists(c.root)
+	hasFiles := !dirEmpty(c.root)
+	validProject := isProject(c.root)
+	debug("Dir exists? %v\nc.root: %v\nValid project: %v\nHas files? %v\nNew requested? %v\n", dirExists, c.root, validProject, hasFiles, c.newProjectFlag)
 
-	// If in the poco main directory and no project was specified,
-	// then prevent turning the poco main directory into a project.
-	// OTOH if something is specified, e.g. poco ~/mysite, it's
-	// okay to generate that site.
-	// Should be
+	// Quit if running in main application directory
 	if executableDir() == c.root {
 		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
 	}
+
+	switch {
+  case !dirExists && !c.newProjectFlag:
+    // Dir doesn't exist. 
+    // User did not request a new project.
+		if promptYes("Create a PocoCMS project at %v? (Y/N) ", c.root) {
+			c.newSite()
+		}
+	case dirExists && hasFiles && !validProject:
+		// Dir has files, but not a valid project.
+		// User probably wants to turn an existing
+		// dir into a project.
+		if promptYes("\n%v has files in it already but it's not yet a PocoCMS project.\nIf you start a new project here, everything is reversible:\n\n* No files will be destroyed.\n* A hidden directory named %v will be added. You can delete it anytime.\n* A directory called %v will be added. You can delete it anytime as well.\n\nCreate a project at %s? (Y/N) ", c.root, pocoDir, c.webroot, c.root) {
+			c.newSite()
+		}
+	case !dirExists && c.newProjectFlag:
+		// New project requested for dir that doesn't exist.
+		// They probably want to create a project there.
+    print("Creating new project at %v", c.root)
+    c.newSite()
+	case dirExists && !validProject && !c.newProjectFlag:
+	case dirExists && !hasFiles:
+		// There's an existing directory but it's empty.
+		// They probably want to create a project there.
+		c.newSite()
+    /*
+		if promptYes("Create a PocoCMS project at %v? (Y/N) ", c.root) {
+			c.newSite()
+		} else {
+      quit(1,nil,nil,"")
+    }
+    */
+	case dirExists && validProject && c.newProjectFlag:
+		// Weird.Why create a project where a valid one exists?
+		quit(1, nil, nil, "There's already a project at %v. Quitting.", c.root)
+	case dirExists && validProject:
+		//debug("Valid project at %v so just dropping through", c.root)
+	default:
+		quit(1, nil, nil, "Missed a case!")
+	}
+
 
 	// Obtain README.md or index.md.
 	// Read in the front matter to get its config information.
@@ -1654,12 +1679,17 @@ func main() {
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
+    debug("BROKEN XXX")
+	// ---- START HERE
+    /*
 		if dirExists(c.webroot) {
 			c.serve()
 		} else {
 			// Or more likely it quits silently
 			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
 		}
+    */
+	// ---- END HERE
 	}
 
 	// If -settings flag just show config values and quit
@@ -1682,6 +1712,7 @@ func main() {
 	} else {
 		print("%s Site published to %s", theTime(), final)
 	}
+
 }
 
 // TEMPLATE FUNCTIONS
@@ -2046,7 +2077,7 @@ func executableDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
-	//c.verbose("\tcopyFile(%s,%s)", source, target)
+	debug("\t\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -2079,28 +2110,15 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 	if dir == "" {
 		dir = currDir()
 	}
-	return fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			quit(1, err, c, "Problem walking .poco dir")
-		}
-		if d.IsDir() {
-			// It's a directory. Create it in the target location.
-			// Easy to do because we're guaranteed inside the project dir.
-			err := os.MkdirAll(path, os.ModePerm)
-			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
-			}
-		} else {
-			// Build a full path for the source file to copy.
-			// The source file is in the same directory as
-			// the poco executable.
-			source := filepath.Join(executableDir(), path)
-			// Destination is just path, which is guaranteed to
-			// be a subdirectory of the current (new project) directory.
-			copyFile(c, source, path)
-		}
-		return nil
-	})
+
+  source := filepath.Join(executableDir(), pocoDir)
+	target := dir 
+	//if err := cp.Copy(pocoDir, target); err != nil {
+	if err := cp.Copy(source, target); err != nil {
+		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
+	}
+  return nil
+
 }
 
 // dirExists() returns true if the name passed to it is a directory.
@@ -2225,12 +2243,31 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 	return s
 }
 
-// newSite() creates a default home page
-// based in the root directory name,
-// then copies the .poco directory in
+// newSite() creates a directory at c.root,
+// generates a default home page,
+// then copies the .poco directory.
+// It does not check for an existing site.
+// Pre:
+//   parseCommandLine()
 func (c *config) newSite() {
+  debug("newSite() at %v", c.root)
+  dir := filepath.Join(c.root, pocoDir)
+	//err := os.MkdirAll(c.root, os.ModePerm)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil && !os.IsExist(err) {
+		quit(1, err, c, "Unable to create new project directory %s", dir)
+	}
+  debug("\tdir %v created", dir)
+  debug("\tWriting home page")
 	writeDefaultHomePage(c, c.root)
-	c.copyPocoDir(pocoFiles, "")
+
+  //target := filepath.Join(c.root, pocoDir)
+  target :=  dir
+	c.copyPocoDir(pocoFiles, target)
+
+
+
+	//c.copyPocoDir(pocoFiles, "")
 }
 
 // Generates a simple home page
@@ -2586,24 +2623,6 @@ func promptStringDefault(prompt string, defaultValue string) string {
 	}
 }
 
-// promptYes() displays a prompt, then awaits
-// keyboard input followed by Enter.
-// Forces first letter of answer to lowercase.
-// If the answer starts with 'y',
-// returns true. Otherwise, loop until
-// 'y' or 'n' is entered.
-// See also inputString(), promptString()
-func promptYes(prompt string) bool {
-	// See also inputString(), promptYes()
-	for {
-		answer := promptString(prompt)
-		if strings.HasPrefix(strings.ToLower(answer), "y") ||
-			strings.HasPrefix(strings.ToLower(answer), "n") {
-			return strings.HasPrefix(strings.ToLower(answer), "y")
-		}
-	}
-}
-
 // SERVER UTILITIES
 
 // serve is the world's simplest web server, for quick tests
@@ -2698,6 +2717,7 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 // knows it's in a new dir. newProject sets
 // up that condition and helps stop you from
 // putting this project where it shouldn't be.
+/*
 func (c *config) newProject(dir string) {
 	if !dirExists(dir) {
 		//if !dirExists(dir) {
@@ -2724,6 +2744,7 @@ func (c *config) newProject(dir string) {
 
 	}
 }
+*/
 
 // themeDirContents() returns a list of all installed themes
 // separated by newlines
