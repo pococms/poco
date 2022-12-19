@@ -1,0 +1,6 @@
+html{background-color:gray;margin-left:auto;margin-right:auto;width:80%;}
+body{margin:5% 5% 5% 10%;}
+aside{width:20%;padding-left:1rem;}
+header,nav,article,footer{margin-left:auto;margin-right:auto;}
+footer{margin-right:10%;max-width:80%;}
+

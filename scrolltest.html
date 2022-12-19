@@ -1,15 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
+<!-- saved from url=(0064)file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Powered by PocoCMS</title>
+
+<style></style>
 <style>
 
-/* poquito.css*/
-/* 12/3/22 5:50pm */
+/* base.css*/
+/* Works with optional headers, footers, nav, and 
+ * both left and right asides. 
+ * Must precede with reset.css of course 
+ *
+ * This is the equivalent of reset.css + poquito.css
+ * REM VS EM
+ * - Use rem for font sizes and @media query, because
+ *   rem is based on browser settings.
+ * - Use em for margins, padding, etc.
+ */
+
+/* *****************************************************
+ * RESET
+ ***************************************************** */
+
+html,body,nav,header,article,footer{width:100%;height:auto;max-width:100%;display:block;float:left;clear:both;overflow:auto;}
 html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, 
+a, abbr, acronym, address, big, cite, 
+del, dfn,img, ins, kbd, q, s, 
+small, strike, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, 
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+  font-family:
+    "system-ui",                           
+      "-apple-system",                  
+      "LucidaGrandeUI",                         
+      "HelveticaNeueDeskInterface-Regular",     
+      "HelveticaNeueDeskInterface-Light",        
+      "DroidSans",                           
+      "Ubuntu Light",
+      "Arial",  
+      "Roboto-Light",                            
+      "Segoe UI Light",                                   
+      "Tahoma",                             
+      "sans-serif";
+}
 
 /* Make touch interaction faster */
 a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
@@ -23,77 +74,9 @@ footer, header, hgroup, menu, nav, pre, section {
 	display: block;
 }
 
-#page-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#content-wrap {
-  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
-}
-
-article{width:80%;margin:0rem;padding:0 2rem 0 2rem}
-article ul>li,article>ol>li{margin-left:1em; padding-left:0em;}
-aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  width:15rem;
-  padding:0 2rem 0 2rem;
-  margin:10rem 2rem 0 0;
-}
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
-code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-}
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-header{height:4rem;}
-nav{height:2rem;}
-pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
-}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid;
-}
-@media (max-width:1080px){
-  aside{display:none}
-  article{padding:1rem;}
-  html{font-size:20px;}
-}
-@media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
-  html{font-size:20px;}
-}
-
-
-
-/* .poco/css/poquito.css */
-/* 12/3/22 5:50pm */
-html {box-sizing: border-box;}
-*, *:before, *:after {box-sizing: inherit;}
-
-/* Make touch interaction faster */
-a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
-
-/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
-p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
-
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, pre, section {
-	display: block;
-}
+/* ******************************************************  
+ * FRAMEWORK WITH SUPPORT FOR HEADER, NAV, ASIDE, FOOTER
+ ***************************************************** */
 
 #page-container { 
   position: relative;
@@ -104,25 +87,39 @@ footer, header, hgroup, menu, nav, pre, section {
   padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
 }
 
-article{width:80%;margin:0rem;padding:0 2rem 0 2rem}
-article ul>li,article>ol>li{margin-left:1em; padding-left:0em;}
+
+/* Links show same if visited, underlined when hovered */
+a{color:blue;text-decoration:none;}
+a:visited{color:blue;text-decoration:none;}
+a:hover,a:active{color:inherit;text-decoration:underline;cursor:pointer}
+
+/* NOTE: padding-bottom on article shold be same as footer-height */
+article{width:80%;height:90vh;padding-bottom:10vh;}                         
+ol li, ul li  {margin-left:1em;}
+p {padding-bottom:1em;}
+
+/* Note: footer height should be same as article padding-bottom */
+footer {width:100%;position:fixed;bottom:0;height:10vh;}
+aside{                                                                 
+  width:20%;                                    
+  padding:0 2rem 0 2rem;                          
+}  
+
+/* Article on the right, aside on the left */
+article{float:right;clear:right;}    
+aside{
+  float:left;                                
+}  
+
+/* Article on the left, aside on the right */
+article{float:left;clear:left;}
 aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  width:15rem;
-  padding:0 2rem 0 2rem;
-  margin:10rem 2rem 0 0;
+  float:right;
 }
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
+
 code,kbd,pre{
   font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
 }
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-header{height:4rem;}
-nav{height:2rem;}
 pre{
   background-color: ghostwhite;
   font-size: smaller;
@@ -130,6 +127,7 @@ pre{
   padding: 1rem;
 }
 table{
+  /* Cells in table share borders */
   border-collapse: collapse;
   width: 100%;
 }
@@ -137,100 +135,37 @@ td, th{
   padding: 0.5rem;
   border: 1px solid;
 }
+
+article,nav,header,footer,aside{padding-left:5%;}
+article,nav,header,footer,aside{background-color:white;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+
+article>dl>dt {font-weight:bold;padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+article h4{font-weight:bold;color:gray}
+
+header>ul,nav>ul{list-style-type:none;}
+header>ul>li,nav>ul>li{display:inline;padding-right:.5rem;}
+/*
+header>ul>li>a,header>ul>li> a:link,header>ul>li>a:visited
+	{font-weight:normal;text-decoration:none;}
+
+nav,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited
+  {text-decoration:none}
+
+footer>p,footer>p>a,footer>ul>li{display:inline;text-decoration:none;}
+*
+*/
+
 @media (max-width:1080px){
   aside{display:none}
-  article{padding:1rem;}
+  article{float:left;clear:left;width:100%}
   html{font-size:20px;}
 }
 @media (max-width:720px){
   header,nav,aside,footer{display:none}
   article{padding:1rem;}
-  html{font-size:20px;}
-}
-
-
-
-
-/* pococms.css*/
-/* pococms.css */
-html,body{font-family: 'system-ui', '-apple-system', 'LucidaGrandeUI', 'HelveticaNeueDeskInterface-Regular', 'HelveticaNeueDeskInterface-Light', 'DroidSans', 'Ubuntu Light', 'Arial', 'Roboto-Light', 'Segoe UI Light', 'Tahoma', 'sans-serif', sans-serif}
-header > ul {list-style-type:none;display:inline;}
-header > ul > li:first-child > a > del, header > p > del {color:red;text-decoration:none;font-weight:900;}
-header > ul > li:first-child > a {font-size:xxx-large;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
-header > ul > li{display:inline;padding-right:.75rem;font-size:1.25rem;}
-header > ul > li > a, header > ul > li > a:link, header > ul > li > a:visited {font-weight:bold;text-decoration:none;}
-article > h1 {color:red;}
-header,nav,footer {text-align:center;padding-left:0;padding-right:0;width:100%;margin-left:auto;margin-right:auto;}
-
-
-
-/* .poco/css/poquito.css */
-/* 12/3/22 5:50pm */
-html {box-sizing: border-box;}
-*, *:before, *:after {box-sizing: inherit;}
-
-/* Make touch interaction faster */
-a,area,button,[role="button"],input:not([type=range]),label,select,summary,textarea { -ms-touch-action: manipulation;touch-action: manipulation;}
-
-/* Largely undocumented and fails nvu validation. But removing it causes subtle problems, for example, adding extra left padding in header. */
-p,ol,ul,li,header {margin-block-start:0;margin-block-end:0;padding-inline-start:0;}
-
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, pre, section {
-	display: block;
-}
-
-#page-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#content-wrap {
-  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
-}
-
-article{width:80%;margin:0rem;padding:0 2rem 0 2rem}
-article ul>li,article>ol>li{margin-left:1em; padding-left:0em;}
-aside{ 
-  float:right; /* Change to float:left for right sidebar */
-  width:15rem;
-  padding:0 2rem 0 2rem;
-  margin:10rem 2rem 0 0;
-}
-body{
-  height:100vh;
-  font-family:sans-serif;
-}
-code,kbd,pre{
-  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-}
-/* NOTE: Footer height must be same as #content-wrap padding-bottom */
-footer {position: absolute;bottom: 0;width: 100%;height: 10vh;}
-header{height:4rem;}
-nav{height:2rem;}
-pre{
-  background-color: ghostwhite;
-  font-size: smaller;
-  overflow: auto;
-  padding: 1rem;
-}
-table{
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th{
-  padding: 0.5rem;
-  border: 1px solid;
-}
-@media (max-width:1080px){
-  aside{display:none}
-  article{padding:1rem;}
-  html{font-size:20px;}
-}
-@media (max-width:720px){
-  header,nav,aside,footer{display:none}
-  article{padding:1rem;}
+  article{float:left;clear:left;width:100%}
   html{font-size:20px;}
 }
 
@@ -238,312 +173,69 @@ td, th{
 
 
 
-</style>
-<style>		article>p{color:darkgray;}
+/* skyscraper-overrides.css*/
+html{background-color:gray;margin-left:auto;margin-right:auto;width:80%;}
+body{margin:5% 5% 5% 10%;}
+aside{width:20%;padding-left:1rem;}
+header,nav,article,footer{margin-left:auto;margin-right:auto;}
+footer{margin-right:10%;max-width:80%;}
+
+
+
+
+/* ../../css/featuretable.css */
+/* Very specific stylesheet: used for feature tables in the theme demo area */
+td,th{text-align:left;border:none;line-spacing:.5rem;}
+table{white-space:no-wrap;}
+table{table-layout:fixed;width:40%;}
+table>tbody>tr{line-height:.5rem;}
+table>thead>tr>th{width:12rem}
+th:first-child,td:first-child{width:1rem;}
+table>tbody>tr{white-space:no-wrap;}
+
+/* Left-align all text in rows */
+table>tbody>tr>td{text-align:left}
+table{border:none;}
+
 </style>
 </head>
 <body>
 <div id="page-container">
 <div id="content-wrap">
-	<header id="header-poco"><p>NEWPOQUITO HEADER</p>
-</header>
-	<nav id="nav-poco"><p>Newpoquito Nav</p>
-</nav>
-	<aside id="aside-poco"><h3 id="newpoquito">NEWPOQUITO</h3>
-<h4 id="aside">ASIDE</h4>
-<p>Title is: {{ .Title }}
-This is an aside.
-I need to test.</p>
-<p>A lot could happen here</p>
-<ul>
-<li>Item 1</li>
-<li>Item 2</li>
-<li>Item 3</li>
+	
+<header id="header-poco"><ul>
+<li><strong><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Base theme header</a></strong></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Reviews</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Github</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Profile</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">About</a></li>
 </ul>
-<h4 id="another-list">Another list</h4>
-<ol>
-<li>Numbered list 1</li>
-<li>Numbered list 2</li>
-<li>Numbered list 3</li>
-</ol>
+</header>
+	
+<nav id="nav-poco"><ul>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Base theme nav</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Subscribe</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Technical overview</a></li>
+<li><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Free trial</a></li>
+</ul>
+</nav>
+	
+<aside id="aside-poco" style="height: 461px;"><h2 id="aside-demo-h2">Aside demo h2</h2>
+<h3 id="item-1">Item 1</h3>
+<p>Here's a good place to put a
+news item of current interest</p>
+<h3 id="item-2">Item 2</h3>
+<p>Here's a good place to put another
+news item of current interest</p>
 </aside>
 <article id="article-poco">
-<h1 id="pococms-markdown-quick-reference">PocoCMS Markdown quick reference</h1>
-<p>This page serves as a Markdown quick reference.
-It is also gives you a good idea of how a
-classless CSS framework can operate in the
-real world.</p>
-<h2 id="table-of-contents">Table of contents</h2>
-<ul>
-<li><a href="#common-text-formatting">Common text formatting</a></li>
-<li><a href="#links">Links</a></li>
-<li><a href="#bookmarks">Bookmarks</a>
-<ul>
-<li><a href="#linking-inside-a-document">Linking inside a document</a></li>
-<li><a href="#automatic-bookmarks">All headers are automatically bookmarks</a></li>
-<li><a href="#bookmarks-unique">Bookmarks must be unique in an HTML document</a></li>
-<li><a href="#how-to-create-bookmarks-manually">How to create bookmarks manually</a></li>
-<li><a href="#linking-other-websites">Linking to bookmarks on other webstes</a></li>
-</ul>
-</li>
-<li><a href="#header-styles">Header styles</a></li>
-<li><a href="#coding-styles">Coding styles</a>
-<ul>
-<li><a href="#choose-pl">Choosing the programming language</a></li>
-</ul>
-</li>
-<li><a href="#ordered-lists-37">Ordered lists</a></li>
-<li><a href="#unordered-lists">Unordered, or bullet lists</a></li>
-<li><a href="#def-lists">The &quot;third&quot; list type: definition lists</a></li>
-<li><a href="#clickable-images">Creating clickable image links in Markdown</a></li>
-<li><a href="#tables">Tables</a></li>
-<li><a href="#block-quote">Block quote</a></li>
-<li><a href="#footer">Footer</a></li>
-<li><a href="#html-forms">HTML Forms</a></li>
-</ul>
-<h2 id="markdown-syntax">Markdown syntax</h2>
-<p>Here's how markdown appears in the <strong><no value></strong> theme</p>
-<h2 id="common-text-formatting">Common text formatting</h2>
-<h4 id="you-type">You type:</h4>
-<pre><code>Normal body text, **strong**, ~~strikethrough~~, and with *emphasis*.
-</code></pre>
-<h4 id="it-shows-as">It shows as:</h4>
-<p>Normal body text, <strong>strong</strong>, <del>strikethrough</del>, and with <em>emphasis</em>.</p>
-<p>Horizontal rule:</p>
-<h4 id="you-type-1">You type:</h4>
-<pre><code>---
-</code></pre>
-<h4 id="it-shows-as-1">It shows as:</h4>
-<hr />
-<h2 id="links">Links</h2>
-<h4 id="you-type-2">You type:</h4>
-<pre><code>[HTML color names](https://htmlcolorcodes.com/color-names/)
-</code></pre>
-<h4 id="it-shows-as-2">It shows as:</h4>
-<p><a href="https://htmlcolorcodes.com/color-names/">HTML color names</a></p>
-<p><a id="handmade-anchor"></a></p>
-<h2 id="bookmarks">Bookmarks</h2>
-<p>Suppose you want to link to a particular location inside a page. As long as there's an <code>id</code> attribute in the document's HTML you can cause a link to jump directly to that part of the page by specifing the link following a <code>#</code> character.</p>
-<h3 id="linking-inside-a-document">Linking inside a document</h3>
-<p>We'll loosely call them anchors or bookmarks,
-although the HTML specification simply calls it the <a href="https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute">id attribute</a>.</p>
-<p>Here's a demonstration. If you type:</p>
-<pre><code>Jump to the [tables](#tables) section.
-</code></pre>
-<p>The result will be this (click the link, then use your browser's Back button to return here):</p>
-<p>Jump to the <a href="#tables">tables</a> section.</p>
-<p><a name="automatic-bookmarks"></a></p>
-<h3 id="all-headers-are-automatically-bookmarks-too">All headers are automatically bookmarks too</h3>
-<p>Metabuzz automatically generates an <code>id</code> attribute for each header from h1 to h6 by taking the text of the link itself, reducing it to lowercase, and either replacing spaces and other non-letter characters with hyphens, or removing them altogether. If you look at the HTML for this page you'll see the <code>Tables</code> header looks like this:</p>
-<pre><code>&lt;h2 id=&quot;tables&quot;&gt;Tables&lt;/h2&gt;
-</code></pre>
-<p>The <code>Coding styles</code> header uses a hyphen to replace the space:</p>
-<pre><code>&lt;h2 id=&quot;coding-styles&quot;&gt;Coding styles&lt;/h2&gt;
-</code></pre>
-<p>And the more complicated example of the header named &quot;The 'third' list type: definition lists&quot;:</p>
-<pre><code>&lt;h3 id=&quot;the-third-list-type-definition-lists&quot;&gt;The &quot;third&quot; list type: definition lists&lt;/h3&gt;
-</code></pre>
-<p><a name="bookmarks-unique"></a></p>
-<h3 id="bookmarks-must-be-unique-in-an-html-document">Bookmarks must be unique in an HTML document</h3>
-<p>The <code>id</code> attribute must be unique within a document. Notice how on this page there are many headers simply called <code>You type:</code>? Metabuzz keeps track of them and turns each of them into unique IDs by naming them <code>you-type-1</code>, <code>you-type-2</code>, and so forth.</p>
-<h3 id="how-to-create-bookmarks-manually">How to create bookmarks manually</h3>
-<p>Suppose you want a bookmark that's not a header? You can insert one anywhere by starting a Markdown line with the pure HTML code for anchors. (HTML is <a href="https://spec.commonmark.org/0.29/#html-blocks">allowed in Markdown with a few restrictions</a>).</p>
-<p>You type:</p>
-<pre><code>&lt;a id=&quot;jump-here&quot;&gt;&lt;/a&gt;
-</code></pre>
-<p>Then you create a link to it by adding the <code>#jump-here</code> portion to a link, which is noted by the web browser but not displayed:</p>
-<pre><code>[Learn about blockquotes](#jump-here)
-</code></pre>
-<p>Try it now: <a href="#jump-here">Learn about blockquotes</a></p>
-<p><a id=linking-other-websites></a></p>
-<h3 id="linking-to-bookmarks-on-other-websites">Linking to bookmarks on other websites</h3>
-<p>You can also link to an anchor to other websites, if they have anchors. Here's a link to the history of futbol on Wikipedia:</p>
-<h4 id="you-type-3">You type:</h4>
-<pre><code>[History of futbol](https://en.wikipedia.org/wiki/Association_football#History)
-</code></pre>
-<h4 id="it-takes-you-right-there">It takes you right there:</h4>
-<p><a href="https://en.wikipedia.org/wiki/Association_football#History">History of futbol</a></p>
-<h2 id="header-styles">Header styles</h2>
-<h4 id="you-type-4">You type:</h4>
-<pre><code># h1
-## h2
-### h3
-#### h4
-##### h5
-###### h6
-</code></pre>
-<h4 id="it-shows-as-3">It shows as:</h4>
-<h1 id="h1">h1</h1>
-<h2 id="h2">h2</h2>
-<h3 id="h3">h3</h3>
-<h4 id="h4">h4</h4>
-<h5 id="h5">h5</h5>
-<h6 id="h6">h6</h6>
-<h2 id="coding-styles">Coding styles</h2>
-<p>You can format text inline as <code>code</code> by surrounding text with <code>`</code>tick marks<code>`</code>, or go block style by enclosing the lines of code in a &quot;fenced code block&quot;, which begin and end with 3 tickmarks:</p>
-<pre><code>You can format text inline as `code`, or go block style:
-</code></pre>
-<p><a name="choose-pl"></a></p>
-<h3 id="choosing-the-programming-language">Choosing the programming language</h3>
-<p>You can specify a color scheme for a particular programming language by including its name after the first 3 tick marks of the code block.</p>
-<h4 id="you-type-5">You type:</h4>
-<pre><code>```python
-print (&quot;This is a code block&quot;)
-```
-</code></pre>
-<h4 id="it-shows-as-4">It shows as:</h4>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span><span style="color:#0aa">print</span> (<span style="color:#a50">&#34;This is a code block&#34;</span>)
-</span></span></code></pre><h4 id="if-youre-a-go-programmer-you-type">If you're a Go programmer, you type:</h4>
-<pre><code>```go
-fmt.Println(&quot;This is a code block&quot;)
-```
-</code></pre>
-<h4 id="it-shows-as-5">It shows as:</h4>
-<pre tabindex="0" style="background-color:#fff;"><code><span style="display:flex;"><span>fmt.<span style="color:#0a0">Println</span>(<span style="color:#a50">&#34;This is a code block&#34;</span>)
-</span></span></code></pre><h2 id="there-are-2-or-3-kinds-of-list-types">There are 2 or 3 kinds of list types</h2>
-<h4 id="you-type-6">You type:</h4>
-<pre><code>### Ordered lists
-
-1. Ordered lists have numeric sequences
-1. Even though you write `1` in Markdown,
-1. The numbers display properly on output
-</code></pre>
-<h4 id="it-shows-as-6">It shows as:</h4>
-<h3 id="ordered-lists">Ordered lists</h3>
-<ol>
-<li>Ordered lists have numeric sequences</li>
-<li>Even though you write <code>1</code> in Markdown,</li>
-<li>The numbers display properly on output</li>
-</ol>
-<h3 id="unordered-lists">Unordered lists</h3>
-<p>Unordered lists are normally represented as bullets They're always
-the same, whereas ordered lists show as automatically generated sequences of letters or number</p>
-<h4 id="you-type-7">You type:</h4>
-<pre><code>Reasons people hate bullet lists
-
-* They were traumatized by bad PowerPoint
-* Some peple actually like bullet lists
-  + You can indent bullet lists
-    - Just use tab, then one of the characters `*`, `+`, `-`
-  + The `+` isn't required. It's just for clarity
-    - Most Metabuzz themes go up to 3 visible levels
-    - Any more levels than 3 makes it hard for the reader
-      + Therefore the Metabuzz theme framework seldom covers indentation levels as deep as this bullet point
-</code></pre>
-<h4 id="it-shows-as-7">It shows as:</h4>
-<p>Reasons people hate bullet lists</p>
-<ul>
-<li>They were traumatized by bad PowerPoint</li>
-<li>Some peple actually like bullet lists
-<ul>
-<li>You can indent bullet lists
-<ul>
-<li>Just use tab, then one of the characters <code>*</code>, <code>+</code>, <code>-</code></li>
-</ul>
-</li>
-<li>The <code>+</code> isn't required. It's just for clarity
-<ul>
-<li>Most Metabuzz themes go up to 3 visible levels</li>
-<li>Any more levels than 3 makes it hard for the reader
-<ul>
-<li>Therefore the Metabuzz theme framework seldom covers indentation levels as deep as this bullet point</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p><a name="def-lists"></a></p>
-<h3 id="the-third-list-type-definition-lists">The &quot;third&quot; list type: definition lists</h3>
-<p>A definition list lets you display things like an item
-and its meaning in a distinct way:</p>
-<h4 id="you-type-8">You type:</h4>
-<pre><code>Definition list
-: A way to show a visual relationship between a word or phrase
-and an explanation for it
-
-Markdown
-: A convention for generating HTML from a more human-readable 
-source format.
-</code></pre>
-<h4 id="it-shows-as-8">It shows as:</h4>
-<dl>
-<dt>Definition list</dt>
-<dd>A way to show a visual relationship between a word or phrase
-and an explanation for it</dd>
-<dt>Markdown</dt>
-<dd>A convention for generating HTML from a more human-readable
-source format.</dd>
-</dl>
-<p><a name="clickable-images"></a></p>
-<h3 id="creating-clickable-image-links-in-markdown">Creating clickable image links in Markdown</h3>
-<p>Remember that a Markdown link looks like this:</p>
-<pre><code>[Twitter](https://twitter.com)
-</code></pre>
-<p>And that an image link looks like this:</p>
-<pre><code>![Twitter logo](twitter-32x32-black.png)
-</code></pre>
-<p>You can combine them to make a clickable image, like this:</p>
-<pre><code>[![Twitter logo](twitter-32x32-black.png)](https://twitter.com)
-</code></pre>
-<h2 id="tables">Tables</h2>
-<p>Use this method of creating tables. Columns are normally left-aligned,
-but <code>:|</code> on the row of dashes right-aligns a column, and  <code>|:-</code> and  <code>-:|</code> center-aligns a column.
-Headers are always centered.</p>
-<h4 id="you-type-9">You type:</h4>
-<pre><code>
-| Left-justified Contents  |  Centered Contents   | Right-justified Contents   |
-| ------------------------ |:--------------------:| --------------------------:|
-| Row 1, Col 1             | Row 1, Col 2         | Row 1, Col 3               |
-| Row 2, Col 1             | Row 2, Col 2         | Row 2, Col 3               |
-
-</code></pre>
-<p>And here's what results from the table markdown shown above:</p>
-<h4 id="it-shows-as-9">It shows as:</h4>
-<table>
-<thead>
-<tr>
-<th>Left-justified Contents</th>
-<th align="center">Centered Contents</th>
-<th align="right">Right-justified Contents</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Row 1, Col 1</td>
-<td align="center">Row 1, Col 2</td>
-<td align="right">Row 1, Col 3</td>
-</tr>
-<tr>
-<td>Row 2, Col 1</td>
-<td align="center">Row 2, Col 2</td>
-<td align="right">Row 2, Col 3</td>
-</tr>
-</tbody>
-</table>
-<h2 id="block-quote">Block quote</h2>
-<h4 id="you-type-10">You type:</h4>
-<pre><code>&gt;Hypocrisy waits silently for us all. 
-</code></pre>
-<h4 id="it-shows-as-10">It shows as:</h4>
-<blockquote>
-<p>Hypocrisy waits silently for us all.</p>
-</blockquote>
-<p><a href="#bookmarks">Return to the bookmarks section</a></p>
-<h2 id="html-forms">HTML forms</h2>
-<p><strong>HTML form test: Search reddit.com</strong></p>
-<form action="https://www.google.com/search" class="searchform" method="get" name="searchform" target="_blank">
-<input name="sitesearch" type="hidden" value="reddit.com">
-<input autocomplete="on" name="q" placeholder="Search reddit.com" required="required"  type="text">
-<button class="button" type="submit">Search</button>
-</form>
-<h2 id="footer">Footer</h2>
-<p>Return to the <a href="#handmade-anchor">Bookmarks</a></p>
+<h4 id="theme-demos">Theme demos</h4>
+<h1 id="skyscraper-theme">Skyscraper theme</h1>
 
 </article>
 </div><!-- content-wrap -->
-<footer id="footer-poco"><h4 id="newpoquito-footer">NEWPOQUITO FOOTER</h4>
+
+<footer id="footer-poco"><p><a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Contact</a> <a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Privacy policy</a> <a href="file:///Users/tom/pococms/website/WWW/docs/demos/skyscraper.html#">Terms of service</a></p>
 </footer>
 </div><!-- page-container -->
 <script> {
@@ -563,13 +255,8 @@ Headers are always centered.</p>
       });
     } else {
       document.attachEvent('onreadystatechange', function() {
-
-        if (document.readyState == "interactive") {
-          bodyScroll();
-        }
-
-
         if (document.readyState != 'loading')
+          console.log("1")
           fn();
       });
     }
@@ -593,17 +280,16 @@ Headers are always centered.</p>
 
   // --- START USER JAVASCRIPT CODE
   function startHere() {
-    console.log("startHere()")
+      console.log("START")
+      /* bodyScroll() */
   }
   // --- END USER JAVASCRIPT CODE
 ;
 
-// Stretch sidebar when document is scrolled.
 // For some reason HTML doesn't do that for you.
 var scrollTimer = -1;
 function bodyScroll()
 {
-    console.log("bodyScroll()")
   if(scrollTimer != -1){
     clearTimeout(scrollTimer);
   }
@@ -611,8 +297,8 @@ function bodyScroll()
 }
 function sidebarHeight() {
     console.log("sidebarHeight()")
-  s=document.getElementById('poco-sidebar');
-  a=document.getElementById('poco-article'); 
+  s=document.getElementById('aside-poco');
+  a=document.getElementById('article-poco'); 
   if (s != null && a != null) {
     // If there's a sidebar,
     ha=a.offsetHeight;
@@ -629,16 +315,20 @@ function sidebarHeight() {
       h=s.offsetHeight+'px';a.style.height=h;
     }
   }
+
 } 
- 
+document.onreadystatechange = function () {
+  if (document.readyState == "interactive") {
+    // Init or start code here
+    bodyScroll();
+  }
+} 
 window.onresize=sidebarHeight;
 /* ES5 works fine */
 document.getElementsByTagName('body')[0].onscroll=bodyScroll();
-
-
-
-
 }
+
 </script>
-</body>
-</html
+
+
+</body></html>

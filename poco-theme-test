@@ -180,6 +180,8 @@ EOM
 read -r -d '' INDEX << EOM
 ---
 theme: $theme
+endjs:
+- "aside.js"
 ---
 # Tests for theme $theme
 $MAIN_LINKS
