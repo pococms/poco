@@ -1,0 +1,17 @@
+article,nav,header,footer{padding-left:5%;}
+article{height:90vh;width:80%}
+aside{width:20%}
+/* Article on the right, aside on the left  */
+article{float:right;clear:right;}
+aside{float:left;}
+/* Article on the left, aside on the right  */
+article{float:left;clear:left;}
+aside{float:right;}
+
+article{width:80%;height:90vh;margin-bottom:20vh;}                         
+
+/* html,body,nav,header,article,footer{width:100%;height:auto;max-width:100%;display:block;float:left;clear:both;overflow:auto;} */
+footer {background-color:white;width:100%;position:fixed;bottom:0;height:10vh;}
+footer>p,footer>p>a,footer>ul>li{display:inline;text-decoration:none;}
+
+
