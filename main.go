@@ -291,7 +291,6 @@ func (c *config) endJs() string {
 	for _, filename := range filenames {
     path := filepath.Join(c.jsUserLastDir, filename)
     s = c.fileToString(path)
-    debug("Path: %v", path)
     files = files + s
   }
   return files
@@ -1179,7 +1178,8 @@ func (c *config) importRules() string {
 		c.theme.importRulesStr =
 			sliceToImportsRulesStr(c.theme.importRuleNames)
 		return "\n" + tagSurround("style", c.theme.importRulesStr, "\n")
-	}
+  }
+
 	return ""
 }
 
@@ -1606,7 +1606,6 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	// TODO: Are the next 2 needed? Thisis only at theme reading time, not
 	// page generation, correct?
 	//t.asideLeftFilename = fmStr("asideleft", fm)
-	//debug("HEY t.asideLeftFilename: %s", t.asideLeftFilename)
 	//t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("styles", fm)
@@ -2361,15 +2360,11 @@ func (c *config) getWebOrLocalFileStr(filename string) string {
 // Pre:
 //   parseCommandLine()
 func (c *config) newSite() {
-	debug("newSite() at %v", c.root)
 	dir := filepath.Join(c.root, pocoDir)
-	//err := os.MkdirAll(c.root, os.ModePerm)
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		quit(1, err, c, "Unable to create new project directory %s", dir)
 	}
-	debug("\tdir %v created", dir)
-	debug("\tWriting home page")
 	writeDefaultHomePage(c, c.root)
 
 	//target := filepath.Join(c.root, pocoDir)
