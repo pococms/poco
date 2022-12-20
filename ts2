@@ -34,20 +34,151 @@ then
 fi
 
 
+# Text of a low-content (short) page
+read -r -d '' lpcontent << EOM
+
+## **Low-content** page demo 
+* Does the sidebar look OK?
+* Resize page to check responsiveness
+EOM
+
+
+# Create the index page for this theme directory
 # $1 is the theme name
-# $2 is the directory for the page
-function make_short_page() {
-echo "Creating short page ${1}"
+# $2 is the tmp directory of the home page 
+function themehome() {
+# Create the index for this dir
+echo "---\npagetheme: ${1}\n---\n# ${1} theme" > $2/index.md
+echo $lcpanel >> $2/index.md
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
 ---
-#### THEME TEST
-
-# Short page testing theme $1
 EOM
-echo $page >> $2/index.md
+# $2/$1 means the temp directory, then the theme subdirectory
+echo $page >> $2/$1/index.md
 }
+
+# Generate links to low-content page tests
+read -r -d '' lcpanel << EOM
+Low-content tests: 
+[Default](short_page.html)  
+**Try hiding** [header](short_page_no_header.html),
+[nav](short_page_no_nav.html),
+[aside](short_page_no_aside.html),
+[footer](short_page_no_footer.html)
+
+[Theme home](index.html)
+EOM
+
+
+# Central location for low-content page demo
+# It points to variation such as low content without header,
+# low content without nav, etc. 
+# $1 is the theme name
+# $2 is the directory for the page
+function short_page() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
+
+# Theme $1
+$lpcontent
+$lcpanel
+EOM
+echo $page >> $2/short_page.md
+}
+
+###########################################################
+# GENERATE VARIATIONS ON THEMES, LOW-CONTENT PAGES
+###########################################################
+
+# -------------------------------------
+# Low-content page, no header
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_header() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+header: "SUPPRESS"
+---
+# Theme $1
+$lpcontent
+$lcpanel
+### *Header* suppressed
+EOM
+echo $page >> $2/short_page_no_header.md
+}
+
+# -------------------------------------
+# Low-content page, no nav 
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_nav() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+nav: "SUPPRESS"
+---
+# Theme $1
+$lpcontent
+### *Nav* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_nav.md
+}
+
+# -------------------------------------
+# Low-content page, no footer 
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_footer() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+footer: "SUPPRESS"
+---
+# Theme $1
+$lpcontent
+### *Footer* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_footer.md
+}
+
+# -------------------------------------
+# Low-content page, no aside 
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_aside() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+aside: "SUPPRESS"
+---
+# Theme $1
+$lpcontent
+### *Aside* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_aside.md
+}
+
+
+
+
+
+
 
 
 function main_loop() {
@@ -61,14 +192,16 @@ for theme in "${themes[@]}";
     # Create a directory for each theme.
     dir=$tmpdir/$theme
     mkdir -p $dir
-    make_short_page $theme $dir
+    themehome $theme $dir
+    short_page $theme $dir
+    short_page_no_header $theme $dir
+    short_page_no_aside $theme $dir
+    short_page_no_nav $theme $dir
+    short_page_no_footer $theme $dir
     echo "[${theme}]($theme/index.html) ">> $tmpdir/navthemes.md
     #read -n fook
   done
-echo "here:"
 cat $tmpdir/navthemes.md  > $tmpdir/index.md
-echo "Index:"
-cat $tmpdir/index.md 
 echo "Project created successfully"
 poco $tmpdir
 open $tmpdir/WWW/index.html
