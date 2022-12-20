@@ -278,6 +278,7 @@ read -r -d '' THEME_NAV << EOM
 * [newman](newman-theme-demo.html) theme
 * [hack](hack-theme-demo.html) theme
 * [probot](probot-theme-demo.html) theme
+* [Skyscraper](skyscraper-theme-demo.html) theme
 
 EOM
 
@@ -582,6 +583,21 @@ $MDEMO
 EOM
 
 
+# Generate the page named skyscraper-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' SKYSCRAPER_THEME_DEMO << EOM
+---
+title: "Skyscraper theme"
+pagetheme: "skyscraper"
+---
+# Demonstration of the {{ .pagetheme }} theme.
+
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+$MDEMO
+EOM
+
 # Generate the page named hack-theme-demo.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -628,6 +644,7 @@ echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
 echo $NEWMAN_THEME_DEMO > $tmpdir/newman-theme-demo.md
 echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md
+echo $SKYSCRAPER_THEME_DEMO > $tmpdir/skyscraper-theme-demo.md
 poco -verbose $LINK_STYLES $tmpdir
 if [[ $? -gt 0 ]]
 then
