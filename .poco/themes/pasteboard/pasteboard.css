@@ -1,12 +1,13 @@
-html{background-color:gray;margin-left:auto;margin-right:auto;width:75%;}
+html{background-color:gray;margin-left:auto;margin-right:auto;width:80%;}
 header{margin-top:4rem;}
-body{margin-top:5%;}
+body{margin:5% 10% 5% 10%;}
+
 header,nav,article,footer{margin-left:auto;margin-right:auto;}
 header,nav{white-space:nowrap;overflow:hidden;}
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 nav{margin-bottom:0}
 h1{font-weight:900;font-size:3rem;padding-top:.5rem;line-height:2.8rem}
-footer{padding-left:5%;max-width:75%;margin-top:2rem;}
+footer{padding-left:5%;max-width:80%;margin-top:2rem;}
 article{padding-left:5%;}
 article>ul>li>a,article>p>a{font-weight:normal}
 article>h1{/*letter-spacing:-.1rem;*/padding-bottom:2rem;}

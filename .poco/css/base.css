@@ -125,7 +125,7 @@ td, th{
   border: 1px solid;
 }
 
-article,nav,header,footer,aside{padding-left:5%;}
+article,nav,header,footer{padding-left:5%;}
 article,nav,header,footer,aside{background-color:white;}
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 
