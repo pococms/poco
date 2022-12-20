@@ -36,6 +36,21 @@ import (
 // IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
 
+// Directory immediately under pocoDir for Javascript files
+const jsDir = "js"
+
+// Name of directory on disk that holds user-supplied
+// Javascript files to be inserted just before
+// the closing body tag. (User goes after
+// Poco, meaning they get the last word) 
+const jsUserLastDir = "userlast"
+
+// Name of directory on disk that holds Poco-supplied
+// Javascript files to be inserted just before
+// the closing body tag. (Poco goes before
+// user, meaning user gets the last word) 
+const jsPocoLastDir = "pocolast"
+
 // Used to prevent use of a page layout elment. So to
 // prevent a header being dispallyed on the current page,
 // you'd add this to hour front matter:
@@ -113,7 +128,6 @@ func (c *config) assemble(filename string) string {
 	// Get Javascript that goes after the body
 	scriptAfterStr := c.scriptAfter()
 	if scriptAfterStr != "" {
-		//hasScript = true
 	}
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
@@ -202,7 +216,70 @@ func (c *config) documentReady() string {
 }
 
 
-// endJs() inserts Javascript files just before the body ends.
+func (c *config) copyDirTostring(dir string) string {
+	f, err := os.Open(dir)
+	if err != nil {
+    quit(1, err, nil, "Can't open directory: %s", dir)
+	}
+	defer f.Close()
+  filenames, err := f.Readdirnames(-1)
+  if err != nil {
+    quit(1, err, nil, "Can't read files in directory: %s", dir)
+  }
+  list := ""
+	for _,filename  := range filenames {
+    debug("%v", filename)
+    s := filename
+    list += s
+	}
+  return list
+}
+
+// Given a list of filenames in a slice (named
+// in the front matter), copies
+// them from the directory passed in. and
+// return the files concatenated as a string.
+// source is the name of the slice, for example, 
+// "endjs". 
+// Target is the directory to
+// copy them to, for example, c.jsUserLastDir.
+func (c *config) copyFileSlice(source string, targetDir string) string {
+	filenames := fmStrSlice(source, c.fm)
+  if len(filenames) == 0 {
+    return ""
+  }
+  files := ""
+  s := ""
+	for _, filename := range filenames {
+    path := filepath.Join(targetDir, filename)
+    s = c.fileToString(path)
+    files = files + s
+  }
+  return files
+
+}
+
+// pocoEndJs() inserts Poco's Javascript files 
+// just before the body ends.
+// It occurs before endJs() which means users get
+// the final say
+func (c *config) pocoEndJs() string {
+	filenames := fmStrSlice("endjs", c.fm)
+  if len(filenames) == 0 {
+    return ""
+  }
+  files := ""
+  s := ""
+	for _, filename := range filenames {
+    path := filepath.Join(c.jsUserLastDir, filename)
+    s = c.fileToString(path)
+    debug("Path: %v", path)
+    files = files + s
+  }
+  return files
+}
+// endJs() inserts user-provided Javascript files 
+// just before the body ends.
 // The files are named in the front matter, like this:
 //
 // ---
@@ -212,6 +289,7 @@ func (c *config) documentReady() string {
 // ---
 //
 func (c *config) endJs() string {
+  return c.copyFileSlice("endjs", c.jsUserLastDir)
 	filenames := fmStrSlice("endjs", c.fm)
   if len(filenames) == 0 {
     return ""
@@ -219,7 +297,7 @@ func (c *config) endJs() string {
   files := ""
   s := ""
 	for _, filename := range filenames {
-    path := filepath.Join(c.endJsDir, filename)
+    path := filepath.Join(c.jsUserLastDir, filename)
     s = c.fileToString(path)
     debug("Path: %v", path)
     files = files + s
@@ -368,6 +446,9 @@ type theme struct {
 	ver string
 }
 
+
+// TODO: Doc
+
 // there are no configuration files (yet) but this holds
 // configuration info for the project, for example, template
 // stylesheets and current file being processed.
@@ -396,9 +477,13 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
-  // Directory holding source files to read in at bottom of
+  // Directory holding user-supplied source files to read in at bottom of
   // script tag area 
-  endJsDir string
+  jsUserLastDir string
+
+  // Directory holding pocoCMS-supplied source files to read in at bottom of
+  // script tag area 
+  jsPocoLastDir string
 
 	// linkStylesOption true means stylesheets will not be inlined.
 	linkStylesOption bool
@@ -1658,7 +1743,8 @@ func main() {
 
   // Save location of directories so they don't have to be recomputed
   c.pocoDir = filepath.Join(c.root, pocoDir)
-  c.endJsDir = filepath.Join(c.pocoDir, "endjs")
+  c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
+  c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
 
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
@@ -2089,7 +2175,7 @@ func dirEmpty(name string) bool {
 	}
 	defer f.Close()
 
-	_, err = f.Readdirnames(1)
+  _, err = f.Readdirnames(1)
 	if err == io.EOF {
 		return true
 	}
