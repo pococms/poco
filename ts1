@@ -43,7 +43,8 @@ article: "article-file.md"
 # This text should not appear
 EOM
 
- 
+# Read the contents of file .poco/demo/mdemo.md into the
+# shell variable $MDEMO
 read -r -d '' MDEMO << EOM
 $(<.poco/demo/mdemo.md)
 EOM
@@ -60,16 +61,6 @@ EOM
 read -r -d '' TEST_PAGE << EOM
 ---
 pagetheme: "test"
-#importrules:
-#- "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');"
-
-styles:
-- "article>h1{font-family:'Oswald',sans-serif;}"
-# - "header{background-color:lightgray}"
-# - "aside{background-color:blue}"
-# - "footer{background-color:red}" 
-# - "article{background-color:gray}" 
-# - "nav{background-color:green}" 
 ---
 
 $INTERACTIVE_TESTING 
@@ -275,6 +266,8 @@ EOM
 read -r -d '' THEME_NAV << EOM
 ## Theme demos
 * [Article from file](file-to-article.html)
+* [Retro](retro-theme-demo.html) theme
+* [Page](paper-theme-demo.html) theme
 * [newman](newman-theme-demo.html) theme
 * [hack](hack-theme-demo.html) theme
 * [probot](probot-theme-demo.html) theme
@@ -548,6 +541,40 @@ title: "level3/page3-1"
 * [Home](./index.html)
 EOM
 
+
+# Generate the page named paper-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' PAPER_THEME_DEMO << EOM
+---
+title: "Paper theme"
+pagetheme: "Paper"
+---
+# Demonstration of the {{ .pagetheme }} theme.
+
+$MDEMO
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+EOM
+
+# Generate the page named retro-theme-demo.md from the text
+# directly under the read until the text directly
+# above the second EOM
+read -r -d '' RETRO_THEME_DEMO << EOM
+---
+title: "Retro theme"
+pagetheme: "retro"
+---
+# Demonstration of the {{ .pagetheme }} theme.
+
+$MDEMO
+$SUBDIR_NAV
+$PGLAYOUT_NAV
+EOM
+
+
+
+
 # Generate the page named probot-theme-demo.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -641,6 +668,8 @@ echo $SUPPRESS_EVERYTHING > $tmpdir/suppress-everything.md
 echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
 echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
 echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
+echo $RETRO_THEME_DEMO > $tmpdir/retro-theme-demo.md
+echo $PAPER_THEME_DEMO > $tmpdir/paper-theme-demo.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
 echo $NEWMAN_THEME_DEMO > $tmpdir/newman-theme-demo.md
 echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md

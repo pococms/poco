@@ -9,15 +9,19 @@ importrules:
 
 stylesheets:
 - "../../css/base.css"
-- "../../css/media.css"
-# "../../themes/hack/overrides.css"
 - "https://unpkg.com/papercss/dist/paper.min.css"
+- "../../css/layout-test.css"
+- "../../css/media.css"
 ---
 
 # Paper theme
 
-* https://github.com/papercss/papercss/commits?author=rhyneav
-* https://github.com/papercss/papercss
-* `https://github.com/papercss/papercss/commits?author=rhyneav`
-* `https://unpkg.com/papercss/dist/paper.min.css`
+Paper is based on the delightful [CSS](https://github.com/papercss/papercss) 
+by [Rhyne](https://www.vlaservich.com/).
+
+Paper looks like a fun theme, but you can also use it for
+something deadly serious to anyone with a client: showing
+how the general layout of a site will look without getting the client
+distracted by minutia like the background color of a particular page, or
+choice of font on a nav bar.
 
