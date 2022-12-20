@@ -6,12 +6,15 @@ footer: "footer.md"
 
 stylesheets:
 - "../../css/base.css"
-- "skyscraper-overrides.css"
+- "../../css/skinny.css"
 ---
 
 # Skyscraper theme
 
-It doesn't look special, but that's the point. Base supports the
+Skyscraper takes the Base theme and centers it on the screen,
+showing how to create a theme with a visible background. 
+It does that simply by adding the `skinny.css` stylesheet.
+Skyscraper supports the
 entire set of theme framework features:
 
 * Header (optional)
@@ -23,7 +26,6 @@ entire set of theme framework features:
 and page layout elements such as aside, nav and footer disappear, 
 depending on how limited screen real estate gets)
 * Full support even low-end browsers; Javascript is optional
-
 
 It's easy to customize with minimal additions to CSS.
 
