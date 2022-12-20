@@ -152,13 +152,14 @@ func (c *config) assemble(filename string) string {
 		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
-    c.endJs() + 
+    c.pocoEndJs() +
+    c.endJs() +
 		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	// TODO: This has code smell. Why doesn't it have to be
 	// done for other page layout elements?
 	c.articleReplaced = ""
-	return htmlFile
+ 	return htmlFile
 } //   assemble
 
 func (c *config) timestamp() string {
@@ -216,6 +217,9 @@ func (c *config) documentReady() string {
 }
 
 
+// copyDirToString() takes a directory location,
+// concatenates all file contents from it into
+// a big ol' string, and returns the string.
 func (c *config) copyDirTostring(dir string) string {
 	f, err := os.Open(dir)
 	if err != nil {
@@ -226,13 +230,13 @@ func (c *config) copyDirTostring(dir string) string {
   if err != nil {
     quit(1, err, nil, "Can't read files in directory: %s", dir)
   }
-  list := ""
+  allFiles := ""
 	for _,filename  := range filenames {
-    debug("%v", filename)
-    s := filename
-    list += s
+    target := filepath.Join(dir, filename)
+    s := c.fileToString(target)
+    allFiles += s
 	}
-  return list
+  return allFiles
 }
 
 // Given a list of filenames in a slice (named
@@ -264,19 +268,7 @@ func (c *config) copyFileSlice(source string, targetDir string) string {
 // It occurs before endJs() which means users get
 // the final say
 func (c *config) pocoEndJs() string {
-	filenames := fmStrSlice("endjs", c.fm)
-  if len(filenames) == 0 {
-    return ""
-  }
-  files := ""
-  s := ""
-	for _, filename := range filenames {
-    path := filepath.Join(c.jsUserLastDir, filename)
-    s = c.fileToString(path)
-    debug("Path: %v", path)
-    files = files + s
-  }
-  return files
+  return c.copyDirTostring(c.jsPocoLastDir)
 }
 // endJs() inserts user-provided Javascript files 
 // just before the body ends.
