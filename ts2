@@ -1,0 +1,66 @@
+#!/bin/zsh
+# ts2
+# Generates a complete theme gallery in a  temp directory.
+# Visual demonstrations of:
+# - suppressing header, nav, article, footer, aside
+# 
+
+# Create an array of theme names
+declare -a themes=(
+  'base'
+  'paper'
+  'pasteboard'
+  )
+
+
+
+EOM
+
+// Exit to the OS with a message and error code.
+// $1 is the message to display
+// $2 is the error code
+function quit_exit() {
+  echo $1
+  exit $2
+}
+
+# Create a temporary directory.
+# Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
+# https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+#echo "Creating poco project at temp directory ${tmpdir}"
+poco -new $tmpdir
+mkdir -p  $tmpdir
+if [[ $? -gt 0 ]]
+then
+  quit_exit "Error creating root directory at ${tmpdir}" 1
+fi
+
+
+# $1 is the theme name
+# $2 is the directory for the page
+function make_short_page() {
+echo "Creating short page ${1}"
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
+#### THEME TEST
+
+# Short page testing theme $1
+EOM
+echo page >> $2/short-page.md
+}
+
+
+function main_loop() {
+# Loop through the array of themes
+for theme in "${themes[@]}";
+do
+  make_short_page $theme $tmpdir
+done
+quit_exit "That's all folks" 0
+}
+
+main_loop
+
