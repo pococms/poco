@@ -8,8 +8,13 @@
 # Create an array of theme names
 declare -a themes=(
   'base'
+  'hack'
+  'newman'
   'paper'
   'pasteboard'
+  #'rawdog'
+  #'retro'
+  'skyscraper'
   )
 
 # Exit to the OS with a message and error code.
@@ -62,13 +67,14 @@ echo $page >> $2/$1/index.md
 # Generate links to low-content page tests
 read -r -d '' lcpanel << EOM
 Low-content tests: 
-[Default](short_page.html)  
+[Default](short_page.html). Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
 **Try hiding** [header](short_page_no_header.html),
 [nav](short_page_no_nav.html),
 [aside](short_page_no_aside.html),
 [footer](short_page_no_footer.html)
 
-[Theme home](index.html)
+[Theme home](index.html), 
+[All themes](../index.html)
 EOM
 
 
@@ -174,6 +180,48 @@ EOM
 echo $page >> $2/short_page_no_aside.md
 }
 
+# -------------------------------------
+# Low-content page, aside left
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_aside_left() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+aside: "left"
+---
+# Theme $1
+$lpcontent
+### *Left aside* 
+$lcpanel
+EOM
+echo $page >> $2/short_page_aside_left.md
+}
+
+# -------------------------------------
+# Low-content page, aside right
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_aside_right() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+aside: "right"
+---
+# Theme $1
+$lpcontent
+### *Right aside* 
+$lcpanel
+EOM
+echo $page >> $2/short_page_aside_right.md
+}
+
+
+
 
 
 
@@ -194,6 +242,8 @@ for theme in "${themes[@]}";
     mkdir -p $dir
     themehome $theme $dir
     short_page $theme $dir
+    short_page_aside_left $theme $dir
+    short_page_aside_right $theme $dir
     short_page_no_header $theme $dir
     short_page_no_aside $theme $dir
     short_page_no_nav $theme $dir
