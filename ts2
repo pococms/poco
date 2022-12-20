@@ -12,13 +12,9 @@ declare -a themes=(
   'pasteboard'
   )
 
-
-
-EOM
-
-// Exit to the OS with a message and error code.
-// $1 is the message to display
-// $2 is the error code
+# Exit to the OS with a message and error code.
+# $1 is the message to display
+# $2 is the error code
 function quit_exit() {
   echo $1
   exit $2
@@ -28,9 +24,10 @@ function quit_exit() {
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
 tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
-#echo "Creating poco project at temp directory ${tmpdir}"
-poco -new $tmpdir
-mkdir -p  $tmpdir
+echo "Creating poco project at temp directory ${tmpdir}"
+poco -new $tmpdir              
+ALLDIRS=$tmpdir/level2/level3/                                     
+mkdir -p  $ALLDIRS                                                                    
 if [[ $? -gt 0 ]]
 then
   quit_exit "Error creating root directory at ${tmpdir}" 1
@@ -49,16 +46,35 @@ pagetheme: "${1}"
 
 # Short page testing theme $1
 EOM
-echo page >> $2/short-page.md
+echo $page >> $2/index.md
 }
 
 
 function main_loop() {
 # Loop through the array of themes
+
+# Start the navigation panel listing all themes
+echo "\n" > $tmpdir/navthemes.md
+echo "## Themes and variations" >> $tmpdir/navthemes.md
 for theme in "${themes[@]}";
-do
-  make_short_page $theme $tmpdir
-done
+  do
+    # Create a directory for each theme.
+    dir=$tmpdir/$theme
+    mkdir -p $dir
+    make_short_page $theme $dir
+    echo "[${theme}]($theme/index.html) ">> $tmpdir/navthemes.md
+    #read -n fook
+  done
+echo "here:"
+cat $tmpdir/navthemes.md  > $tmpdir/index.md
+echo "Index:"
+cat $tmpdir/index.md 
+echo "Project created successfully"
+poco $tmpdir
+open $tmpdir/WWW/index.html
+#echo "Project should have been built in ${tmpdir}:"
+#ls -lat $tmpdir
+#s -lat $tmpdir/paper
 quit_exit "That's all folks" 0
 }
 
