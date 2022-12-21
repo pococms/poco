@@ -1,4 +1,4 @@
-* **[Electro theme](#)**
+* **[Electro theme header](#)**
 * [Reviews](#)
 * [Github](#)
 * [Profile](#)

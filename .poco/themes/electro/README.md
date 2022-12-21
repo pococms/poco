@@ -12,15 +12,9 @@ stylesheets:
 - "../../css/base.css"
 - "../../css/skinny.css"
 - "electro.css"
-
 ---
 
 # Electro theme
-
-Electro is based on Skyscraper, though cleverly hidden.
-
-Electro supports the
-entire set of theme framework features:
 
 * Header (optional)
 * Nav (optional)
@@ -32,4 +26,5 @@ and page layout elements such as aside, nav and footer disappear,
 depending on how limited screen real estate gets)
 * Full support even low-end browsers; Javascript is optional
 
+It's easy to customize with minimal additions to CSS.
 
