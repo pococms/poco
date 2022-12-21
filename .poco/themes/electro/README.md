@@ -10,8 +10,8 @@ importrules:
 
 stylesheets:
 - "../../css/base.css"
-- "../../css/skinny.css"
 - "electro.css"
+- "../../css/skinny.css"
 ---
 
 # Electro theme
