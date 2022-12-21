@@ -5,6 +5,7 @@ h4{ font-size:.9em;padding-top:1rem;}
 h5{ font-size:.8em; }
 h6{ font-size:0.9em; }
 
+ifooter{background-color:black;}
 
 nav > p, 
   nav > h1,
@@ -20,7 +21,7 @@ a,
 a:link,
 a:visited {color:blue;} 
 a:hover,
-a:active {pointer:cursor;text-decoration:underline;} 
+a:active {text-decoration:underline;} 
 
 a:hover,
 a:active {text-decoration-color: red;
@@ -47,7 +48,7 @@ article > p,
 		padding-bottom:1rem;
 }
 html,header{background-color:#CD433F;}
-article,nav,aside,footer{background-color:white}
+article,nav,aside{background-color:white}
 inav{color:#CD433F;background-color:#F7F7F8;}
 
 /* ******************************/
@@ -68,7 +69,7 @@ header a,
 header a:link,
 header a:visited {color:white;} 
 header a:hover,
-header a:active {pointer:cursor;text-decoration:underline;} 
+header a:active {text-decoration:underline;} 
 
 a:hover,
 a:active {text-decoration-color: red;
@@ -81,7 +82,6 @@ article > p > strong {font-family:'Roboto Condensed','sans-serif';font-weight:70
 article > p > code, article > code, article > pre, article > pre > code {
 		font-family:'monospace';
 		overflow:auto;
-    imargin-top:0;
     padding-bottom:1em;
     line-height:1.5em;
 		}
@@ -109,8 +109,6 @@ article > img, article > p > img {width:100%;}
 /*  SIDEBAR (ASIDE TAG)         */
 /* ******************************/
 
-
-
 aside {padding-right:1em;}
 aside > p > img, aside > img {float:left;}
 aside > p, 
@@ -125,17 +123,13 @@ aside > p,
 
 
 
-/* ******************************/
-/*  FOOTER                      */
-/* ******************************/
-
-/* FOOTER */
-ifooter {border-top: 1px solid red;padding-bottom:1rem;} 
-footer > h2 {text-align:center;}
-footer > table {font-size:calc(80%);}
-/* Give table columns to get some breathing room 
-footer > table > thead > tr > th {padding-right:2rem;} 
-footer > table > thead > tr > th {padding-top:1em;padding-right:2em;padding-bottom:1em;}
-footer > table > tbody > tr > td {padding-right:3em;}
-*/
-
+footer > p, 
+  footer > p > a,
+  footer > h1,
+  footer > h2,
+  footer > h3,
+  footer > ul, 
+  footer > ul li a, 
+  footer> ol {
+	  font-family:'Nova Mono','sans-serif';
+}
