@@ -95,6 +95,8 @@ func (c *config) scriptAfter() string {
 	// NOTE: Make sure the final } gets inserted
 	// before the closing </code> tag
 
+  return c.pocoEndJs() + c.endJs()
+
 	slice := fmStrSlice("script-after", c.fm)
 	if slice == nil {
 		return ""
@@ -125,10 +127,8 @@ func (c *config) assemble(filename string) string {
 		quit(1, err, c, "%v: template error", filename)
 	}
 
-	// Get Javascript that goes after the body
-	scriptAfterStr := c.scriptAfter()
-	if scriptAfterStr != "" {
-	}
+	// Get Javascript that goes just before last body tag
+	scriptAfter := c.scriptAfter()
 	// Build the completed HTML document from the component pieces.
 	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
 		"<head>" +
@@ -152,8 +152,7 @@ func (c *config) assemble(filename string) string {
 		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
-    c.pocoEndJs() +
-    c.endJs() +
+    scriptAfter +
 		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	// TODO: This has code smell. Why doesn't it have to be
@@ -288,15 +287,16 @@ func (c *config) endJs() string {
   }
   files := ""
   s := ""
-	for _, filename := range filenames {
-    path := filepath.Join(c.jsUserLastDir, filename)
+	for _, value := range filenames {
+ 		filename := value
+		s = s + c.getWebOrLocalFileStr(filename)
+   /* path := filepath.Join(c.jsUserLastDir, filename)
     s = c.fileToString(path)
     files = files + s
+    */
   }
   return files
 }
-// xxx
-//	target := filepath.Join(c.webroot, pocoDir)
 
 // defaultHomePage() Generates a simple home page as an HTML string
 // Uses the file segment of dir as the the H1 title.
@@ -1375,7 +1375,7 @@ func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
 	source := filepath.Join(c.root, pocoDir)
 	//if err := cp.Copy(pocoDir, target); err != nil {
-	wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
+	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
 	if err := cp.Copy(source, target); err != nil {
 		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
