@@ -5,16 +5,18 @@ aside: "aside.md"
 footer: "footer.md"
 
 importrules:
-- url('https://fonts.googleapis.com/css?family=Nova+Mono&display=swap');
-- url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap');    
+- "url('https://fonts.googleapis.com/css2?family=Nunito:wght@500&display=swap');"
 
 stylesheets:
 - "../../css/base.css"
-- "../../css/skinny.css"
-- "test.css"
+- "../../layout-test.css"
+- "https://cdn.jsdelivr.net/npm/@ajusa/lit@latest/dist/lit.css"
 ---
 
 # TEST theme
+
+Not sure how this is going to work
+
 
 * Header (optional)
 * Nav (optional)
