@@ -8,15 +8,21 @@
 # Create an array of theme names
 declare -a themes=(
   'base'
+  'electro' #
   'hack'
+  'informer'
   'newman'
   'paper'
   'pasteboard'
+  'pocodocs'
   'rawdog'
   'retro'
   'skyscraper'
   'tufte'
   )
+
+
+
 
 # Exit to the OS with a message and error code.
 # $1 is the message to display
