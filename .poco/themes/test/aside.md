@@ -1,19 +1,15 @@
-## Test theme
+## Aside demo h2
 
-#### ASIDE
+### Item 1
 
-Title is: {{ .title }}
+Here's a good place to put a
+news item of current interest
 
-## News
+### Item 2
 
-* Item 1
-* Item 2
-* Item 3
+Here's a good place to put another
+news item of current interest
 
-#### Another list
 
-1. Numbered list 1
-2. Numbered list 2
-3. Numbered list 3
 
 
