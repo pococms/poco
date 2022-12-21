@@ -107,8 +107,6 @@ read -r -d '' page << EOM
 pagetheme: "${1}"
 ---
 EOM
-# $2/$1 means the temp directory, then the theme subdirectory
-echo $page >> $2/$1/index.md
 }
 
 # Generate links to low-content page tests

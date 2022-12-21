@@ -207,7 +207,7 @@ function generate_theme() {
   cd $tmpdir
   echo "Created file ${tmpdir}/index.md"
   ls $tmpdir/index.html
-  poco -verbose $tmpdir
+  poco -link-styles -verbose $tmpdir
   open WWW/index.html
 }
 
