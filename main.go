@@ -1936,6 +1936,19 @@ func (c *config) getProjectTree(path string, dirs *int, skipPublish searchInfo) 
 	return files, nil
 }
 
+
+// deleteWebroot deletesj the publish directory unless
+// user has set flag to the contrary.
+func (c *config) deleteWebroot() {
+	// Delete webroot directory unless otherwise requested
+	if c.cleanup {
+		if err := os.RemoveAll(c.webroot); err != nil {
+			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
+		}
+	}
+}
+
+
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
 // doesn't exist. webroot is expected to be a subdirectory of
@@ -1947,12 +1960,8 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
-	// Delete webroot directory unless otherwise requested
-	if c.cleanup {
-		if err := os.RemoveAll(c.webroot); err != nil {
-			quit(1, err, c, "Unable to delete webrootdirectory %v", c.webroot)
-		}
-	}
+  // Delete webroot directory
+  c.deleteWebroot()
 
 	// Collect all the files required for this project.
 	var treeCount int
@@ -1965,7 +1974,6 @@ func (c *config) buildSite() {
 	if !dirExists(c.webroot) {
 		err := os.MkdirAll(c.webroot, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
-			//if err != nil {
 			quit(1, err, c, "Unable to create webroot directory %s", c.webroot)
 		}
 	}
@@ -2325,8 +2333,9 @@ func (c *config) downloadTextFile(url string) string {
 
 }
 
-// getWebOrLocalFileStr reads filename and returns it as a string.
-// If string starts with http or https fetches it from the web.
+// getWebOrLocalFileStr reads contentws of filename 
+// and returns it as a string.
+// If string starts with http or https, fetches it from the web.
 func (c *config) getWebOrLocalFileStr(filename string) string {
 	// Return value: contents of file are stored here
 	s := ""
@@ -2370,7 +2379,6 @@ func (c *config) newSite() {
 	//target := filepath.Join(c.root, pocoDir)
 	target := dir
 	c.copyPocoDir(pocoFiles, target)
-
 	//c.copyPocoDir(pocoFiles, "")
 }
 
@@ -2435,7 +2443,9 @@ func (c *config) linktags() string {
 	return tags
 }
 
-// metatag() generates a metatag such as <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
+// metatag() generates a metatag such as 
+// <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
+// If either content or tag are empty it returns the empty string
 func metatag(tag string, content string) string {
 	if content == "" || tag == "" {
 		return ""
@@ -2811,44 +2821,6 @@ func fmStrSlice(key string, fm map[string]interface{}) []string {
 	}
 	return s
 }
-
-// newProject() takes a directory name and generates a
-// site there.
-// Pre: parseCommandLine()
-
-// newProject is same as newSite(), except that
-// newSite() can do its thing because it
-// knows it's in a new dir. newProject sets
-// up that condition and helps stop you from
-// putting this project where it shouldn't be.
-/*
-func (c *config) newProject(dir string) {
-	if !dirExists(dir) {
-		//if !dirExists(dir) {
-		// We're good. No directory by that name. Create it.
-		err := os.MkdirAll(dir, os.ModePerm)
-		if err != nil && !os.IsExist(err) {
-			quit(1, err, c, "Unable to create new project directory %s", c.root)
-		}
-	} else {
-		// Existing directory by that name. Does it already contain a project?
-		if isProject(dir) {
-			// There is a world in which one might want to "reset" a project. Maybe
-			// the .poco directory was touched or you want to restore the factory
-			// themes? This deleted code handles that case. Just seems a bit
-			// dangerous.
-			// if promptYes("Project at " + dir + " exists. This will replace index.md, add a " + pocoDir + " directory, and replace any directory named " + c.webroot + ". Continue?") {
-			// 	c.root = dir
-			// 		c.newSite()
-			// } else {
-			// 		quit(1, nil, c, "Leaving project at %s intact. Quitting.", c.root)
-			// 	}
-			quit(1, nil, c, "There is already a project at %s. Quitting.", c.root)
-		}
-
-	}
-}
-*/
 
 // themeDirContents() returns a list of all installed themes
 // separated by newlines
