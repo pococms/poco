@@ -18,11 +18,22 @@ article>p>img{width:90%;}
  */
 
 /*
-p>img+h2:before,
+
+
+article+img+h2:before,
+article>img+h2:before,
+article>h4+p>image+h2:before,
+article+h4+p>image+h2:before,
 img>h2:before,
+img+h2:before,
+img+h2,
+h2+img,
+p>img>h2:before,
+ 
  */
+article>h4+p+h2:before,
 article>h2+h2:before, 
-article>h4+h2:before{content:'■';margin-right: 6px;}
+article>h4+h2:before{content:'■';margin-right:.5rem;}
 article>h2{font-weight:bold;font-family:Cambria, 'Hoefler Text', Utopia, 'Liberation Serif', 'Nimbus Roman No9 L Regular', Times, 'Times New Roman', serif;}
 
 aside{border: 1px solid gray;padding:1rem;}
