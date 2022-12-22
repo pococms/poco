@@ -1,6 +1,8 @@
 #!/bin/zsh
 # Copies the original .poco directory to the current directory,
 # thereby replacing the contents of the current .poco directory.
+# If you append "force to the command line it replaces the
+# directory without asking.
 #
 # WARNING: Again, it replaces the contents of the .poco directory under this one.
 #
@@ -64,6 +66,10 @@ if [[ $target == $source ]]
 then
   echo "${target} and ${source} are the same place. Quitting." && exit 1
 else
+  if [[ $1 == "force" ]]
+  then
+    cp -R $source $target && exit 0
+  fi
   echo "About to copy from ${source} to  ${target}/${pocodir}"
   if wait_for_yes "This will REPLACE older copies in ${target}/${pocodir}\nSure you want to continue? Y/N"; then
     cp -R $source $target 

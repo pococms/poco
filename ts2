@@ -22,6 +22,49 @@ declare -a themes=(
   )
 
 
+function print_help(){
+  echo "Options:"
+  echo "\t-l|--link-stylesheets" >&2
+  echo "\tLink to stylesheets instead of inlining in the HTML. The default is inline. Example:\n\t${1} -l\n" >&2
+}
+
+
+# PARSE COMMAND LINE
+echo ""
+while :; do
+    case $1 in
+    
+   	 -l|--link-styles)
+       LINK_STYLES="--link-styles"
+       shift
+       ;;
+
+   	 -h|--help)
+        # xxx
+       print_help $0
+       exit 1
+       ;;
+
+   	 --)
+   		 shift
+   		 break
+   		 ;;
+   		 
+   	 --?*)
+   		 printf 'WARNING: Unknown option %s\n' "$1" >&2
+       exit 1
+       break
+   		 ;;
+   		 
+   	 *)
+   		 # No more options. Break out of loop.
+   		 break;
+    esac
+    
+    command shift
+done
+
+
 
 
 # Exit to the OS with a message and error code.
@@ -52,6 +95,35 @@ $(<.poco/demo/mdemo.md)
 EOM
 
 
+# Generate links to low-content page tests
+read -r -d '' lcpanel << EOM
+[Low-content](short_page.html) tests: 
+[Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
+**Try hiding** [header](short_page_no_header.html),
+[nav](short_page_no_nav.html),
+[article](short_page_no_article.html)
+[aside](short_page_no_aside.html),
+[footer](short_page_no_footer.html), or
+[Everything!](short_page_no_everything.html)(blank page expected)  
+[Theme home](index.html), 
+[All themes](../index.html)
+EOM
+
+
+# Generate links to high-content page tests
+read -r -d '' hcpanel << EOM
+[High-content](long_page.html) tests: 
+[Article only](long_page_article_only.html). Aside [right](long_page_aside_right.html), [left](long_page_aside_left.html)  
+**Try hiding** [header](long_page_no_header.html),
+[nav](long_page_no_nav.html),
+[article](long_page_no_article.html)
+[aside](long_page_no_aside.html),
+[footer](long_page_no_footer.html), or
+[Everything!](long_page_no_everything.html)(blank page expected)   
+[Theme home](index.html), 
+[All themes](../index.html)
+EOM
+
 # Text of a high-content (long) page
 read -r -d '' hcontent << EOM
 
@@ -61,6 +133,10 @@ read -r -d '' hcontent << EOM
 
 "High-content" means that the page is  longer than most screens. 
 When testing themes it's useful to see how the footer and sidebar interact with long articles.
+
+$hcpanel
+
+
 $MDEMO
 EOM
 
@@ -78,22 +154,6 @@ content of the article. This sentence shows how wide the article area is without
 EOM
 
 
-# Generate links to high-content page tests
-read -r -d '' hcpanel << EOM
-High-content tests: 
-[Default](long_page.html). [Article only](long_page_article_only.html), Aside [right](long_page_aside_right.html), [left](long_page_aside_left.html)  
-**Try hiding** [header](long_page_no_header.html),
-[nav](long_page_no_nav.html),
-[article](long_page_no_article.html)
-[aside](long_page_no_aside.html),
-[footer](long_page_no_footer.html)
-[Everything!](long_page_no_everything.html)
-
-
-[Theme home](index.html), 
-[All themes](../index.html)
-EOM
-
 # Create the index page for this theme directory
 # $1 is the theme name
 # $2 is the tmp directory of the home page 
@@ -108,23 +168,6 @@ pagetheme: "${1}"
 ---
 EOM
 }
-
-# Generate links to low-content page tests
-read -r -d '' lcpanel << EOM
-Low-content tests: 
-[Default](short_page.html). [Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
-**Try hiding** [header](short_page_no_header.html),
-[nav](short_page_no_nav.html),
-[article](short_page_no_article.html)
-[aside](short_page_no_aside.html),
-[footer](short_page_no_footer.html)
-[Everything!](short_page_no_everything.html)
-
-
-[Theme home](index.html), 
-[All themes](../index.html)
-EOM
-
 
 # Central location for long-content page demo
 # $1 is the theme name
@@ -142,8 +185,8 @@ echo $page >> $2/long_page.md
 }
 
 # Central location for low-content page demo
-# It points to variation such as low content without header,
-# low content without nav, etc. 
+# It creates a page with not too much content to make sure
+# that sidebar & footer are handled properly.
 # $1 is the theme name
 # $2 is the directory for the page
 function short_page() {
@@ -153,8 +196,8 @@ pagetheme: "${1}"
 ---
 
 # Theme $1
-$hcontent
-$hcpanel
+$lcontent
+$lcpanel
 EOM
 echo $page >> $2/short_page.md
 }
@@ -642,7 +685,7 @@ for theme in "${themes[@]}";
   done
 cat $tmpdir/navthemes.md  > $tmpdir/index.md
 echo "Project created successfully"
-poco $tmpdir
+poco $LINK_STYLES $tmpdir
 open $tmpdir/WWW/index.html
 #echo "Project should have been built in ${tmpdir}:"
 #ls -lat $tmpdir

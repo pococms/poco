@@ -270,7 +270,6 @@ read -r -d '' THEME_NAV << EOM
 * [Page](paper-theme-demo.html) theme
 * [newman](newman-theme-demo.html) theme
 * [hack](hack-theme-demo.html) theme
-* [probot](probot-theme-demo.html) theme
 * [Skyscraper](skyscraper-theme-demo.html) theme
 
 EOM
@@ -575,26 +574,6 @@ EOM
 
 
 
-# Generate the page named probot-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' PROBOT_THEME_DEMO << EOM
----
-title: "probot theme"
-pagetheme: "probot"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$MDEMO
-
-Normal text under an h1
-
-## Drilling down into an h2
-How amazing can this experience get?
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
 # Generate the page named newman-theme-demo.md from the text
 # directly under the read until the text directly
 # above the second EOM
@@ -672,7 +651,6 @@ echo $RETRO_THEME_DEMO > $tmpdir/retro-theme-demo.md
 echo $PAPER_THEME_DEMO > $tmpdir/paper-theme-demo.md
 echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
 echo $NEWMAN_THEME_DEMO > $tmpdir/newman-theme-demo.md
-echo $PROBOT_THEME_DEMO > $tmpdir/probot-theme-demo.md
 echo $SKYSCRAPER_THEME_DEMO > $tmpdir/skyscraper-theme-demo.md
 poco -verbose $LINK_STYLES $tmpdir
 if [[ $? -gt 0 ]]

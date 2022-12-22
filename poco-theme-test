@@ -11,14 +11,66 @@
 echo ""
 theme=$1
 
+/*
 if [ -z "$theme" ]
 then
   echo "Please add a theme name. Example:\n\n\t${0} mytheme\n" && exit 1
 fi
+*/
+
+function print_help(){
+  echo "Options:"
+  echo "\t-l|--link-stylesheets" >&2
+  echo "\tLink to stylesheets instead of inlining in the HTML. The default is inline. Example:\n\t${1} -l\n" >&2
+}
+
+
+# PARSE COMMAND LINE
+echo ""
+while :; do
+    case $1 in
+    
+   	 -l|--link-styles)
+       LINK_STYLES="--link-styles"
+       shift
+       ;;
+
+   	 -h|--help)
+       print_help $0
+       exit 1
+       ;;
+
+   	 --)
+   		 shift
+   		 break
+   		 ;;
+   		 
+   	 --?*)
+       echo "Filename? ${1}"
+   		 #printf 'WARNING: Unknown option %s\n' "$1" >&2
+       #exit 1
+       break
+   		 ;;
+   		 
+   	 *)
+       theme=$1
+   		 # No more options. Break out of loop.
+   		 break;
+    esac
+    
+    command shift
+done
+
+
+
+
+
 
 # Get a temporary directory name
-tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+#tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+t=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
 # Append to the filename and make in a Markdown file(name).
+tmpdir=$t/foo
 filename=$tmpdir/index.md
 
 wait_for_yes() {
@@ -207,7 +259,7 @@ function generate_theme() {
   cd $tmpdir
   echo "Created file ${tmpdir}/index.md"
   ls $tmpdir/index.html
-  poco -link-styles -verbose $tmpdir
+  poco $LINK_STYLES -verbose $tmpdir
   open WWW/index.html
 }
 
