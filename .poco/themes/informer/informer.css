@@ -1,5 +1,22 @@
 /* informer.css */
 
+html{font-size:14px}
+p,p a,strong,em,a{font-size1rem;line-height:1.75em}
+article>p{padding:.25rem 0 .25rem} 
+h1 {font-size:1.75rem;font-weight:bold;padding-top:1.75rem}
+aside{width:45%}
+aside{border: 1px solid gray;padding:1rem;}
+aside>h2{color:red;font-size:1.5em;font-weight:bold;}
+aside>h3{font-size:1.5em;font-weight:bold;}
+article>h4{font-weight:normal;}
+article>h4>em{font-weight:normal;}
+article>h4>a{color:yellow;}
+
+article>h4>img {
+  width:14px; 
+}
+aside>p{padding-bottom:.25rem;margin-bottom:.75rem;border-bottom:1px solid #DCDCDC;}
+article{width:55%}
 
 header,nav{white-space:nowrap;overflow:hidden;}
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
@@ -45,17 +62,14 @@ nav>ul>li>a:hover,nav>ul>li>a:active{text-decoration:underline;}
 
 
 
-/* article{height:100%;} */
 article,nav,header,footer{padding-left:5%;} 
 article>dl>dt {font-weight:bold;padding-top:1rem;}
 article>dl>dd {margin-left:0;padding-bottom:.5rem;}
-article>p {font-size:larger;line-height:1.75rem;padding:.25rem 0 .25rem} /* inline not block */
-article > p, article > ul, article > ol {font-size:x-large;font-family:Cambria, "Hoefler Text", Utopia, "Liberation Serif", "Nimbus Roman No9 L Regular", Times, "Times New Roman", serif;}
+article > p, article > ul, article > ol {font-family:Cambria, 'Hoefler Text', Utopia, 'Liberation Serif', 'Nimbus Roman No9 L Regular', Times, 'Times New Roman', serif;}
 
 pre{border:1px solid gray;padding:1rem;width:90%;background-color:ghostwhite; margin:1rem 0 1rem 0 !important} /* block, not inline */
 article>h2{font-size:2rem;padding-top:2.5rem;padding-bottom:.75rem}
 article>h3{color:dimgray;font-size:1.5rem;padding-top:1.5rem;;padding-bottom:.5rem}
-article>h4{font-weight:bold;}
 
 table{margin-top:1rem;}
 footer{line-height:2rem;}

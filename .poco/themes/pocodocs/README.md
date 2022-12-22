@@ -6,9 +6,8 @@ footer: "footer.md"
 aside: "aside.md"
 stylesheets:
 - "../../css/base.css"
+- "../../css/layout-test.css"
 - "pocodocs.css"
-styletags:
-- "article>p{color:blue;}"
 ---
 
 PocoDocs is a cheerful, colorful theme for reference documentation.

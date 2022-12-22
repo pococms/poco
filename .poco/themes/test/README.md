@@ -9,7 +9,7 @@ importrules:
 
 stylesheets:
 - "../../css/base.css"
-- "../../layout-test.css"
+- "../../css/layout-test.css"
 - "https://cdn.jsdelivr.net/npm/@ajusa/lit@latest/dist/lit.css"
 ---
 
