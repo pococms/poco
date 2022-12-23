@@ -6,47 +6,42 @@ a{color:black;text-decoration:none;}
 a:visited{color:inherit;text-decoration:none;}
 a:hover,a:active{color:inherit;text-decoration:underline;cursor:pointer}
 
+/*Jkjjarticle{height:90%;}
+footer{height:10%;}
+*/
 article{width:65%}
 aside{width:35%}
 aside{border-left: 1px solid #DCDCDC;padding:1rem;}
 aside>h2{font-size:1.5em;font-weight:bold;}
-aside>h3{font-size:1.5em;font-weight:bold;}
-aside>h4{font-size:1em;font-weight:bold;color:gray;padding-top:2rem;}
-iaside>p{float:left;width:50%;padding-bottom:.55rem;margin-bottom:.75rem;line-height:1.2rem;/* border-bottom:1px solid #DCDCDC;*/}
-iaside>p{width:50%;float:left;clear:left}
+aside>h3{width:60%;font-size:1em;font-weight:bold;padding-top:3rem;}
+aside>h4{padding-top:2rem;font-size:1em;font-weight:bold;color:gray;}
 aside>p>img{float:right;width:45%}
-aside>p{line-height:1.2rem;}
-/* Working
-aside>p:first-of-type{float:left;width:45%;}
-aside>p:last-of-type{float:right;color:blue;}
-*/
+aside>p{line-height:1rem;padding-right:.5rem}
 
-/* 
- 
- aside>p:last-child{color:blue;}
-aside>:last-childp{color:blue;}
-aside>p:last-of-type{color:blue;}
-aside:last-of-type>p{color:blue;}
-aside>p:last-of-type{color:blue;}
- 
+/*
+ * --------------------------------------------------
+ * TODO: Document this. Pattern looks like this
+ * --------------------------------------------------
  */
-  
+
+aside>h5{font-style:italic;padding-left:0;color:gray}
+aside>h4+p+h5{padding-bottom:1rem;border-bottom:1px solid #CDCDCD;}
 
 
-/* footer{line-height:2rem;} */
-
-footer{color:black;background-color:white;}
+footer{color:green;background-color:white;}
+footer>table{white-space:nowrap}
 footer>table{font-size:.75em;}
 /* Make change to all headers (first row of table) */
 /* Next 2 lines of code are required. */
 table{table-layout:fixed;width:95%;}
-footer>table th{font-weight:bold;width:5%;}
+ifooter>table>th{font-weight:bold;width:3%;}
+ifooter>table>tbody>tr>th{width:3%;}
+ifooter>table>thead>tr>th{width:3%;}
 
 footer>table th{border:0;}  /* Removes border from header row */
 footer>table td{border:0;}  /* Remove border from all other rows */
 footer>table>thead>tr{line-height:1.5rem;} /* Set height of header row */
 footer>table>tbody>tr{line-height:0;} /* Set height of all other rows */
-
 /* Necessary? */
 footer>table{
   /* Cells in table share borders */
@@ -55,7 +50,6 @@ footer>table{
 }
 /* Text-align all rows left */
 footer>table>tbody>tr>td{text-align:left}
-
 
 
 p,p a,strong,em,a{font-size:1rem;line-height:1.75em}
