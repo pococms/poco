@@ -237,11 +237,18 @@ echo $page >> $2/long_page_article_only.md
 #
 ## $1 is the page theme
 # $2 is the directory for the page
+function aside_content() {
+read -r -d '' page << EOM
+Dynamically generated aside content
+EOM
+echo $page >> $2/aside_content.md
+}
+
 function long_page_aside_right() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-aside: "right"
+aside: "${1}/aside_content.md"
 ---
 # Theme $1
 $hcontent
@@ -657,6 +664,8 @@ for theme in "${themes[@]}";
     mkdir -p $dir
     themehome $theme $dir
 
+    aside_content $theme $dir
+
     long_page $theme $dir
     long_page_article_only $theme $dir
     long_page_aside_right $theme $dir
@@ -685,8 +694,8 @@ for theme in "${themes[@]}";
     #read -n fook
   done
 cat $tmpdir/navthemes.md  > $tmpdir/index.md
-echo "Project created successfully"
 poco $LINK_STYLES $tmpdir
+echo "Project created successfully"
 open $tmpdir/WWW/index.html
 #echo "Project should have been built in ${tmpdir}:"
 #ls -lat $tmpdir
