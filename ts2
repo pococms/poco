@@ -97,6 +97,7 @@ EOM
 
 # Generate links to low-content page tests
 read -r -d '' lcpanel << EOM
+#
 [Low-content](short_page.html) tests: 
 [Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
 **Try hiding** [header](short_page_no_header.html),
@@ -112,6 +113,7 @@ EOM
 
 # Generate links to high-content page tests
 read -r -d '' hcpanel << EOM
+#
 [High-content](long_page.html) tests: 
 [Article only](long_page_article_only.html). Aside [right](long_page_aside_right.html), [left](long_page_aside_left.html)  
 **Try hiding** [header](long_page_no_header.html),
@@ -128,14 +130,12 @@ EOM
 read -r -d '' hcontent << EOM
 
 ## **High-content** page demo 
+
 * Does the sidebar look OK?
 * Resize page to check responsiveness
 
 "High-content" means that the page is  longer than most screens. 
 When testing themes it's useful to see how the footer and sidebar interact with long articles.
-
-$hcpanel
-
 
 $MDEMO
 EOM
@@ -144,6 +144,7 @@ EOM
 read -r -d '' lpcontent << EOM
 
 ## **Low-content** page demo 
+
 * Does the sidebar look OK?
 * Resize page to check responsiveness
 
@@ -159,7 +160,7 @@ EOM
 # $2 is the tmp directory of the home page 
 function themehome() {
 # Create the index for this dir
-echo "---\npagetheme: ${1}\n---\n# ${1} theme" > $2/index.md
+echo "---\npagetheme: ${1}\n---\n# Theme: ${1}" > $2/index.md
 echo $hcpanel >> $2/index.md
 echo $lcpanel >> $2/index.md
 read -r -d '' page << EOM
@@ -177,12 +178,13 @@ read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
 ---
-
 # Theme $1
+$hcpanel
 $hcontent
 EOM
 echo $page >> $2/long_page.md
 }
+
 
 # Central location for low-content page demo
 # It creates a page with not too much content to make sure
@@ -194,10 +196,9 @@ read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
 ---
-
-# Theme $1
-$lcontent
+# Theme: $1
 $lcpanel
+$lpcontent
 EOM
 echo $page >> $2/short_page.md
 }
