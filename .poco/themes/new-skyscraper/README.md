@@ -6,12 +6,11 @@ footer: footer.md
 
 stylesheets:
 - ../../css/reset.css
+- ../../css/sizes.css
 - ../../css/layout.css
 - ../../css/type.css
-- ../../css/sizes.css
 - ../../css/colors.css
 - ../../css/media.css
-
 - ../../css/skinny.css
 ---
 

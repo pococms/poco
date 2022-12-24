@@ -7,10 +7,13 @@ footer: "footer.md"
 importrules:
 - "url('https://fonts.googleapis.com/css?family=Neucha|Patrick+Hand+SC&display=swap');"
 
+
 stylesheets:
-- "../../css/base.css"
+- ../../css/reset.css
 - "https://unpkg.com/papercss/dist/paper.min.css"
-- "../../css/layout-test.css"
+- ../../css/colors.css
+- ../../css/sizes.css
+- "../../css/layout.css"
 - "../../css/media.css"
 ---
 

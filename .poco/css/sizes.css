@@ -4,12 +4,13 @@ p {padding-bottom:1em;}
 td,th{padding: 0.5rem;}
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 header>ul>li,nav>ul>li{padding-right:.5rem;}
-article{width:80%;height:100vh;}                         
+article{width:80%;height:100vh;}  
+article{padding-bottom:10vh}  /* Must match footer height */
+aside{width:20%;padding:0 2rem 0 2rem;}  
+ifooter {width:100%;}
+footer {height:10vh;} /* Must match article padding-bottom */
+
 article,nav,header,aside,footer{padding-left:5%;}
 article>dl>dt {padding-top:1rem;}
 article>dl>dd {margin-left:0;padding-bottom:.5rem;}
-aside{width:20%;padding:0 2rem 0 2rem;}  
-/* TODO: Is this true these days? Note: footer height should be same as article padding-bottom */
-footer {width:100%;height:10vh;}
-
 
