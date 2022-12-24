@@ -7,17 +7,21 @@
 
 # Create an array of theme names
 declare -a themes=(
-  'base'
-  'electro' #
+  'new-base'
+  #'base'
+  'new-electro' #
+  #'electro' #
   'hack'
   'informer'
   'newman'
   'paper'
   'pasteboard'
+  'new-pocodocs'
   'pocodocs'
   'rawdog'
   'retro'
-  'skyscraper'
+  'new-skyscraper'
+  #'skyscraper'
   'tufte'
   )
 
