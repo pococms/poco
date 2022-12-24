@@ -2760,7 +2760,7 @@ func (c *config) serve() {
 		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
 	}
 	// Simple static webserver:
-	print("\n%s Web server running at http://localhost%s\nTo stop the web server, press Ctrl+C", theTime(), c.port)
+  print("\n%s Web server running at:\n\nhttp://localhost%s\n\nTo stop the web server, press Ctrl+C", theTime(), c.port)
 	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(c.webroot))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
