@@ -1,4 +1,5 @@
-a{color:blue}
+
+article,nav,header,footer,aside{background-color:white;}
 
 pre{
   background-color: ghostwhite;
@@ -11,5 +12,4 @@ h2{color:gray;}
 h4{color:gray}
 
 
-article,nav,header,footer,aside{background-color:white;}
 
