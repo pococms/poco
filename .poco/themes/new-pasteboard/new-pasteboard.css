@@ -1,0 +1,49 @@
+
+article{width:70%;height:100vh;}  
+aside{width:30%;padding:0 2rem 0 2rem;}  
+footer {height:10vh;} /* Must match article padding-bottom */
+
+body{width:60%;margin:5% 20% 5% 20%;}
+aside{width:30%;}
+footer{margin-right:10%;max-width:60%;}
+header,nav,footer{margin-left:auto;margin-right:auto;}
+
+
+
+
+
+article>h1{/*letter-spacing:-.1rem;*/padding-bottom:2rem;}
+article>h2{font-size:1.75rem;padding-top:2.5rem;padding-bottom:.75rem}
+aside>h2{color:DimGray;font-weight:bold;}
+article>h3{font-size:1.5rem;padding-top:1.5rem;padding-bottom:.5rem;font-weight:bold;}
+article>h4{color:gray;font-weight:bold;}
+
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:4rem;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a{color:DimGray;font-size:3rem;font-weight:900;/*letter-spacing:-.1rem;*/padding-right:1rem;padding-left:0}
+
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;} 
+
+
+nav{margin-bottom:0;}
