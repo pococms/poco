@@ -1,0 +1,43 @@
+/* layout.css */
+
+/* Links show same if visited, underlined when hovered */
+a{text-decoration:none;}
+a:visited{text-decoration:none;}
+a:hover,a:active{color:inherit;text-decoration:underline;cursor:pointer}
+
+footer {width:100%;position:fixed;bottom:0;}
+/* Article on the right, aside on the left */
+article{float:right;clear:right;}    
+aside{
+  float:left;                                
+}  
+
+/* Article on the left, aside on the right */
+article{float:left;clear:left;}
+aside{ 
+  float:right;
+}
+
+
+table{
+  /* Cells in table share borders */
+  border-collapse: collapse;
+  width: 100%;
+}
+
+
+
+
+header>ul,nav>ul{list-style-type:none;}
+header>ul>li,nav>ul>li{display:inline;}
+
+#page-container { 
+  position: relative;
+  min-height: 100vh;
+}
+/* This is nested just inside article, and closes right before footer */
+#content-wrap {
+  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
+}
+
+

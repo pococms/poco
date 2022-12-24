@@ -1,0 +1,14 @@
+code,kbd,pre{
+  font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+}
+pre{
+  font-size: smaller;
+  overflow: auto;
+  padding: 1rem;
+}
+
+
+article>dl>dt {font-weight:bold;}
+article h4{font-weight:bold;}
+
+

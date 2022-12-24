@@ -1,0 +1,12 @@
+a{color:blue}
+
+pre{
+  background-color: ghostwhite;
+}
+td, th{
+  border: 1px solid;
+}
+
+article,nav,header,footer,aside{background-color:white;}
+article h4{color:gray}
+

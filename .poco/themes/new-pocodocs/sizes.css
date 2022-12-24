@@ -1,0 +1,21 @@
+/* NOTE: padding-bottom on article shold be same as footer-height */
+ol li, ul li  {margin-left:1em;}
+p {padding-bottom:1em;}
+td,th{padding: 0.5rem;}
+article{width:80%;height:100vh;}                         
+article,nav,header,aside,footer{padding-left:5%;}
+
+/* Note: footer height should be same as article padding-bottom */
+footer {width:100%;position:fixed;bottom:0;height:10vh;}
+aside{                                                                 
+  width:20%;                                    
+  padding:0 2rem 0 2rem;                          
+}  
+
+
+
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+article>dl>dt {padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+header>ul>li,nav>ul>li{padding-right:.5rem;}
+
