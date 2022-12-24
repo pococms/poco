@@ -24,13 +24,3 @@ aside{float:right;}
 footer {position:fixed;bottom:0;}
 
 
-#ipage-container { 
-  position: relative;
-  min-height: 100vh;
-}
-/* This is nested just inside article, and closes right before footer */
-#icontent-wrap {
-  padding-bottom: 10vh;  /* NOTE: Should be same as Footer height */
-}
-
-

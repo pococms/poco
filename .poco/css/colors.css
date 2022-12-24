@@ -4,9 +4,12 @@ pre{
   background-color: ghostwhite;
 }
 td, th{
-  border: 1px solid;
+  border: 1px solid gray;
 }
 
+h2{color:gray;}
+h4{color:gray}
+
+
 article,nav,header,footer,aside{background-color:white;}
-article h4{color:gray}
 
