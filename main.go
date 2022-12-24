@@ -42,13 +42,13 @@ const jsDir = "js"
 // Name of directory on disk that holds user-supplied
 // Javascript files to be inserted just before
 // the closing body tag. (User goes after
-// Poco, meaning they get the last word) 
+// Poco, meaning they get the last word)
 const jsUserLastDir = "userlast"
 
 // Name of directory on disk that holds Poco-supplied
 // Javascript files to be inserted just before
 // the closing body tag. (Poco goes before
-// user, meaning user gets the last word) 
+// user, meaning user gets the last word)
 const jsPocoLastDir = "pocolast"
 
 // Used to prevent use of a page layout elment. So to
@@ -95,7 +95,7 @@ func (c *config) scriptAfter() string {
 	// NOTE: Make sure the final } gets inserted
 	// before the closing </code> tag
 
-  return c.pocoEndJs() + c.endJs()
+	return c.pocoEndJs() + c.endJs()
 
 	slice := fmStrSlice("script-after", c.fm)
 	if slice == nil {
@@ -120,7 +120,7 @@ func (c *config) scriptAfter() string {
 func (c *config) assemble(filename string) string {
 	// This will contain the completed document as a string.
 	htmlFile := ""
-	// Execute templates. That way {{ .Title }} will be converted into
+	// Execute templates. That way {{ .title }} will be converted into
 	// whatever frontMatter["title"] is set to, etc.
 	var err error
 	if c.articleParsed, err = doTemplate("", c.articleRawHTML, c); err != nil {
@@ -152,13 +152,13 @@ func (c *config) assemble(filename string) string {
 		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
-    scriptAfter +
+		scriptAfter +
 		"}\n</script>" + "\n" +
 		"</body>\n</html>\n"
 	// TODO: This has code smell. Why doesn't it have to be
 	// done for other page layout elements?
 	c.articleReplaced = ""
- 	return htmlFile
+	return htmlFile
 } //   assemble
 
 func (c *config) timestamp() string {
@@ -215,61 +215,61 @@ func (c *config) documentReady() string {
 	return c.fileToString(".poco/js/docready.js")
 }
 
-
 // copyDirToString() takes a directory location,
 // concatenates all file contents from it into
 // a big ol' string, and returns the string.
 func (c *config) copyDirTostring(dir string) string {
 	f, err := os.Open(dir)
 	if err != nil {
-    quit(1, err, nil, "Can't open directory: %s", dir)
+		quit(1, err, nil, "Can't open directory: %s", dir)
 	}
 	defer f.Close()
-  filenames, err := f.Readdirnames(-1)
-  if err != nil {
-    quit(1, err, nil, "Can't read files in directory: %s", dir)
-  }
-  allFiles := ""
-	for _,filename  := range filenames {
-    target := filepath.Join(dir, filename)
-    s := c.fileToString(target)
-    allFiles += s
+	filenames, err := f.Readdirnames(-1)
+	if err != nil {
+		quit(1, err, nil, "Can't read files in directory: %s", dir)
 	}
-  return allFiles
+	allFiles := ""
+	for _, filename := range filenames {
+		target := filepath.Join(dir, filename)
+		s := c.fileToString(target)
+		allFiles += s
+	}
+	return allFiles
 }
 
 // Given a list of filenames in a slice (named
 // in the front matter), copies
 // them from the directory passed in. and
 // return the files concatenated as a string.
-// source is the name of the slice, for example, 
-// "endjs". 
+// source is the name of the slice, for example,
+// "endjs".
 // Target is the directory to
 // copy them to, for example, c.jsUserLastDir.
 func (c *config) copyFileSlice(source string, targetDir string) string {
 	filenames := fmStrSlice(source, c.fm)
-  if len(filenames) == 0 {
-    return ""
-  }
-  files := ""
-  s := ""
+	if len(filenames) == 0 {
+		return ""
+	}
+	files := ""
+	s := ""
 	for _, filename := range filenames {
-    path := filepath.Join(targetDir, filename)
-    s = c.fileToString(path)
-    files = files + s
-  }
-  return files
+		path := filepath.Join(targetDir, filename)
+		s = c.fileToString(path)
+		files = files + s
+	}
+	return files
 
 }
 
-// pocoEndJs() inserts Poco's Javascript files 
+// pocoEndJs() inserts Poco's Javascript files
 // just before the body ends.
 // It occurs before endJs() which means users get
 // the final say
 func (c *config) pocoEndJs() string {
-  return c.copyDirTostring(c.jsPocoLastDir)
+	return c.copyDirTostring(c.jsPocoLastDir)
 }
-// endJs() inserts user-provided Javascript files 
+
+// endJs() inserts user-provided Javascript files
 // just before the body ends.
 // The files are named in the front matter, like this:
 //
@@ -280,22 +280,22 @@ func (c *config) pocoEndJs() string {
 // ---
 //
 func (c *config) endJs() string {
-  return c.copyFileSlice("endjs", c.jsUserLastDir)
+	return c.copyFileSlice("endjs", c.jsUserLastDir)
 	filenames := fmStrSlice("endjs", c.fm)
-  if len(filenames) == 0 {
-    return ""
-  }
-  files := ""
-  s := ""
+	if len(filenames) == 0 {
+		return ""
+	}
+	files := ""
+	s := ""
 	for _, value := range filenames {
- 		filename := value
+		filename := value
 		s = s + c.getWebOrLocalFileStr(filename)
-   /* path := filepath.Join(c.jsUserLastDir, filename)
-    s = c.fileToString(path)
-    files = files + s
-    */
-  }
-  return files
+		/* path := filepath.Join(c.jsUserLastDir, filename)
+		   s = c.fileToString(path)
+		   files = files + s
+		*/
+	}
+	return files
 }
 
 // defaultHomePage() Generates a simple home page as an HTML string
@@ -437,7 +437,6 @@ type theme struct {
 	ver string
 }
 
-
 // TODO: Doc
 
 // there are no configuration files (yet) but this holds
@@ -468,13 +467,13 @@ type config struct {
 	// dumpfm command-line option shows the front matter of each page
 	dumpFm bool
 
-  // Directory holding user-supplied source files to read in at bottom of
-  // script tag area 
-  jsUserLastDir string
+	// Directory holding user-supplied source files to read in at bottom of
+	// script tag area
+	jsUserLastDir string
 
-  // Directory holding pocoCMS-supplied source files to read in at bottom of
-  // script tag area 
-  jsPocoLastDir string
+	// Directory holding pocoCMS-supplied source files to read in at bottom of
+	// script tag area
+	jsPocoLastDir string
 
 	// linkStylesOption true means stylesheets will not be inlined.
 	linkStylesOption bool
@@ -495,8 +494,8 @@ type config struct {
 	// front matter for current page
 	pageFm map[string]interface{}
 
-  // Fully qualified pathname for the .poco directory
-  pocoDir string
+	// Fully qualified pathname for the .poco directory
+	pocoDir string
 
 	// Full pathname of the root index file Markdown in the root directory.
 	// If present, it's either "README.md" or "index.md"
@@ -975,7 +974,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		}
 	}
 
-	if filename == "" {
+	if filename == "" || filename == suppressToken {
 		return
 	}
 
@@ -1178,7 +1177,7 @@ func (c *config) importRules() string {
 		c.theme.importRulesStr =
 			sliceToImportsRulesStr(c.theme.importRuleNames)
 		return "\n" + tagSurround("style", c.theme.importRulesStr, "\n")
-  }
+	}
 
 	return ""
 }
@@ -1410,6 +1409,7 @@ func (c *config) stylesheets() string {
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// The theme is actually just a directory name.
 	var theme theme
+	theme.init() // xxx
 	theme.dir = dir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
@@ -1504,7 +1504,7 @@ func (c *config) getThemeData(filename string) {
 // loadTheme() is passed the current source filename
 // (NOT the name of the theme, so filename could easily
 // be '/Users/tom/pococms/poco/tmp/index.md' or
-// '/Users/tom/pococms/poco/pricing/comparek.md').
+// '/Users/tom/pococms/poco/pricing/compared.md').
 // If a page theme is named in the front matter, its description
 // is read. If at the home page, it reads the global theme, if any.
 // It is possible at the home page to have both page theme
@@ -1613,10 +1613,20 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 }
 
+// TODO: Either remove or explain
+func (t *theme) init() {
+	t.header = "SUPPRESS"
+	t.nav = "SUPPRESS"
+	t.aside = "SUPPRESS"
+	t.footer = "SUPPRESS"
+}
+
 // newConfig allocates a config object.
 // sitewide configuration info.
 func newConfig() *config {
 	config := config{}
+	config.pageTheme.init()
+	config.theme.init()
 	return &config
 
 }
@@ -1728,14 +1738,14 @@ func main() {
 	// Add snazzy Go template functions like ftime() etc.
 	c.addTemplateFunctions()
 
-	// Collect command-line flags, directory to build, 
-  // learn root location, etc.
+	// Collect command-line flags, directory to build,
+	// learn root location, etc.
 	c.parseCommandLine()
 
-  // Save location of directories so they don't have to be recomputed
-  c.pocoDir = filepath.Join(c.root, pocoDir)
-  c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
-  c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
+	// Save location of directories so they don't have to be recomputed
+	c.pocoDir = filepath.Join(c.root, pocoDir)
+	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
+	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
 
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
@@ -1759,7 +1769,7 @@ func main() {
 
 	case rootDirPresent && !validProject && !c.newProjectFlag:
 	case rootDirPresent && !validProject && hasFiles:
-    // There's a directory. It doesn't have a valid project.
+		// There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
 		// dir into a project.
@@ -1770,7 +1780,7 @@ func main() {
 		// New project requested for dir that doesn't exist.
 		// Create a project there.
 		c.newSite()
-    //
+		//
 	case rootDirPresent && !hasFiles:
 		// There's an existing directory but it's empty.
 		// They probably want to create a project there.
@@ -1792,14 +1802,14 @@ func main() {
 
 	// If -serve flag was used just run as server.
 	if c.runServe {
-    if dirExists(c.webroot) {
-    }
-			if dirExists(c.webroot) {
-				c.serve()
-			} else {
-				// Or more likely it quits silently
-				quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
-			}
+		if dirExists(c.webroot) {
+		}
+		if dirExists(c.webroot) {
+			c.serve()
+		} else {
+			// Or more likely it quits silently
+			quit(1, nil, c, "Can't find webroot directory %s", c.webroot)
+		}
 	}
 
 	// If -settings flag just show config values and quit
@@ -1936,7 +1946,6 @@ func (c *config) getProjectTree(path string, dirs *int, skipPublish searchInfo) 
 	return files, nil
 }
 
-
 // deleteWebroot deletesj the publish directory unless
 // user has set flag to the contrary.
 func (c *config) deleteWebroot() {
@@ -1947,7 +1956,6 @@ func (c *config) deleteWebroot() {
 		}
 	}
 }
-
 
 // converts all files (except those in skipPublish.List) to HTML,
 // and deposits them in webroot. Attempts to create webroot if it
@@ -1960,8 +1968,8 @@ func (c *config) buildSite() {
 		quit(1, err, c, "Unable to change to directory %s", c.root)
 	}
 
-  // Delete webroot directory
-  c.deleteWebroot()
+	// Delete webroot directory
+	c.deleteWebroot()
 
 	// Collect all the files required for this project.
 	var treeCount int
@@ -2174,7 +2182,7 @@ func dirEmpty(name string) bool {
 	}
 	defer f.Close()
 
-  _, err = f.Readdirnames(1)
+	_, err = f.Readdirnames(1)
 	if err == io.EOF {
 		return true
 	}
@@ -2333,7 +2341,7 @@ func (c *config) downloadTextFile(url string) string {
 
 }
 
-// getWebOrLocalFileStr reads contentws of filename 
+// getWebOrLocalFileStr reads contentws of filename
 // and returns it as a string.
 // If string starts with http or https, fetches it from the web.
 func (c *config) getWebOrLocalFileStr(filename string) string {
@@ -2443,7 +2451,7 @@ func (c *config) linktags() string {
 	return tags
 }
 
-// metatag() generates a metatag such as 
+// metatag() generates a metatag such as
 // <meta name="description"content="PocoCMS: Markdown-based CMS in 1 file, written in Go">
 // If either content or tag are empty it returns the empty string
 func metatag(tag string, content string) string {
