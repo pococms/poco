@@ -238,9 +238,38 @@ echo $page >> $2/long_page_article_only.md
 ## $1 is the page theme
 # $2 is the directory for the page
 function aside_content() {
+dir=$2
+#
+# UNFINISHED: I'm not sure where the custom 
+# foo-aside-content-right.md (where foo
+# is the name of the theme currently 
+# being processed) file would come from.
+# Other than that, logic is all there
+# See if there's a file in this directory with
+# the theme named followed by -aside-content-right.md
+# If so it will be used to generate an aside right
+# make specially for this theme.
+filename=aside-content-right.md
+lookfor="$1-$filename"
+#echo "Creating aside for theme ${1}"
+if [[ -f $lookfor ]];
+then
+  # SPECIAL FILE FOUND
+  echo "Found ${lookfor}. Now read from that filename into a variable named $file"
+read -r -d '' file << EOM
+$(<$lookfor)
+EOM
+else
+  # SPECIAL FILE NOT FOUND.
+  # Read in from EOM to EoM
 read -r -d '' page << EOM
 Dynamically generated aside content
 EOM
+#echo "${lookfor} not found, Using $filename"
+  lookfor=$filename
+fi
+
+#read nothing
 echo $page >> $2/aside_content.md
 }
 
