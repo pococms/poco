@@ -5,7 +5,7 @@
 }
 @media (max-width:720px){
   header,nav,aside,footer{display:none}
-  article{padding:1rem;}
+  article{padding:1em;}
   article{float:left;clear:left;width:100%}
   html{font-size:20px;}
 }

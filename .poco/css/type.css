@@ -4,11 +4,11 @@ code,kbd,pre{
 pre{
   font-size: smaller;
   overflow: auto;
-  padding: 1rem;
+  padding: 1em;
 }
 
 
-article>dl>dt {font-weight:bold;}
+article>dl>dt{font-weight:bold;}
 article h4{font-weight:bold;}
 
 

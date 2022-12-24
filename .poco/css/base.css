@@ -91,7 +91,7 @@ p {padding-bottom:1em;}
 footer {width:100%;position:fixed;bottom:0;height:10vh;}
 aside{                                                                 
   width:20%;                                    
-  padding:0 2rem 0 2rem;                          
+  padding:0 2em 0 2em;                          
 }  
 
 /* Article on the right, aside on the left */
@@ -113,7 +113,7 @@ pre{
   background-color: ghostwhite;
   font-size: smaller;
   overflow: auto;
-  padding: 1rem;
+  padding: 1em;
 }
 table{
   /* Cells in table share borders */
@@ -121,7 +121,7 @@ table{
   width: 100%;
 }
 td, th{
-  padding: 0.5rem;
+  padding: 0.5em;
   border: 1px solid;
 }
 
@@ -129,12 +129,12 @@ article,nav,header,footer{padding-left:5%;}
 article,nav,header,footer,aside{background-color:white;}
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 
-article>dl>dt {font-weight:bold;padding-top:1rem;}
-article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+article>dl>dt {font-weight:bold;padding-top:1em;}
+article>dl>dd {margin-left:0;padding-bottom:.5em;}
 article h4{font-weight:bold;color:gray}
 
 header>ul,nav>ul{list-style-type:none;}
-header>ul>li,nav>ul>li{display:inline;padding-right:.5rem;}
+header>ul>li,nav>ul>li{display:inline;padding-right:.5em;}
 
 
 @media (max-width:1080px){
@@ -144,7 +144,7 @@ header>ul>li,nav>ul>li{display:inline;padding-right:.5rem;}
 }
 @media (max-width:720px){
   header,nav,aside,footer{display:none}
-  article{padding:1rem;}
+  article{padding:1em;}
   article{float:left;clear:left;width:100%}
   html{font-size:20px;}
 }
