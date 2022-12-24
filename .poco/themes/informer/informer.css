@@ -28,13 +28,17 @@ aside>h5{font-style:italic;padding-left:0;color:gray}
 aside>h4+p+h5{padding-bottom:1rem;border-bottom:1px solid #CDCDCD;}
 
 
-footer{color:green;background-color:white;}
+footer{color:blue;}
+footer{height:20vh;}
+footer{border-top:4px solid orange;}
+ifooter>table{width:3rem;}
 footer>table{white-space:nowrap}
 footer>table{font-size:.75em;}
+footer>table>td{width:1rem;}
 /* Make change to all headers (first row of table) */
 /* Next 2 lines of code are required. */
-table{table-layout:fixed;width:95%;}
-ifooter>table>th{font-weight:bold;width:3%;}
+table{table-layout:fixed;width:100%;}
+ifooter>table>th{font-weight:bold;width:;}
 ifooter>table>tbody>tr>th{width:3%;}
 ifooter>table>thead>tr>th{width:3%;}
 

@@ -11,7 +11,7 @@ article>table>tbody>tr>td{border:none;}
 article>table>thead>tr>th{border:none;} 
 
 /* Force text to stay in one row of the same height */
-article>table{white-space:no-wrap;}
+article>table{white-space:nowrap;}
 
 /* Keep the table narrow. It spaces columns closer. */
 article>table{table-layout:fixed;width:35%;}

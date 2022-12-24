@@ -1,6 +1,6 @@
 
-| WORLD NEWS         | LOCAL NEWS | TECH          | ARTS      | SOCIAL MEDIA   |
-|:------------------ |:---------- |:------------- |:--------- |:-------------  |
+| WORLD NEWS         | LOCAL NEWS  | TECH         | ARTS      | SOCIAL MEDIA   |
+|:------------------ |:----------- |:------------ |:--------- |:-------------  |
 | North America      | State       | Reviews      | Literary  | Twitter        | 
 | South America      | Weather     | Analysis     | Television| Facebook       |
 | Europe             | Traffic     | Stocks       | Cinema    | Instagram      |
