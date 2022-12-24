@@ -10,8 +10,8 @@ stylesheets:
 - ../../css/layout.css
 - ../../css/type.css
 - ../../css/colors.css
-- ../../css/media.css
 - ../../css/skinny.css
+- ../../css/media.css
 ---
 
 # Skyscraper theme
