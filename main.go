@@ -915,8 +915,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		t.asideType = asideUnspecified
 		if override != "left" &&
 			override != "right" &&
-			override != "" &&
-			override != suppressToken {
+			override != "" {
 			// Yes, on this page only, override the aside.
 			// Use whatever filename was provided.
 			filename = override
@@ -1615,10 +1614,12 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 
 // TODO: Either remove or explain
 func (t *theme) init() {
-	t.header = "SUPPRESS"
-	t.nav = "SUPPRESS"
-	t.aside = "SUPPRESS"
-	t.footer = "SUPPRESS"
+	/*
+		t.header = "SUPPRESS"
+		t.nav = "SUPPRESS"
+		t.aside = "SUPPRESS"
+		t.footer = "SUPPRESS"
+	*/
 }
 
 // newConfig allocates a config object.
