@@ -1,20 +1,28 @@
 ---
-header: "header.md"
-nav: "nav.md"
-aside: "aside.md"
-footer: "footer.md"
+header: header.md
+nav: nav.md
+aside: aside.md
+footer: footer.md
 
 importrules:
 - url('https://fonts.googleapis.com/css?family=Nova+Mono&display=swap');
 - url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap');    
 
 stylesheets:
-- "../../css/base.css"
-- "electro.css"
-- "../../css/skinny.css"
+- ../../css/reset.css
+- ../../css/sizes.css
+- ../../css/layout.css
+- ../../css/type.css
+- ../../css/colors.css
+- ../../css/media.css
+- ../../css/skinny.css
+- electro.css
 ---
 
 # Electro theme
+
+It doesn't look special, but that's the point. Base supports the
+entire set of theme framework features:
 
 * Header (optional)
 * Nav (optional)
@@ -25,6 +33,7 @@ stylesheets:
 and page layout elements such as aside, nav and footer disappear, 
 depending on how limited screen real estate gets)
 * Full support even low-end browsers; Javascript is optional
+
 
 It's easy to customize with minimal additions to CSS.
 

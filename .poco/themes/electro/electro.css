@@ -1,34 +1,43 @@
-h1{ font-size:2.5em;padding-top:2rem; }
-h2{ font-size:2em;padding-top:1.5rem; }
-h3{ font-size:1.5em;padding-top:1.5rem; }
-h4{ font-size:.9em;padding-top:1rem;}
-h5{ font-size:.8em; }
-h6{ font-size:0.9em; }
+a,
+a:link,
+a:visited {color:blue;} 
+a:hover,
+a:active {text-decoration-color: red;
+	-webkit-text-decoration-color: red;}
 
-ifooter{background-color:black;}
+html,header{background-color:#CD433F;}
+article,nav,aside{background-color:white}
+
+header > p, 
+  header > h1,
+  header > ul, 
+  header > ul li a, 
+  header > ol {
+	  font-size:2.5rem;font-family:'Nova Mono','sans-serif';
+}
+
+header > p {font-size:3rem;font-weight:700;display:inline;} 
+header{color:white;height:4rem;}
+header a,
+header a:link,
+header a:visited {color:white;} 
+header a:hover,
+header a:active {text-decoration:underline;} 
 
 nav > p, 
   nav > h1,
+  nav > h2,
+  nav > h3,
   nav > ul, 
   nav > ul li a, 
   nav > ol {
 	  font-family:'Nova Mono','sans-serif';
 }
 
-nav > h1, nav > h2, nav > h3 {font-family:'Nova Mono','sans-serif';}
-
-a,
-a:link,
-a:visited {color:blue;} 
-a:hover,
-a:active {text-decoration:underline;} 
-
-a:hover,
-a:active {text-decoration-color: red;
-	-webkit-text-decoration-color: red;}
 
 
-article > h1, article > h2, article > h3 {font-family:'Nova Mono','sans-serif';}
+article > h1, article > h2, article > h3 
+  {font-family:'Nova Mono','sans-serif';}
 
 article > h1,article > h2 {font-weight:700;}
 article > h2 {padding-top:4rem;}
@@ -47,35 +56,6 @@ article > p,
 		line-height:2.25rem;
 		padding-bottom:1rem;
 }
-html,header{background-color:#CD433F;}
-article,nav,aside{background-color:white}
-inav{color:#CD433F;background-color:#F7F7F8;}
-
-/* ******************************/
-/*  HEADER TAG                  */
-/* ******************************/
-
-header > p, 
-  header > h1,
-  header > ul, 
-  header > ul li a, 
-  header > ol {
-	  font-size:2.5rem;font-family:'Nova Mono','sans-serif';
-}
-
-header > p {font-size:3rem;font-weight:700;display:inline;} 
-header{color:white;height:4rem;}
-header a,
-header a:link,
-header a:visited {color:white;} 
-header a:hover,
-header a:active {text-decoration:underline;} 
-
-a:hover,
-a:active {text-decoration-color: red;
-	-webkit-text-decoration-color: red;}
-
-
 
 article > p > strong {font-family:'Roboto Condensed','sans-serif';font-weight:700;}
 /* Override font rule for code */
@@ -85,8 +65,7 @@ article > p > code, article > code, article > pre, article > pre > code {
     padding-bottom:1em;
     line-height:1.5em;
 		}
-article > pre { padding-left: 1em;font-size:1.25rem;}
-article > p > code {padding:.125em .25em .125em .25em;border:1px solid gray;border-radius:.125em;}
+
 article > p > a,
 article > p > a:link,
 article > p >  a:visited
@@ -95,21 +74,12 @@ article > p >  a:hover,
 article > p >  a:active
 	{text-decoration:underline;}
 
-
-iarticle > table > td,th {padding:1rem;}
-iarticle > table > tbody > tr > td {padding:1rem;border-bottom:.1px solid gray;}
-
 article > ul > li:before > input[type="text"]:disabled {color:red;} /* list-style-type:none;*/ 
 article > ul > li > input[type="text"]:disabled {color:red;} 
 article > ul > li > input[type="text"] {color:blue;} 
 
 article > img, article > p > img {width:100%;}
 
-/* ******************************/
-/*  SIDEBAR (ASIDE TAG)         */
-/* ******************************/
-
-aside {padding-right:1em;}
 aside > p > img, aside > img {float:left;}
 aside > p, 
   aside > h1,
@@ -120,7 +90,6 @@ aside > p,
   aside > ol {
 	  font-family:'Nova Mono','sans-serif';
 }
-
 
 
 footer > p, 

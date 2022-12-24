@@ -1,12 +1,17 @@
 ---
-header: "header.md"
-nav: "nav.md"
-aside: "aside.md"
-footer: "footer.md"
+header: header.md
+nav: nav.md
+aside: aside.md
+footer: footer.md
 
 stylesheets:
-- "../../css/base.css"
-- "../../css/skinny.css"
+- ../../css/reset.css
+- ../../css/sizes.css
+- ../../css/layout.css
+- ../../css/type.css
+- ../../css/colors.css
+- ../../css/media.css
+- ../../css/skinny.css
 ---
 
 # Skyscraper theme
@@ -22,10 +27,11 @@ entire set of theme framework features:
 * Aside (optional)
 * Support for asides on either left or right
 * Footer (optional)
-* Mobile support (below certain screen dimensions fonts get bigger
+* Mobile suppoort (below certain screen dimensions fonts get bigger
 and page layout elements such as aside, nav and footer disappear, 
 depending on how limited screen real estate gets)
 * Full support even low-end browsers; Javascript is optional
+
 
 It's easy to customize with minimal additions to CSS.
 

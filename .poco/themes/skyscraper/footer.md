@@ -1,2 +1,4 @@
-[Contact](#) [Privacy policy](#) [Terms of service](#)
+* [Contact](#)
+* [Privacy policy](#)
+* [Terms of service](#)
 
