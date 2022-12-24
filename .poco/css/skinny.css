@@ -1,6 +1,6 @@
 html{background-color:gray;margin-left:auto;margin-right:auto;width:100%;}
 body{width:80%;margin:5% 10% 5% 10%;}
 aside{width:20%;}
-header,nav,article,footer{margin-left:auto;margin-right:auto;}
 footer{margin-right:10%;max-width:80%;}
+header,nav,footer{margin-left:auto;margin-right:auto;}
 

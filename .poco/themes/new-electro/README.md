@@ -4,6 +4,10 @@ nav: nav.md
 aside: aside.md
 footer: footer.md
 
+importrules:
+- url('https://fonts.googleapis.com/css?family=Nova+Mono&display=swap');
+- url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap');    
+
 stylesheets:
 - ../../css/reset.css
 - ../../css/sizes.css
@@ -12,6 +16,7 @@ stylesheets:
 - ../../css/colors.css
 - ../../css/media.css
 - ../../css/skinny.css
+- electro.css
 ---
 
 # Electro theme
