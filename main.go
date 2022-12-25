@@ -141,15 +141,15 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		"\n<div id=\"page-container\">" +
-		"\n<div id=\"content-wrap\">\n" +
+//		"\n<div id=\"page-container\">" +
+//		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
-		"</div><!-- content-wrap -->\n" +
+//		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
-		"</div><!-- page-container -->\n" +
+//		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		scriptAfter +

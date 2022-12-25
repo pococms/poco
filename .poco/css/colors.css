@@ -12,4 +12,13 @@ h2{color:gray;}
 h4{color:gray}
 
 
+/* DARK MODE THEME SUPPORT (KEEP THIS AT END OF FILE) */
+@media (prefers-color-scheme: dark) {
+  html,header,nav,article,aside,footer{
+    background-color:MidnightBlue;
+    color:white;
+  }
+  a{color:white;background-color:MidnightBlue}
+}
+
 

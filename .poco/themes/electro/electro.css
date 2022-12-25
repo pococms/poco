@@ -1,4 +1,6 @@
-
+@media (prefers-color-scheme: dark) {
+  html,header,article{background-color:black;color:white}
+}
 
 header a:hover,
 header a:active {text-decoration:underline;} 
@@ -141,5 +143,12 @@ article > p,
 article > h4 {
   font-size:1em;padding-bottom:1em;
 } /* Byline */
+
+/* DARK MODE THEME SUPPORT (KEEP THIS AT END OF FILE) */
+@media (prefers-color-scheme: dark) {
+  html,header,article{
+    background-color:black;color:white
+  }
+}
 
 
