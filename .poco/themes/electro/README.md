@@ -16,7 +16,7 @@ stylesheets:
 - ../../css/colors.css
 - ../../css/skinny.css
 - ../../css/media.css
-- electro.css
+- overrides.css
 ---
 
 # Electro theme

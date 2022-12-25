@@ -11,12 +11,10 @@
 echo ""
 theme=$1
 
-/*
 if [ -z "$theme" ]
 then
   echo "Please add a theme name. Example:\n\n\t${0} mytheme\n" && exit 1
 fi
-*/
 
 function print_help(){
   echo "Options:"
@@ -92,6 +90,15 @@ wait_for_yes() {
 
 # Explanation of how to test the theme interactively
 read -r -d '' INTERACTIVE_TESTING << EOM
+
+* Level 1 bullet
+  - Level 2 bullet
+* Another level 1 bullet
+
+1. How does this look?
+2. Next to this?
+3. And finally this?
+
 ### How to test a theme
 * Stretch it wide and shrink it to phone proportions to ensure it's responsive
 * Make sure it works well with a [long article](default.html)

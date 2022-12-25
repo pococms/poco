@@ -11,7 +11,6 @@ article > h2 {padding-top:4rem;}
 
 
 article > p > strong {font-family:'Roboto Condensed','sans-serif';font-weight:700;}
-/* Override font rule for code */
 article > p > code, article > code, article > pre, article > pre > code {
 		font-family:'monospace';
 		overflow:auto;
