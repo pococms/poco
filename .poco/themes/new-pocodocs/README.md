@@ -10,5 +10,5 @@ stylesheets:
 - ../../css/type.css
 - ../../css/colors.css
 - ../../css/media.css
-- "new-overrides.css"
+- "new-pocodocs.css"
 ---

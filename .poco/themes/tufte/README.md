@@ -7,9 +7,10 @@ aside: aside.md
 footer: footer.html
 stylesheets:
 - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
-- "overrides.css"
+# "tufte.css"
 - ../../css/layout.css
 - ../../css/media.css
+- "tufte.css"
 ---
 # Tufte
 
