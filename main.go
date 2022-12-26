@@ -141,15 +141,15 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-//		"\n<div id=\"page-container\">" +
-//		"\n<div id=\"content-wrap\">\n" +
+		//		"\n<div id=\"page-container\">" +
+		//		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
-//		"</div><!-- content-wrap -->\n" +
+		//		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
-//		"</div><!-- page-container -->\n" +
+		//		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		scriptAfter +
@@ -550,8 +550,16 @@ type config struct {
 	pageTheme theme
 	theme     theme
 
+	// Location of theme directory for this project
+	themeDir string
+
 	// Command-line flag -themes shows installed themes
 	themeList bool
+
+	// Command-line flag -themeCopy asks which theme to copy.
+	// Then the new theme is needed, and that's themeToCreate.
+	themeToCopy   string
+	themeToCreate string
 
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
@@ -1635,6 +1643,11 @@ func newConfig() *config {
 // parseCommandLine obtains command line flags and
 // initializes values.
 func (c *config) parseCommandLine() {
+	// themeToCopy contain the name of a theme to copy
+	// c.themeToCreate we hope, contains the name of the target dir
+	flag.StringVar(&c.themeToCopy, "from", "", "Name of theme to copy from")
+	flag.StringVar(&c.themeToCreate, "to", "", "Name of theme to create")
+
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
@@ -1747,6 +1760,12 @@ func main() {
 	c.pocoDir = filepath.Join(c.root, pocoDir)
 	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
 	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
+	c.themeDir = filepath.Join(c.pocoDir, "themes")
+
+	// xxx
+	if c.themeToCopy != "" {
+		c.askToCopyTheme()
+	}
 
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
@@ -2760,7 +2779,7 @@ func (c *config) serve() {
 		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
 	}
 	// Simple static webserver:
-  print("\n%s Web server running at:\n\nhttp://localhost%s\n\nTo stop the web server, press Ctrl+C", theTime(), c.port)
+	print("\n%s Web server running at:\n\nhttp://localhost%s\n\nTo stop the web server, press Ctrl+C", theTime(), c.port)
 	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(c.webroot))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
@@ -2870,4 +2889,80 @@ func (c *config) ftime(param ...string) string {
 	}
 	t := time.Now()
 	return t.Format(format)
+}
+
+// TODO: document
+func (c *config) themeExists(themeName string) bool {
+	themeDir := filepath.Join(c.themeDir, themeName)
+	return dirExists(themeDir)
+}
+
+// TODO: document
+func (c *config) askToCopyTheme() {
+
+	debug("theme to copy: %s. theme to create: %s",
+		c.themeToCopy, c.themeToCreate)
+	if c.themeToCreate == "" {
+		c.themeToCreate = promptString("Name of new theme to create?")
+		if c.themeToCreate == "" {
+			quit(1, nil, nil, "Need name of theme to create")
+		}
+	}
+	debug("Copy theme %s to %s", c.themeToCopy, c.themeToCreate)
+	c.themeCopy(c.themeToCopy, c.themeToCreate)
+	quit(1, nil, nil, "Done with %s", c.themeToCreate)
+	// TODO: Improve error
+}
+
+// themeCopy() takes a theme named source and attempts to
+// create a theme called target. Only the theme names
+// are accepted, not full pathnames.
+func (c *config) themeCopy(source string, target string) {
+
+	// Can't copy a theme that doesn't exist
+	if !c.themeExists(source) {
+		quit(1, nil, nil, "Unable to find a source theme named %s", source)
+	}
+
+	// Don't replace an existing theme
+	if c.themeExists(target) {
+		quit(1, nil, nil, "There's already a theme named %s", target)
+	}
+
+	// This will be used to create a commented themename.css skeleton file */
+	skeletonFilename := target + ".css"
+
+	// Don't copy a theme onto itself.
+	if source == target {
+		quit(1, nil, nil, "Can't copy theme %s over itself. Madness will ensue", target)
+	}
+	source = filepath.Join(c.themeDir, source)
+	if !dirExists(source) {
+		quit(1, nil, c, "Somehow the source directory %s doesn't exist", source)
+	}
+
+	target = filepath.Join(c.themeDir, target)
+	if err := cp.Copy(source, target); err != nil {
+		quit(1, err, c, "Unable to copy Poco theme directory %s to %s",
+			source, target)
+	}
+
+	// Create themename.css skeleton file
+	const skeleton = `
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+
+/* OVERRIDE FRAMEWORK COLORS */
+
+/* OVERRIDE FRAMEWORK MEDIA QUERIES */
+
+`
+	skeletonFilename = filepath.Join(target, skeletonFilename)
+
+	debug("create %s", skeletonFilename)
+	stringToFile(c, skeletonFilename, skeleton)
+
 }
