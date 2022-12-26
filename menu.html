@@ -2,7 +2,8 @@
 <style>
 :root{
   --bg: 1;
-  --menu-expander: ">"
+  --menu-expander: ">";
+  --menu-bg-color: gray;
 }
 <style>
 .menu {
@@ -20,7 +21,7 @@
 }
 
 
-/* Top-level menu items only */
+/* Link attributes of top-level menu items only */
 .menu li a {
   display: block;
   padding: .75em .5em;
@@ -44,7 +45,9 @@
 
 /* Background color of all menu items being hovered over */
 .menu li a:hover {
-  background: grey;
+  background: var(--menu-bg-color);
+  background: gray;
+  background-color: var(--menu-bg-color);
 }
 
 .menu .submenu {
