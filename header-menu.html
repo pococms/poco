@@ -1,0 +1,155 @@
+<!-- Test of nesting menus for headers -->
+<head>
+<style>
+:root{
+  --bg: 1;
+  --menu-expander: ">";
+  --menu-bg-color: white;
+  --submenu-fg-color: black;
+  --submenu-bg-color: white;
+  --submenu-width: 10em;
+}
+<style>
+header {
+  display: block;
+  z-index: 999999;
+}
+header li {
+  display: inline-block;
+  position: relative;
+}
+
+
+header li.dropdown:hover > .submenu {
+  display:block;
+}
+
+
+/* Link attributes of top-level menu items only */
+header li a {
+  display: block;
+  padding: .75em .5em;
+}
+
+/* Special character following top level menu that has submenu */
+header li.dropdown > a::after {
+  /* content: "\e259"; */
+  content: var(--menu-expander);
+  margin-left: .5em;
+  font-size: .6em;
+}
+
+/* Character that precedes all menu items at all levels */
+header li a::before {
+  /* content: "\e179"; */
+  content: none;
+  margin-right: .5em;
+}
+
+
+/* Background color of all menu items being hovered over */
+header li a:hover {
+  background-color: var(--menu-bg-color);
+}
+
+header .submenu {
+  display: none;
+}
+
+.submenu {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  left: 0;
+  list-style-type: none;
+  display: block;
+  width: var(--submenu-width);
+  z-index: 9;
+}
+.submenu li {
+  display: block;
+}
+
+/* Link attributes of submenu items */
+.submenu li a {
+  display: block;
+  background-color: var(--submenu-bg-color);
+  color: var(--submenu-fg-color); 
+  padding: .5em 4.rem;
+  margin-bottom: .05rem;
+}
+
+header .submenu > li.dropdown:hover > .submenu {
+  display: block;
+}
+
+header .submenu .submenu {
+  position: absolute;
+  left: var(--submenu-width);
+  top: 0;
+}
+
+/* This link style applies to all submenus that contain submenus.
+   Not the top-level menu It's a character after the menu item
+  that indicates it has a submenu.*/
+.submenu li.dropdown > a:after {
+  content: var(--menu-expander); 
+  margin-left:.5em;
+  font-size:.6em;
+}
+
+</style>
+</head>
+<header>
+<ul class="menu">
+  <li><a href="">Home</a></li>
+  <li class="dropdown">
+    <a href="">Service</a>
+    <ul class="submenu">
+      <li>
+        <a href="">satu</a>
+      </li>      
+      <li class="dropdown">
+        <a href="">dua</a>
+        <ul class="submenu">
+          <li class="dropdown">
+            <a href="">jeruh dua</a>
+            <ul class="submenu">
+              <li>
+                <a href="">mentok satu</a>
+              </li>
+              <li class="dropdown">
+                <a href="">mentok dua</a>
+                <ul class="submenu">
+                  <li>
+                    <a href="">njedok prend satu</a>
+                  </li>      
+                  <li>
+                    <a href="">njedok prend dua</a>
+                  </li>
+                  <li>
+                    <a href="">njedok prend tiga</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="">mentok satu</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="">jeruh satu</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="">Other</a></li>
+</ul>
+</header>
+
+<body>
+  <h1>Body</h1>
+  <p>This is the body</p>
+</body>
+
