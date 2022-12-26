@@ -4,6 +4,9 @@
   --bg: 1;
   --menu-expander: ">";
   --menu-bg-color: gray;
+  --submenu-fg-color: white;
+  --submenu-bg-color: dimgray;
+  --submenu-width: 20em;
 }
 <style>
 .menu {
@@ -45,33 +48,35 @@
 
 /* Background color of all menu items being hovered over */
 .menu li a:hover {
-  background: var(--menu-bg-color);
-  background: gray;
   background-color: var(--menu-bg-color);
 }
 
 .menu .submenu {
   display: none;
 }
+
 .submenu {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   position: absolute;
-  left: 0px;
+  left: 0;
   list-style-type: none;
   display: block;
   width: 12em;
+  width: var(--submenu-width);
   z-index: 9;
 }
 .submenu li {
   display: block;
 }
+
+/* Link attributes of submenu items */
 .submenu li a {
   display: block;
-  background: #999;
-  color: #fff;
-  padding: .5em 6px;
-  margin-bottom: 1px;
+  background-color: var(--submenu-bg-color);
+  color: var(--submenu-fg-color); 
+  padding: .5em 4.rem;
+  margin-bottom: .05rem;
 }
 .menu .submenu > li.dropdown:hover > .submenu {
   display: block;
@@ -80,7 +85,8 @@
 .menu .submenu .submenu {
   position: absolute;
   left: 12em;
-  top: 0px;
+  width: var(--submenu-width);
+  top: 0;
 }
 
 /* This link style applies to all submenus that contain submenus.
