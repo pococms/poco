@@ -1,0 +1,140 @@
+<head>
+<style>
+:root{
+  --bg: 1;
+  --menu-expander: ">"
+}
+<style>
+.menu {
+  display: block;
+  z-index: 999999;
+}
+.menu li {
+  display: inline-block;
+  position: relative;
+}
+
+
+.menu li.dropdown:hover > .submenu {
+  display:block;
+}
+
+
+/* Top-level menu items only */
+.menu li a {
+  display: block;
+  padding: .75em .5em;
+}
+
+/* Special character following top level menu that has submenu */
+.menu li.dropdown > a::after {
+  /* content: "\e259"; */
+  content: var(--menu-expander);
+  margin-left: .5em;
+  font-size: .6em;
+}
+
+/* Character that precedes all menu items at all levels */
+.menu li a::before {
+  /* content: "\e179"; */
+  content: none;
+  margin-right: .5em;
+}
+
+
+/* Background color of all menu items being hovered over */
+.menu li a:hover {
+  background: grey;
+}
+
+.menu .submenu {
+  display: none;
+}
+.submenu {
+  margin: 0px;
+  padding: 0px;
+  position: absolute;
+  left: 0px;
+  list-style-type: none;
+  display: block;
+  width: 12em;
+  z-index: 9;
+}
+.submenu li {
+  display: block;
+}
+.submenu li a {
+  display: block;
+  background: #999;
+  color: #fff;
+  padding: .5em 6px;
+  margin-bottom: 1px;
+}
+.menu .submenu > li.dropdown:hover > .submenu {
+  display: block;
+}
+
+.menu .submenu .submenu {
+  position: absolute;
+  left: 12em;
+  top: 0px;
+}
+
+/* This link style applies to all submenus that contain submenus.
+   Not the top-level menu It's a character after the menu item
+  that indicates it has a submenu.*/
+.submenu li.dropdown > a:after {
+  /* content: "\e258"; */
+  content: var(--menu-expander); 
+  margin-left:.5em;
+  font-size:.6em;
+}
+
+</style>
+</head>
+<ul class="menu">
+  <li><a href="">Home</a></li>
+  <li class="dropdown">
+    <a href="">Service</a>
+    <ul class="submenu">
+      <li>
+        <a href="">satu</a>
+      </li>      
+      <li class="dropdown">
+        <a href="">dua</a>
+        <ul class="submenu">
+          <li class="dropdown">
+            <a href="">jeruh dua</a>
+            <ul class="submenu">
+              <li>
+                <a href="">mentok satu</a>
+              </li>
+              <li class="dropdown">
+                <a href="">mentok dua</a>
+                <ul class="submenu">
+                  <li>
+                    <a href="">njedok prend satu</a>
+                  </li>      
+                  <li>
+                    <a href="">njedok prend dua</a>
+                  </li>
+                  <li>
+                    <a href="">njedok prend tiga</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="">mentok satu</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="">jeruh satu</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="">Other</a></li>
+</ul>
+
