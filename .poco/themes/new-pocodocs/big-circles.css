@@ -1,6 +1,9 @@
+/* https://jsfiddle.net/yum3e2t6/ */
+
 
 ol {
   list-style: circle outside;
+  counter-reset: poco-counter;
 }
 
 ol li {
@@ -10,7 +13,7 @@ ol li {
     padding-left: 3em; /* Distance from bullet to text */
     list-style: none;
     overflow: hidden;
-    counter-reset: numList;
+    counter-increment:poco-counter;
     width: 100%;
     display: block;
     float: left;
@@ -18,8 +21,7 @@ ol li {
 }
 
 ol li:before {
-    counter-increment: numList;
-    content: counter(numList);
+    content: counter(poco-counter);
     float: left;
 
     position: absolute;
@@ -48,3 +50,5 @@ ol li:before {
   width: 2em;
   height: 2em;
 }
+
+
