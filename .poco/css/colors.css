@@ -18,7 +18,27 @@ h4{color:gray}
     background-color:MidnightBlue;
     color:white;
   }
-  a{color:white;background-color:MidnightBlue}
+  a{color:cyan;background-color:MidnightBlue;}
+
+  /* Code inside a paragraph */
+  article>p>code,article>ul>li>code,article>ul>li>p>code{
+    border-radius:.25em;
+    border-color:black;
+    padding: .25em .5em .25em .5em;
+    color:black;
+    background-color:WhiteSmoke;
+    border: 1px solid dimgray;
+  }
+
+  pre{
+    background-color:MidnightBlue;
+    background-color:#383838;
+  }
+  pre > code{
+    color:white;
+    background-color:MidnightBlue;
+    background-color:#383838;
+  }
 }
 
 

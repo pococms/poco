@@ -37,6 +37,7 @@ time, mark, audio, video {
   font: inherit;
   vertical-align: baseline;
   font-family:
+/*
     "system-ui",                           
       "-apple-system",                  
       "LucidaGrandeUI",                         
@@ -48,6 +49,7 @@ time, mark, audio, video {
       "Roboto-Light",                            
       "Segoe UI Light",                                   
       "Tahoma",                             
+*/
       "sans-serif";
 }
 

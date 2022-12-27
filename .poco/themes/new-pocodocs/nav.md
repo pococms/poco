@@ -1,1 +1,1 @@
-*PocoDocs theme nav*
+[Resources](docs/resources.html)
