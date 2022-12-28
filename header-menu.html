@@ -1,12 +1,14 @@
-<!-- Test of nesting menus for headers -->
+<!-- Test of nesting menus for headers 
+  * I elminated class "menu"
+-->
 <head>
 <style>
 :root{
   --bg: 1;
   --menu-expander: ">";
-  --menu-bg-color: white;
+  --menu-bg-color: gray;
   --submenu-fg-color: black;
-  --submenu-bg-color: white;
+  --submenu-bg-color: dimgray;
   --submenu-width: 10em;
 }
 <style>
@@ -20,6 +22,7 @@ header li {
 }
 
 
+/* Not convinced this is necessary */
 header li.dropdown:hover > .submenu {
   display:block;
 }
@@ -97,11 +100,27 @@ header .submenu .submenu {
   margin-left:.5em;
   font-size:.6em;
 }
+<!-- 
+<header id="header-poco">
+<ul>
+  <li><a href="#">Reviews</a>
+  <ul>
+    <li><a href="#">Movies</a></li>
+    <li><a href="#">Sport</a></li>
+  </ul>
+</li>
+<li><a href="#">Github</a></li>
+<li><a href="#">Profile</a></li>
+<li><a href="#">About</a></li>
+</ul>
+</header>
+-->
 
 </style>
 </head>
 <header>
-<ul class="menu">
+
+<ul class="menu"> 
   <li><a href="">Home</a></li>
   <li class="dropdown">
     <a href="">Service</a>

@@ -1,23 +1,13 @@
-html{background-color:gray}
-header{margin-top:4rem;}
-body{margin:5% 10% 5% 10%;}
 
-header,nav,article,footer{margin-left:auto;margin-right:auto;}
-header,nav{white-space:nowrap;overflow:hidden;}
-header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
-nav{margin-bottom:0}
-h1{font-weight:900;font-size:3rem;padding-top:.5rem;line-height:2.8rem}
-footer{padding-left:5%;max-width:80%;margin-top:2rem;}
-article{padding-left:5%;}
-article>ul>li>a,article>p>a{font-weight:normal}
-article>h1{/*letter-spacing:-.1rem;*/padding-bottom:2rem;}
-article>h2{font-size:1.75rem;padding-top:2.5rem;padding-bottom:.75rem}
-aside>h2{color:DimGray;font-weight:bold;}
-article>h3{font-size:1.5rem;padding-top:1.5rem;padding-bottom:.5rem;font-weight:bold;}
+ifooter {height:10vh;} /* Must match article padding-bottom */
+
+article>h1{/*letter-spacing:-.1em;*/padding-bottom:2em;}
+article>h2{font-size:1.75em;padding-top:2.5em;padding-bottom:.75em}
+aside>p{margin-top:0;padding-top:.5em;}
+aside>h3{padding:0;line-height:1.2em;}
+aside>h2{font-size:1.75em;color:DimGray;font-weight:bold;line-height:1.2em;padding-bottom:.75em;}
+article>h3{font-size:1.5em;padding-top:1.5em;padding-bottom:.5em;font-weight:bold;}
 article>h4{color:gray;font-weight:bold;}
-aside{padding-left:1rem;}
-aside>h3{padding-top:.75rem;padding-bottom:0;font-weight:bold;}
-aside>p{margin:0;line-height:1.2rem;padding-bottom:1rem;}
 
 /*
  * --------------------------------------------------
@@ -28,14 +18,7 @@ aside>p{margin:0;line-height:1.2rem;padding-bottom:1rem;}
  * looks like a button.
  * --------------------------------------------------
  */
-header > ul {line-height:4rem;}
-header > ul, nav > ul  {list-style-type:none;}
-header > ul > li{font-size:1.25rem;}
-header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
-header > ul > li > a,
-header > ul > li > a:link, 
-header > ul > li > a:visited
-	{color:blue;font-weight:normal;text-decoration:none;}
+header > ul {line-height:4em;}
 
 /*
  * --------------------------------------------------
@@ -43,7 +26,7 @@ header > ul > li > a:visited
  * branding
  * --------------------------------------------------
  */
-header>ul>li:first-child>a{color:DimGray;font-size:3rem;font-weight:900;/*letter-spacing:-.1rem;*/padding-right:1rem;padding-left:0}
+header>ul>li:first-child>a{color:DimGray;font-size:3em;font-weight:900;/*letter-spacing:-.1em;*/padding-right:1em;padding-left:0}
 
 /*
 / * --------------------------------------------------
@@ -54,3 +37,4 @@ header>ul>li:first-child>a{color:DimGray;font-size:3rem;font-weight:900;/*letter
 header>ul>li:first-child>a>del{text-decoration:none;color:red;} 
 
 
+nav{margin-bottom:0;}

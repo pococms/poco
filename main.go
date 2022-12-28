@@ -304,7 +304,7 @@ func (c *config) endJs() string {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-title: "Powered by PocoCMS"
+theme: "base"
 ---
 `
 	var indexMdBody = `
@@ -2949,7 +2949,7 @@ func (c *config) themeCopy(source string, target string) {
 
 	// Create themename.css skeleton file
 	const skeleton = `
-/* OVERRIDE FRAMEWORK SIZES */
+/* OVERRIDE FRAMEWORK PADDING, MARGIN, HEIGHTS */
 
 /* OVERRIDE FRAMEWORK LAYOUT */
 

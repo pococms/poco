@@ -1,3 +1,4 @@
+/* Does an oversized numbered list. Special effect seldom needed. */
 /* https://jsfiddle.net/yum3e2t6/ */
 
 
@@ -41,7 +42,7 @@ ol li:before {
 /* To keep text centered, ol li line-height must match 
  * ol li:before width and height */
 ol li {
-  font-size:1.5rem; /* Scales up everything */
+  font-size:1.5em; /* Scales up everything */
   margin-bottom:.5em;
   line-height:2em;
 }

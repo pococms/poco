@@ -273,7 +273,7 @@ function generate_theme() {
 
 if [ -f "$theme" ]
 then
-  echo "Already a file named ${theme}"
+  echo "Already a theme named ${theme}"
   if wait_for_yes "Replace it?" 
   then
     echo "OK!" 

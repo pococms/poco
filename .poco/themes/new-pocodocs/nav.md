@@ -1,1 +1,0 @@
-[Resources](docs/resources.html)
