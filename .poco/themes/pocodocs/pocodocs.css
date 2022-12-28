@@ -61,28 +61,14 @@ ol {
 }
 
 /* OVERRIDE FRAMEWORK COLORS */
-/* Code inside a paragraph */
-article>p>code,article>ul>li>code,article>ul>li>p>code{
-  background-color:WhiteSmoke;
-  border: 1px solid dimgray;
-}
+/* article>p,article>h1,article>h3{color:var(--fg);} */
 
-pre{
-  background-color:MidnightBlue;
-  background-color:#383838;
-}
-pre > code{
-  color:ghostwhite;
-  background-color:MidnightBlue;
-  background-color:#383838;
-}
 /* --------------------------------------------------
  * Special feature: Surround letters in first item 
  * with ~~ characters to get change of color
  * --------------------------------------------------
  */
 header>ul>li:first-child>a>del{text-decoration:none;color:red;}
-article>h1,article>h3{color:blue;}
 
 /* OVERRIDE FRAMEWORK MEDIA QUERIES */
 

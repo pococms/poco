@@ -9,6 +9,7 @@ importrules:
 
 
 stylesheets:
+- ../../css/root.css
 - ../../css/reset.css
 - "https://unpkg.com/papercss/dist/paper.min.css"
 - ../../css/colors.css

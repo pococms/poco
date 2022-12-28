@@ -1,44 +1,20 @@
 
-article,nav,header,footer,aside{background-color:white;}
-
+article,nav,header,footer,aside{color:var(--fg);background-color:var(--bg);}
+a{color:var(--a);}
+code{
+  color:var(--code-fg);
+  background-color:var(--code-bg);
+}
 pre{
-  background-color: ghostwhite;
+  color:var(--pre-fg);
+  background-color:var(--pre-bg);
 }
 td, th{
   border: 1px solid gray;
 }
 
-h2{color:gray;}
-h4{color:gray}
-
-
-/* DARK MODE THEME SUPPORT (KEEP THIS AT END OF FILE) */
-@media (prefers-color-scheme: dark) {
-  html,header,nav,article,aside,footer{
-    background-color:MidnightBlue;
-    color:white;
-  }
-  a{color:cyan;background-color:MidnightBlue;}
-
-  /* Code inside a paragraph */
-  article>p>code,article>ul>li>code,article>ul>li>p>code{
-    border-radius:.25em;
-    border-color:black;
-    padding: .25em .5em .25em .5em;
-    color:black;
-    background-color:WhiteSmoke;
-    border: 1px solid dimgray;
-  }
-
-  pre{
-    background-color:MidnightBlue;
-    background-color:#383838;
-  }
-  pre > code{
-    color:white;
-    background-color:MidnightBlue;
-    background-color:#383838;
-  }
-}
+h2{color:var(--h2-fg);}
+h3{color:var(--h3-fg);}
+h4{color:var(--h4-fg);}
 
 

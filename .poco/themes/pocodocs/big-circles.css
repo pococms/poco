@@ -32,10 +32,10 @@ ol li:before {
     /* line-height: 3em; */
 
     /* Keep width and height the same size for a circle */
-    width: 3em;
-    height: 3em;
+    width: 3em; height: 3em;
     background:blue;
     -moz-border-radius: 999px;
+    -webkit-border-radius: 999px;
     border-radius: 999px
 }
 

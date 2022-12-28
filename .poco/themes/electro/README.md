@@ -9,6 +9,7 @@ importrules:
 - url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap');    
 
 stylesheets:
+- ../../css/root.css
 - ../../css/reset.css
 - ../../css/sizes.css
 - ../../css/layout.css

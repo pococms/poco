@@ -5,6 +5,7 @@ aside: aside.md
 footer: footer.md
 
 stylesheets:
+- ../../css/root.css
 - ../../css/reset.css
 - ../../css/sizes.css
 - ../../css/layout.css

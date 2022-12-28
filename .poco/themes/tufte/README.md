@@ -6,6 +6,7 @@ nav: nav.md
 aside: aside.md
 footer: footer.html
 stylesheets:
+- ../../css/root.css
 - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
 # "tufte.css"
 - ../../css/layout.css

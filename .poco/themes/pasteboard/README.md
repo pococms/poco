@@ -5,6 +5,7 @@ aside: aside.md
 footer: footer.md
 stylesheets:
 
+- ../../css/root.css
 - ../../css/reset.css
 - ../../css/colors.css
 - "https://unpkg.com/mvp.css@1.12/mvp.css"

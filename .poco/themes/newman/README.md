@@ -9,6 +9,7 @@ supportedfeatures:
 - footer
 
 stylesheets:
+- ../../css/root.css
 - "https://fonts.xz.style/serve/inter.css"
 - "https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
 - "../../css/media.css"
