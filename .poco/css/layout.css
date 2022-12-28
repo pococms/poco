@@ -1,4 +1,3 @@
-/* layout.css */
 
 /* Links show same if visited, underlined when hovered */
 a{text-decoration:none;}
@@ -20,7 +19,8 @@ aside{float:left;}
 article{float:left;clear:left;}
 aside{float:right;}
 
-/* Handle page with light text. Have to stretch article and aside. */ 
+/* TODO: Removing this seems safe */
+/* Handle page with light text. Have to stretch article and aside.  
 footer {position:fixed;bottom:0;}
-
+*/
 
