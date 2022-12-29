@@ -1392,22 +1392,6 @@ func (c *config) inlineStylesheets(dir string) string {
 	return ""
 }
 
-// copyPocoDirToWebroot copies the .poco directory
-// to the web publish directory. Only needed (so far)
-// when -link-stylesheets is active.
-func (c *config) copyPocoDirToWebroot() {
-	target := filepath.Join(c.webroot, pocoDir)
-	source := filepath.Join(executableDir(), pocoDir)
-	//if err := cp.Copy(pocoDir, target); err != nil {
-	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
-	debug("copyPocoDirToWebRoot(%s,%s)", source, target)
-	if err := cp.Copy(source, target); err != nil {
-		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
-		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
-
-	}
-}
-
 // stylesheets() generates stylesheet tags required by themes
 // priority.
 func (c *config) stylesheets() string {
@@ -1416,6 +1400,7 @@ func (c *config) stylesheets() string {
 	if c.linkStylesOption {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
+		// TODO: Is this required?
 		c.copyPocoDirToWebroot()
 		s = c.linkStylesheets()
 	} else {
@@ -1802,65 +1787,43 @@ func (c *config) setDefaults() {
 
 }
 
-// copyPocoDirToProject() looks in the user application data directory for
-// the factory directory and copies it to the project.
+// copyPocoDirToProject() copies the factory
+// .poco directory to a new project.
 func (c *config) copyPocoDirToProject() {
-	target := filepath.Join(c.root, pocoDir)
-	c.verbose("No app data dir present. Copying %v to %v", c.userAppDataDir, target)
-	err := filepath.Walk(pocoDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Println(err)
-			return nil
-		}
-		if info.IsDir() {
-			debug("MKDIR %v", path)
-			cp.Copy(c.userAppDataDir, target)
-		}
-		debug("%v", filepath.Join(path, info.Name()))
-		return nil
-	})
-	if err != nil {
-		// TODO: Improve error
-		quit(1, err, c, "Problem with filepath.Walk()")
-	}
+	c.cpEmbed(pocoFiles, c.root)
 }
 
+// copyPocoDirToProject() copies the factory
+// .poco directory to a webroot.
+func (c *config) copyPocoDirToWebroot() {
+	c.cpEmbed(pocoFiles, c.webroot)
+}
 
-
+// cpEmbed() copies an embedded directory to the specified 
+// destination directory.
 func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
-    if d.IsDir() {
-      //wait("path: %v, d.Name: %v, dest: %v", path, d.Name(), dest)
-      dest := filepath.Join(dest,path)
-      debug("MKDIR %v", dest)
-      err := os.MkdirAll(dest, os.ModePerm)
-      if err != nil && !os.IsExist(err) {
-        quit(1, err, c, "Unable to create embed directory %s", dest)
-      }
-      //wait("did the directory %v get created?", dest)
-    } else {
-      // First figure out why dirs aen't being created
-      // It's a filename.
-      //source := filepath.Join(path, d.Name())
-      source := d.Name()
-      //debug("Reading file %v", source)
-      if f, err := efs.ReadFile(path); err != nil {
-        // TODO: better error message
-        quit(1, err, c, "Problem reading file %s from embed", dest)
-      } else {
-        //debug("%v", string(f))
-        //os.WriteFile(dest, f, 0644)
-        dir := filepath.Join(dest, path)
-        //wait("path: %v, d.Name: %v, dest: %v, dir: %v", path, source, dest, dir)
-        //debug("os.WriteFile %s", dir)
-        if err := os.WriteFile(dir, f, 0644); err != nil {
-          quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
-        }
-       //debug("\tWriting to %v", dest)
-      }
-    }
-    return nil
+		if d.IsDir() {
+			dest := filepath.Join(dest, path)
+			err := os.MkdirAll(dest, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to create embed directory %s", dest)
+			}
+		} else {
+			// It's a filename.
+			source := d.Name()
+			if f, err := efs.ReadFile(path); err != nil {
+				quit(1, err, c, "Problem reading file %s from embed", dest)
+			} else {
+				dir := filepath.Join(dest, path)
+				if err := os.WriteFile(dir, f, 0644); err != nil {
+					quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
+				}
+			}
+		}
+		return nil
 	}); err != nil {
+	  quit(1, err, c, "Failed to create walk embed directory %s", dest)
 		return err
 	}
 
@@ -1868,21 +1831,6 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 }
 
 
-func getAllFilenames(efs *embed.FS) (files []string, err error) {
-	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
- 
-		files = append(files, path)
-
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return files, nil
-}
 
 func main() {
 	c := newConfig()
@@ -1899,16 +1847,15 @@ func main() {
 	// Obtain location of user app data, etc.
 	c.setDefaults()
 	// Ensure there's a .poco directory to copy from
-  //f, _ := getAllFilenames(&pocoFiles)
-  //wait("%v", f)
+	//f, _ := getAllFilenames(&pocoFiles)
+	//wait("%v", f)
 	if !c.userAppDataDirValid() {
-    debug("NO valid user app data dir. About to create the factory dir")
-    c.cpEmbed(pocoFiles, c.userAppDataDir)
+		debug("NO valid user app data dir. About to create the factory dir")
+		c.cpEmbed(pocoFiles, c.userAppDataDir)
 
 		debug("Need to create a local .poco dir in %v", c.pocoDir)
-    c.cpEmbed(pocoFiles, c.root)
-  }
-
+		c.cpEmbed(pocoFiles, c.root)
+	}
 
 	// xxx
 	if c.themeToCopy != "" {
@@ -2397,25 +2344,6 @@ func copyFile(c *config, source string, target string) {
 
 }
 
-// copyPocoDir copies the embedded .poco directory into
-// the given directory, which is normally
-// a new project directory.
-func (c *config) copyPocoDir(f embed.FS, dir string) error {
-	if dir == "" {
-		dir = currDir()
-	}
-
-	source := filepath.Join(executableDir(), pocoDir)
-	target := dir
-	//if err := cp.Copy(pocoDir, target); err != nil {
-	debug("copyPocoDir from %s to %s", pocoDir, target)
-	if err := cp.Copy(source, target); err != nil {
-		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
-	}
-	return nil
-
-}
-
 // dirExists() returns true if the name passed to it is a directory.
 func dirExists(path string) bool {
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -2559,14 +2487,7 @@ func (c *config) newSite() {
 		quit(1, err, c, "Unable to create new project directory %s", dir)
 	}
 	writeDefaultHomePage(c, c.root)
-
-	//target := filepath.Join(c.root, pocoDir)
-	target := dir
-	debug("newSite(): c.copyPocoDir(%v, %v)", pocoFiles, target)
-	//c.copyPocoDir(pocoFiles, target)
-	debug("newSite(%v)", c.root)
 	c.copyPocoDirToProject()
-	//c.copyPocoDir(pocoFiles, "")
 }
 
 // Generates a simple home page
