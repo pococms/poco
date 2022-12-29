@@ -101,7 +101,7 @@ read -r -d '' lcpanel << EOM
 [Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
 **Try hiding** [header](short_page_no_header.html),
 [nav](short_page_no_nav.html),
-[article](short_page_no_article.html)
+[article](short_page_no_article.html),
 [aside](short_page_no_aside.html),
 [footer](short_page_no_footer.html), or
 [Everything!](short_page_no_everything.html) (blank page expected)  
@@ -117,7 +117,7 @@ read -r -d '' hcpanel << EOM
 [Article only](long_page_article_only.html). Aside [right](long_page_aside_right.html), [left](long_page_aside_left.html)  
 **Try hiding** [header](long_page_no_header.html),
 [nav](long_page_no_nav.html),
-[article](long_page_no_article.html)
+[article](long_page_no_article.html),
 [aside](long_page_no_aside.html),
 [footer](long_page_no_footer.html), or
 [Everything!](long_page_no_everything.html) (blank page expected)   
@@ -378,7 +378,7 @@ function long_page_no_aside() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-article: "SUPPRESS"
+aside: "SUPPRESS"
 ---
 # Theme $1
 $hcontent
