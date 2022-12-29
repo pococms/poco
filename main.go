@@ -1100,7 +1100,6 @@ func (c *config) styleTags() string {
 	// Take the slice of tags and put each one
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
-	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
@@ -1379,9 +1378,10 @@ func (c *config) inlineStylesheets(dir string) string {
 // when -link-stylesheets is active.
 func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
-	source := filepath.Join(c.root, pocoDir)
+	source := filepath.Join(executableDir(), pocoDir)
 	//if err := cp.Copy(pocoDir, target); err != nil {
 	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
+  debug("copyPocoDirToWebRoot(%s,%s)", source, target)
 	if err := cp.Copy(source, target); err != nil {
 		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
@@ -2260,6 +2260,7 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 	source := filepath.Join(executableDir(), pocoDir)
 	target := dir
 	//if err := cp.Copy(pocoDir, target); err != nil {
+  debug("copyPocoDir from %s to %s", pocoDir, target)
 	if err := cp.Copy(source, target); err != nil {
 		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
 	}
@@ -2406,6 +2407,7 @@ func (c *config) newSite() {
 
 	//target := filepath.Join(c.root, pocoDir)
 	target := dir
+  debug("newSite(): c.copyPocoDir(%v, %v)", pocoFiles, target)
 	c.copyPocoDir(pocoFiles, target)
 	//c.copyPocoDir(pocoFiles, "")
 }
@@ -2956,8 +2958,13 @@ func (c *config) themeCopy(source string, target string) {
 /* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
 
 /* OVERRIDE FRAMEWORK COLORS */
+/* See "OVERRIDE FRAMEWORK COLORS FOR DARK MODE" further down */
 
 /* OVERRIDE FRAMEWORK MEDIA QUERIES */
+
+/* OVERRIDE FRAMEWORK COLORS FOR DARK MODE */
+@media (prefers-color-scheme: dark) {
+}
 
 `
 	skeletonFilename = filepath.Join(target, skeletonFilename)
