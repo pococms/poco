@@ -250,6 +250,10 @@ EOM
 function generate_theme() {
   echo "Generating theme ${theme}"
   poco -new $tmpdir
+  if [[ $? -ne 0 ]]; then
+      echo "poco -new failed with error $?"
+      exit 1
+  fi
   echo $INDEX > $tmpdir/index.md
   echo $DEFAULT > $tmpdir/default.md
   echo $SHADED > $tmpdir/shaded.md
@@ -267,6 +271,10 @@ function generate_theme() {
   echo "Created file ${tmpdir}/index.md"
   ls $tmpdir/index.html
   poco $LINK_STYLES -verbose $tmpdir
+  if [[ $? -ne 0 ]]; then
+      echo "Quitting with error $?"
+      exit 1
+  fi
   open WWW/index.html
 }
 

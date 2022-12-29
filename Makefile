@@ -1,7 +1,7 @@
 BINARY_NAME=poco
 
-WINDOWS=latest/windows/${BINARY_NAME}
-DARWIN=latest/darwin/${BINARY_NAME}
+WINDOWS=latest/windows/${BINARY_NAME}.exe
+DARWIN=latest/mac/${BINARY_NAME}
 LINUX=latest/linux/${BINARY_NAME}
 
 build:
