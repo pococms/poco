@@ -21,11 +21,12 @@ import (
 	"github.com/yuin/goldmark/text"
 	"html/template"
 	"io"
-	//"io/fs"
+	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
@@ -33,6 +34,20 @@ import (
 	//"text/template"
 	"time"
 )
+
+// App file/directory name for config dirs, etc.
+const appFilename = "pococms"
+
+// Actual name for the executable, as well as occasional
+// other entities
+const appNickname = "poco"
+
+// App name used for branding, error messages, etc.
+const appProperName = "PocoCMS"
+
+// This is the name of a file used as a flag to signify that
+// a .poco directory has been copied properly.
+const installedFilename = "INSTALLED"
 
 // IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
@@ -50,7 +65,7 @@ const jsUserLastDir = "userlast"
 // Javascript files to be inserted just before
 // the closing body tag. (Poco goes before
 // user, meaning user gets the last word)
-const jsPocoLastDir = "pocolast"
+const jsPocoLastDir = "last"
 
 // Used to prevent use of a page layout elment. So to
 // prevent a header being dispallyed on the current page,
@@ -565,6 +580,9 @@ type config struct {
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	timestampFlag bool
+
+	// Directory where system prefers to store user application data
+	userAppDataDir string
 
 	// The --verbose flag. It shows progress as the site is created.
 	// Required by the verbose() function.
@@ -1578,7 +1596,7 @@ func (c *config) validateAside(t *theme) {
 		t.asideLeftFilename == "right" ||
 		t.asideRightFilename == "left" ||
 		t.asideRightFilename == "right" {
-		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name", suppressToken)
+		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name")
 		return
 	}
 
@@ -1747,15 +1765,74 @@ func promptYes(format string, ss ...interface{}) bool {
 
 }
 
+// userAppDataDirValid() tries to see if there's a
+// populated directory from which we can copy
+// factory themes, etc. It uses a heuristic:
+// it checks for the directory, then loooks for
+// an INSTALLED file. Nothing else in the directory
+// is technically required to generate an HTML page
+func (c *config) userAppDataDirValid() bool {
+	// First check to see if the directory even exists.
+  c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
+	if !dirExists(c.userAppDataDir) {
+		return false
+	}
+
+	// Then see if the INSTALLED file exists.
+	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
+  c.verbose("Looking for the file %v", lookFor)
+	if !fileExists(lookFor) {
+		return false
+	}
+	return true
+}
+
+// setDefaults() queries the system to find where
+// user application data should go
+func (c *config) setDefaults() {
+	//appFilename
+	var err error
+	// Find out where system likes to store user application data.
+	if c.userAppDataDir, err = os.UserConfigDir(); err != nil {
+		quit(1, err, c, "Unable to determine user application data directory")
+	}
+	// Not sure if this is the time to do it, but append the directory
+	// for this app.
+	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename)
+
+}
+
 func main() {
 
 	c := newConfig()
+
 	// Add snazzy Go template functions like ftime() etc.
 	c.addTemplateFunctions()
 
 	// Collect command-line flags, directory to build,
 	// learn root location, etc.
 	c.parseCommandLine()
+
+	// Obtain location of user app data, etc.
+	c.setDefaults()
+	// Ensure there's a .poco directory to copy from
+	//c.userAppDataDir
+  if !c.userAppDataDirValid() {
+    target := filepath.Join(c.root, pocoDir)
+    wait("No app data dir. Copy %v to %v?", c.userAppDataDir, target)
+    //func (c *config) copyPocoDir(f embed.FS, dir string) error {
+    //if err := cp.Copy(pocoFiles, target); err != nil {
+    //  quit(1, nil, c, "TODO: Unable to copy %v directory to %s", pocoDir, target)
+    //}
+
+    files, err := fs.ReadDir(pocoFiles,".poco")
+    if err != nil {
+        quit(1, err, c, "Couldn't read embed")
+    }
+    for _, file := range files {
+      debug("%+v", file.Name())
+    }
+  }
 
 	// Save location of directories so they don't have to be recomputed
 	c.pocoDir = filepath.Join(c.root, pocoDir)
@@ -1865,7 +1942,7 @@ func main() {
 // template values embedded.
 func doTemplate(templateName string, source string, c *config) (string, error) {
 	if templateName == "" {
-		templateName = "PocoCMS"
+		templateName = appFilename
 	}
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
@@ -2138,9 +2215,9 @@ func (c *config) getSkipPublish() {
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
-// pocoDirExists returns if the named directory contains
+// projectPocoDirExists returns if the named directory contains
 // a directory by the name of pocoDir.
-func pocoDirExists(path string) bool {
+func projectPocoDirExists(path string) bool {
 	// See if there's a .poco directory
 	poco := filepath.Join(path, pocoDir)
 	if !dirExists(poco) {
@@ -2157,7 +2234,7 @@ func isProject(path string) bool {
 		return false
 	}
 
-	if !pocoDirExists(path) {
+	if !projectPocoDirExists(path) {
 		return false
 	}
 
@@ -2314,6 +2391,13 @@ func (c *config) fileToString(filename string) string {
 		quit(1, err, c, "")
 	}
 	return string(input)
+}
+
+// onPath() returns true if the named program
+// is on the path.
+func onPath(name string) bool {
+	_, err := exec.LookPath(name)
+	return err == nil
 }
 
 // replaceExtension() is passed a filename and returns a filename
@@ -2520,9 +2604,9 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 		// Prints name of source file being processed.
 		if exitCode != 0 {
 			if c != nil {
-				fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
+				fmt.Printf("%s %s:\n \t%s%s\n", appProperName, c.currentFilename, msg, errmsg)
 			} else {
-				fmt.Printf("PocoCMS %s\n \t%s\n", msg, errmsg)
+				fmt.Printf("%s %s\n \t%s\n", appProperName, msg, errmsg)
 			}
 		}
 	} else {
@@ -2590,20 +2674,27 @@ func (c *config) dumpSettings() {
 	table.DefaultHeaderFormatter = func(format string, vals ...interface{}) string {
 		return strings.ToUpper(fmt.Sprintf(format, vals...))
 	}
-	tbl := table.New("Settings", "")
-  tbl.AddRow("Executable dir", executableDir())
-	if !isProject(c.root) {
-		tbl.AddRow("NOTE", c.root + " is not a PocoCMS project directory")
+	tbl := table.New("\nSettings", "")
+	if onPath(appNickname) {
+		tbl.AddRow("Poco dir", executableDir())
 	} else {
-    // It's a valid project
-    tbl.AddRow("Project dir", c.root)
-    tbl.AddRow("Webroot dir", c.webroot)
-    tbl.AddRow("Ignore", c.skipPublish.list)
-    tbl.AddRow("Global theme", c.theme.dir)
-    tbl.AddRow("Home page", c.homePage)
-	  tbl.AddRow(pocoDir, filepath.Join(executableDir(), pocoDir))
+		tbl.AddRow("NOTE", appNickname+"is not on the path")
+	}
+	tbl.AddRow("Application data dir should be", c.userAppDataDir)
+	tbl.AddRow("Application data dir valid?", c.userAppDataDirValid())
 
-  }
+	if !isProject(c.root) {
+		tbl.AddRow("NOTE", c.root+" is not a PocoCMS project directory")
+	} else {
+		// It's a valid project
+		tbl.AddRow("Project dir", c.root)
+		tbl.AddRow("Webroot dir", c.webroot)
+		tbl.AddRow("Ignore", c.skipPublish.list)
+		tbl.AddRow("Global theme", c.theme.dir)
+		tbl.AddRow("Home page", c.homePage)
+		tbl.AddRow(pocoDir, filepath.Join(executableDir(), pocoDir))
+
+	}
 	tbl.Print()
 	return
 
