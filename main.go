@@ -1824,10 +1824,53 @@ func (c *config) copyPocoDirToProject() {
 		quit(1, err, c, "Problem with filepath.Walk()")
 	}
 }
+
+
+
+func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
+	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
+    if d.IsDir() {
+      //wait("path: %v, d.Name: %v, dest: %v", path, d.Name(), dest)
+      dest := filepath.Join(dest,path)
+      debug("MKDIR %v", dest)
+      err := os.MkdirAll(dest, os.ModePerm)
+      if err != nil && !os.IsExist(err) {
+        quit(1, err, c, "Unable to create embed directory %s", dest)
+      }
+      //wait("did the directory %v get created?", dest)
+    } else {
+      // First figure out why dirs aen't being created
+      // It's a filename.
+      //source := filepath.Join(path, d.Name())
+      source := d.Name()
+      //debug("Reading file %v", source)
+      if f, err := efs.ReadFile(path); err != nil {
+        // TODO: better error message
+        quit(1, err, c, "Problem reading file %s from embed", dest)
+      } else {
+        //debug("%v", string(f))
+        //os.WriteFile(dest, f, 0644)
+        dir := filepath.Join(dest, path)
+        //wait("path: %v, d.Name: %v, dest: %v, dir: %v", path, source, dest, dir)
+        //debug("os.WriteFile %s", dir)
+        if err := os.WriteFile(dir, f, 0644); err != nil {
+          quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
+        }
+       //debug("\tWriting to %v", dest)
+      }
+    }
+    return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
 func getAllFilenames(efs *embed.FS) (files []string, err error) {
 	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
-      debug("MKDIR %s", d.Name())
 			return nil
 		}
  
@@ -1848,60 +1891,24 @@ func main() {
 	// Collect command-line flags, directory to build,
 	// learn root location, etc.
 	c.parseCommandLine()
-	// Obtain location of user app data, etc.
-	c.setDefaults()
-	// Ensure there's a .poco directory to copy from
-	//c.userAppDataDir
-	if !c.userAppDataDirValid() {
-    //kj:wtarget := filepath.Join(c.root, pocoDir)
-		debug("Need to create a .poco dir")
-		//c.copyPocoDirToProject()
-		//func (c *config) copyPocoDir(f embed.FS, dir string) error {
-		//if err := cp.Copy(pocoFiles, target); err != nil {
-		//  quit(1, nil, c, "TODO: Unable to copy %v directory to %s", pocoDir, target)
-		//}
-		// TODO: Reduce to minimal case for article
-
-		files, err := fs.ReadDir(&pocoFiles, pocoDir)
-		if err != nil {
-			quit(1, err, c, "Couldn't read embed")
-		}
-		for _, file := range files {
-			debug("%+v", file.Name())
-		}
-    var f []string
-    f, err = getAllFilenames(&pocoFiles);
-    //func getAllFilenames(efs *embed.FS) (files []string, err error) {
-    debug("%+v", f)
-
-		//err = fs.WalkDir(pocoFiles, func(path string, info os.FileInfo, err error) error {
-    /*
-		err = fs.WalkDir(pocoFiles, func(path string, d fs.DirEntry, err error) error {
-			debug("filepath.Walk()")
-			if err != nil {
-				// TODO: Improve error handling
-        debug("Error in filepath.Walk(): %s", err)
-				return nil
-			}
-			if info.IsDir() {
-				debug("MKDIR %v", path)
-				cp.Copy(c.userAppDataDir, target)
-			}
-			debug("%v", filepath.Join(path, info.Name()))
-			return nil
-		})
-		if err != nil {
-			// TODO: Improve error
-			quit(1, err, c, "Problem with filepath.Walk()")
-		}
-   */ 
-	}
-
 	// Save location of directories so they don't have to be recomputed
 	c.pocoDir = filepath.Join(c.root, pocoDir)
 	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
 	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
 	c.themeDir = filepath.Join(c.pocoDir, "themes")
+	// Obtain location of user app data, etc.
+	c.setDefaults()
+	// Ensure there's a .poco directory to copy from
+  //f, _ := getAllFilenames(&pocoFiles)
+  //wait("%v", f)
+	if !c.userAppDataDirValid() {
+    debug("NO valid user app data dir. About to create the factory dir")
+    c.cpEmbed(pocoFiles, c.userAppDataDir)
+
+		debug("Need to create a local .poco dir in %v", c.pocoDir)
+    c.cpEmbed(pocoFiles, c.root)
+  }
+
 
 	// xxx
 	if c.themeToCopy != "" {
