@@ -1272,10 +1272,11 @@ func (c *config) inlineStylesheets(dir string) string {
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
-			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+			/* if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
 				quit(1, nil, c, "Stylesheet \"%s\" in front matter can't be found",
 					filename)
 			}
+      */
 
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
@@ -1296,11 +1297,14 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			//fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			fullPath := regularize(filepath.Join(c.pageTheme.dir), filename)
+      /*
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
 				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
 					filename, c.theme.name)
 			}
+      */
 
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
@@ -1352,11 +1356,12 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
-			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
-					filename, c.theme.name)
-			}
+			//fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
+			fullPath := regularize(filepath.Join(c.theme.dir), filename)
+			//if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+			//quit(1, nil, c, "Stylesheet \"%s\" in global theme %s can't be found",
+			//		filename, c.theme.name)
+			//}
 
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
@@ -1457,13 +1462,14 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 func (c *config) getThemeData(filename string) {
 
 	//themeDir := filepath.Join(".poco", "themes")
-  themeDir := c.themeDir
+	themeDir := c.themeDir
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
 	if pageThemeName != "" {
 		// Pagetheme was specified like this in front mattter:
 		// pagetheme: foo
 		pageThemeDir := filepath.Join(themeDir, pageThemeName)
+		//debug("pagetheme seems to be: %s", pageThemeDir)
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 			c.pageTheme.name = pageThemeName
@@ -1485,6 +1491,7 @@ func (c *config) getThemeData(filename string) {
 		// theme: foo
 		if globalThemeName != "" {
 			globalThemeDir := filepath.Join(themeDir, globalThemeName)
+			//debug("global theme seems to be: %s", globalThemeDir)
 			if dirExists(globalThemeDir) {
 				c.theme = *c.themeDataStructures(globalThemeDir, true)
 				c.theme.name = globalThemeName
@@ -1740,27 +1747,27 @@ func promptYes(format string, ss ...interface{}) bool {
 // an INSTALLED file. Nothing else in the directory
 // is technically required to generate an HTML page
 func (c *config) userAppDataDirValid() bool {
-  debug("userAppDataDirValid()")
+	//debug("userAppDataDirValid()")
 	// First check to see if the directory even exists.
-	debug("\tLooking for user application data directory at %v", c.userAppDataDir)
+	//debug("\tLooking for user application data directory at %v", c.userAppDataDir)
 	c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
 	if !dirExists(c.userAppDataDir) {
-	  c.verbose("\nUnable to find %v", c.userAppDataDir)
+		c.verbose("\nUnable to find %v", c.userAppDataDir)
 		return false
 	} else {
-	  debug("\t\tFound %v", c.userAppDataDir)
-  }
+		//debug("\t\tFound %v", c.userAppDataDir)
+	}
 
 	// Then see if the INSTALLED file exists.
 	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
 	//debug("\tLooking for the file %v", lookFor)
 	c.verbose("Looking for the file %v", lookFor)
 	if !fileExists(lookFor) {
-	  //debug("\tCouldn't find the file %v", lookFor)
+		//debug("\tCouldn't find the file %v", lookFor)
 		return false
 	} else {
-    //debug("\t\tVALID user app data dir Found %s", lookFor)
-  }
+		//debug("\t\tVALID user app data dir Found %s", lookFor)
+	}
 	return true
 }
 
@@ -1777,14 +1784,14 @@ func (c *config) setDefaults() {
 	if c.userAppDataDir, err = os.UserConfigDir(); err != nil {
 		quit(1, err, c, "Unable to determine user application data directory")
 	}
-	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename/* , pocoDir*/)
+	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename /* , pocoDir*/)
 
 }
 
 // copyPocoDirToProject() copies the factory
 // .poco directory to a new project.
 func (c *config) copyPocoDirToProject() {
-  debug("copyPocoDirToProject: %v", c.root)
+	debug("copyPocoDirToProject: %v", c.root)
 	c.cpEmbed(pocoFiles, c.root)
 }
 
@@ -1792,18 +1799,17 @@ func (c *config) copyPocoDirToProject() {
 // .poco directory to webroot when a site
 // is generated.
 func (c *config) copyPocoDirToWebroot() {
-  debug("copyPocoDirToWebroot: %v", c.webroot)
+	debug("copyPocoDirToWebroot: %v", c.webroot)
 	c.cpEmbed(pocoFiles, c.webroot)
 }
 
-// cpEmbed() copies an embedded directory to the specified 
+// cpEmbed() copies an embedded directory to the specified
 // destination directory.
 func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
-  wait("cpEmbed %v", dest)
 	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			dest := filepath.Join(dest, path)
-      //wait("\tmkdir %s\tdest: %s\tpath: %s", dest, path)
+			//wait("\tmkdir %s\tdest: %s\tpath: %s", dest, path)
 
 			err := os.MkdirAll(dest, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
@@ -1815,9 +1821,9 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 			if f, err := efs.ReadFile(path); err != nil {
 				quit(1, err, c, "Problem reading file %s from embed", dest)
 			} else {
-        debug("\tdest: %v. path: %v", dest, path)
+				debug("\tdest: %v. path: %v", dest, path)
 				dir := filepath.Join(dest, path)
-        debug("\tPretending to write file %v to %v", source, dir); 
+				debug("\tPretending to write file %v to %v", source, dir)
 				if err := os.WriteFile(dir, f, 0644); err != nil {
 					quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
 				}
@@ -1825,18 +1831,16 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 		}
 		return nil
 	}); err != nil {
-	  quit(1, err, c, "Failed to create walk embed directory %s", dest)
+		quit(1, err, c, "Failed to create walk embed directory %s", dest)
 		return err
 	}
-  // Last thing: add the INSTALLED file
-  timeFilename := filepath.Join(dest, installedFilename)
-  debug("About to write %v to %v", theTime(), timeFilename)
-  stringToFile(c, timeFilename, theTime() + "\n")
+	// Last thing: add the INSTALLED file
+	timeFilename := filepath.Join(dest, installedFilename)
+	debug("About to write %v to %v", theTime(), timeFilename)
+	stringToFile(c, timeFilename, theTime()+"\n")
 
 	return nil
 }
-
-
 
 func main() {
 	c := newConfig()
@@ -1850,14 +1854,14 @@ func main() {
 	// Ensure there's a factory .poco directory to copy from
 	if !c.userAppDataDirValid() {
 		debug("NO valid user app data dir. About to create the factory dir")
-    debug("main(): embedded %s", c.userAppDataDir)
+		debug("main(): embedded %s", c.userAppDataDir)
 		c.cpEmbed(pocoFiles, c.userAppDataDir)
 
-		wait("Need to create a local .poco dir in %v", c.pocoDir)
+		debug("Need to create a local .poco dir in %v", c.pocoDir)
 		c.cpEmbed(pocoFiles, c.root)
 	} else {
 		debug("Valid user app data dir exists.")
-  }
+	}
 
 	// xxx
 	if c.themeToCopy != "" {
