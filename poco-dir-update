@@ -62,15 +62,17 @@ wait_for_yes() {
 
 
 
-if [[ $target == $source ]]
+if [[ $target/$pocodir == $source ]]
 then
-  echo "${target} and ${source} are the same place. Quitting." && exit 1
+  echo "${target/$pocodir} and ${source} are the same place. Quitting." && exit 1
 else
   if [[ $1 == "force" ]]
   then
     cp -R $source $target && exit 0
   fi
   echo "About to copy from ${source} to  ${target}/${pocodir}"
+  read -n foo
+
   if wait_for_yes "This will REPLACE older copies in ${target}/${pocodir}\nSure you want to continue? Y/N"; then
     cp -R $source $target 
   fi
