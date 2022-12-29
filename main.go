@@ -604,23 +604,6 @@ func (c *config) findHomePage() {
 		c.currentFilename = c.homePage
 		return
 	}
-
-	/*
-		if !dirEmpty(c.root) {
-			// No home page.
-			// Directory has files.
-			// User may not wish to create a new project.
-			if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
-				c.newSite()
-			} else {
-				quit(1, nil, c, "Can't build a project without an index.md or README.md")
-			}
-		} else {
-			// Empty dir, so create home page
-			c.newSite()
-			//writeDefaultHomePage(c, c.root)
-		}
-	*/
 	c.currentFilename = c.homePage
 }
 
@@ -1473,8 +1456,8 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
-	themeDir := filepath.Join(".poco", "themes")
-
+	//themeDir := filepath.Join(".poco", "themes")
+  themeDir := c.themeDir
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
 	if pageThemeName != "" {
@@ -1757,54 +1740,71 @@ func promptYes(format string, ss ...interface{}) bool {
 // an INSTALLED file. Nothing else in the directory
 // is technically required to generate an HTML page
 func (c *config) userAppDataDirValid() bool {
+  debug("userAppDataDirValid()")
 	// First check to see if the directory even exists.
+	debug("\tLooking for user application data directory at %v", c.userAppDataDir)
 	c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
 	if !dirExists(c.userAppDataDir) {
+	  c.verbose("\nUnable to find %v", c.userAppDataDir)
 		return false
-	}
+	} else {
+	  debug("\t\tFound %v", c.userAppDataDir)
+  }
 
 	// Then see if the INSTALLED file exists.
 	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
+	//debug("\tLooking for the file %v", lookFor)
 	c.verbose("Looking for the file %v", lookFor)
 	if !fileExists(lookFor) {
+	  //debug("\tCouldn't find the file %v", lookFor)
 		return false
-	}
+	} else {
+    //debug("\t\tVALID user app data dir Found %s", lookFor)
+  }
 	return true
 }
 
 // setDefaults() queries the system to find where
 // user application data should go
 func (c *config) setDefaults() {
-	//appFilename
+	// Save location of directories so they don't have to be recomputed
+	c.pocoDir = filepath.Join(c.root, pocoDir)
+	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
+	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
+	c.themeDir = filepath.Join(c.pocoDir, "themes")
 	var err error
 	// Find out where system likes to store user application data.
 	if c.userAppDataDir, err = os.UserConfigDir(); err != nil {
 		quit(1, err, c, "Unable to determine user application data directory")
 	}
-	// Not sure if this is the time to do it, but append the directory
-	// for this app.
-	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename)
+	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename/* , pocoDir*/)
 
 }
 
 // copyPocoDirToProject() copies the factory
 // .poco directory to a new project.
 func (c *config) copyPocoDirToProject() {
+  debug("copyPocoDirToProject: %v", c.root)
 	c.cpEmbed(pocoFiles, c.root)
 }
 
 // copyPocoDirToProject() copies the factory
-// .poco directory to a webroot.
+// .poco directory to webroot when a site
+// is generated.
 func (c *config) copyPocoDirToWebroot() {
+  debug("copyPocoDirToWebroot: %v", c.webroot)
 	c.cpEmbed(pocoFiles, c.webroot)
 }
 
 // cpEmbed() copies an embedded directory to the specified 
 // destination directory.
 func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
+  wait("cpEmbed %v", dest)
 	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			dest := filepath.Join(dest, path)
+      //wait("\tmkdir %s\tdest: %s\tpath: %s", dest, path)
+
 			err := os.MkdirAll(dest, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
 				quit(1, err, c, "Unable to create embed directory %s", dest)
@@ -1815,7 +1815,9 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 			if f, err := efs.ReadFile(path); err != nil {
 				quit(1, err, c, "Problem reading file %s from embed", dest)
 			} else {
+        debug("\tdest: %v. path: %v", dest, path)
 				dir := filepath.Join(dest, path)
+        debug("\tPretending to write file %v to %v", source, dir); 
 				if err := os.WriteFile(dir, f, 0644); err != nil {
 					quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
 				}
@@ -1826,6 +1828,10 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 	  quit(1, err, c, "Failed to create walk embed directory %s", dest)
 		return err
 	}
+  // Last thing: add the INSTALLED file
+  timeFilename := filepath.Join(dest, installedFilename)
+  debug("About to write %v to %v", theTime(), timeFilename)
+  stringToFile(c, timeFilename, theTime() + "\n")
 
 	return nil
 }
@@ -1839,23 +1845,19 @@ func main() {
 	// Collect command-line flags, directory to build,
 	// learn root location, etc.
 	c.parseCommandLine()
-	// Save location of directories so they don't have to be recomputed
-	c.pocoDir = filepath.Join(c.root, pocoDir)
-	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
-	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
-	c.themeDir = filepath.Join(c.pocoDir, "themes")
 	// Obtain location of user app data, etc.
 	c.setDefaults()
-	// Ensure there's a .poco directory to copy from
-	//f, _ := getAllFilenames(&pocoFiles)
-	//wait("%v", f)
+	// Ensure there's a factory .poco directory to copy from
 	if !c.userAppDataDirValid() {
 		debug("NO valid user app data dir. About to create the factory dir")
+    debug("main(): embedded %s", c.userAppDataDir)
 		c.cpEmbed(pocoFiles, c.userAppDataDir)
 
-		debug("Need to create a local .poco dir in %v", c.pocoDir)
+		wait("Need to create a local .poco dir in %v", c.pocoDir)
 		c.cpEmbed(pocoFiles, c.root)
-	}
+	} else {
+		debug("Valid user app data dir exists.")
+  }
 
 	// xxx
 	if c.themeToCopy != "" {
