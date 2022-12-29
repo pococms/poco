@@ -7,15 +7,16 @@
 /* ************************************/
 
 :root {
+  --a:blue;                   /* Default link color */
   --fg:black;                 /* Default text color. */
   --bg:white;                 /* Default background color */
+  --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:gray;               /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
   --h4-fg:gray;               /* Default h4 text color */
   --h5-fg:var(--fg);          /* Default h5 text color */
   --h6-fg:var(--fg);          /* Default h6 text color */
-  --a:blue;                   /* Default link color */
   --code-fg:var(--fg);        /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
   --pre-fg:var(--code-fg);    /* Text color for fenced code */
@@ -28,19 +29,20 @@
 
 @media (prefers-color-scheme:light) {
 :root {
-  --fg:black;
-  --bg:white;
+  --a:blue;                   /* Default link color */
+  --fg:black;                 /* Default text color. */
+  --bg:white;                 /* Default background color */
+  --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:gray;               /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
   --h4-fg:gray;               /* Default h4 text color */
   --h5-fg:var(--fg);          /* Default h5 text color */
   --h6-fg:var(--fg);          /* Default h6 text color */
-  --a:blue;                   /* Default link color */
   --code-fg:var(--fg);        /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
   --pre-fg:var(--code-fg);    /* Text color for fenced code */
-  --pre-bg:var(--code-bg);      /* Background color for fenced code */
+  --pre-bg:var(--code-bg);    /* Background color for fenced code */
 }
 
 
@@ -52,15 +54,16 @@
 }
 @media (prefers-color-scheme: dark) {
 :root {
-  --fg:white;
-  --bg:MidnightBlue;
+  --a:cyan;                   /* Default link color */
+  --fg:white;                 /* Default text color */
+  --bg:MidnightBlue;          /* Default background color */
+  --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --h1-fg:var(--fg);          /* Default h1 text color */
-  --h2-fg:Lavender;               /* Default h2 text color */
-  --h3-fg:SkyBlue;          /* Default h3 text color */
-  --h4-fg:Silver;         /* Default h4 text color */
+  --h2-fg:Lavender;           /* Default h2 text color */
+  --h3-fg:SkyBlue;            /* Default h3 text color */
+  --h4-fg:Silver;             /* Default h4 text color */
   --h5-fg:var(--fg);          /* Default h5 text color */
   --h6-fg:var(--fg);          /* Default h6 text color */
-  --a:cyan;                   /* Default link color */
   --code-fg:black;            /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
   --pre-fg:var(--code-fg);    /* Text color for fenced code */
