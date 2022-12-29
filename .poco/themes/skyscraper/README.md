@@ -13,6 +13,7 @@ stylesheets:
 - ../../css/colors.css
 - ../../css/skinny.css
 - ../../css/media.css
+- skyscraper.css
 ---
 
 # Skyscraper theme
