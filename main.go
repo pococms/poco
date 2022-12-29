@@ -10,6 +10,7 @@ import (
 	"fmt"
 	ytembed "github.com/13rac1/goldmark-embed"
 	cp "github.com/otiai10/copy"
+	"github.com/rodaine/table"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -1381,7 +1382,7 @@ func (c *config) copyPocoDirToWebroot() {
 	source := filepath.Join(executableDir(), pocoDir)
 	//if err := cp.Copy(pocoDir, target); err != nil {
 	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
-  debug("copyPocoDirToWebRoot(%s,%s)", source, target)
+	debug("copyPocoDirToWebRoot(%s,%s)", source, target)
 	if err := cp.Copy(source, target); err != nil {
 		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
@@ -2260,7 +2261,7 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 	source := filepath.Join(executableDir(), pocoDir)
 	target := dir
 	//if err := cp.Copy(pocoDir, target); err != nil {
-  debug("copyPocoDir from %s to %s", pocoDir, target)
+	debug("copyPocoDir from %s to %s", pocoDir, target)
 	if err := cp.Copy(source, target); err != nil {
 		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
 	}
@@ -2407,7 +2408,7 @@ func (c *config) newSite() {
 
 	//target := filepath.Join(c.root, pocoDir)
 	target := dir
-  debug("newSite(): c.copyPocoDir(%v, %v)", pocoFiles, target)
+	debug("newSite(): c.copyPocoDir(%v, %v)", pocoFiles, target)
 	c.copyPocoDir(pocoFiles, target)
 	//c.copyPocoDir(pocoFiles, "")
 }
@@ -2585,6 +2586,27 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
+
+	table.DefaultHeaderFormatter = func(format string, vals ...interface{}) string {
+		return strings.ToUpper(fmt.Sprintf(format, vals...))
+	}
+	tbl := table.New("Settings", "")
+  tbl.AddRow("Executable dir", executableDir())
+	if !isProject(c.root) {
+		tbl.AddRow("NOTE", c.root + " is not a PocoCMS project directory")
+	} else {
+    // It's a valid project
+    tbl.AddRow("Project dir", c.root)
+    tbl.AddRow("Webroot dir", c.webroot)
+    tbl.AddRow("Ignore", c.skipPublish.list)
+    tbl.AddRow("Global theme", c.theme.dir)
+    tbl.AddRow("Home page", c.homePage)
+	  tbl.AddRow(pocoDir, filepath.Join(executableDir(), pocoDir))
+
+  }
+	tbl.Print()
+	return
+
 	print("Global theme: %s", c.theme.dir)
 	print("Page theme: %s", c.pageTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
