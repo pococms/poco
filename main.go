@@ -1773,14 +1773,14 @@ func promptYes(format string, ss ...interface{}) bool {
 // is technically required to generate an HTML page
 func (c *config) userAppDataDirValid() bool {
 	// First check to see if the directory even exists.
-  c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
+	c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
 	if !dirExists(c.userAppDataDir) {
 		return false
 	}
 
 	// Then see if the INSTALLED file exists.
 	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
-  c.verbose("Looking for the file %v", lookFor)
+	c.verbose("Looking for the file %v", lookFor)
 	if !fileExists(lookFor) {
 		return false
 	}
@@ -1802,37 +1802,100 @@ func (c *config) setDefaults() {
 
 }
 
+// copyPocoDirToProject() looks in the user application data directory for
+// the factory directory and copies it to the project.
+func (c *config) copyPocoDirToProject() {
+	target := filepath.Join(c.root, pocoDir)
+	c.verbose("No app data dir present. Copying %v to %v", c.userAppDataDir, target)
+	err := filepath.Walk(pocoDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		if info.IsDir() {
+			debug("MKDIR %v", path)
+			cp.Copy(c.userAppDataDir, target)
+		}
+		debug("%v", filepath.Join(path, info.Name()))
+		return nil
+	})
+	if err != nil {
+		// TODO: Improve error
+		quit(1, err, c, "Problem with filepath.Walk()")
+	}
+}
+func getAllFilenames(efs *embed.FS) (files []string, err error) {
+	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+      debug("MKDIR %s", d.Name())
+			return nil
+		}
+ 
+		files = append(files, path)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
 func main() {
-
 	c := newConfig()
-
 	// Add snazzy Go template functions like ftime() etc.
 	c.addTemplateFunctions()
-
 	// Collect command-line flags, directory to build,
 	// learn root location, etc.
 	c.parseCommandLine()
-
 	// Obtain location of user app data, etc.
 	c.setDefaults()
 	// Ensure there's a .poco directory to copy from
 	//c.userAppDataDir
-  if !c.userAppDataDirValid() {
-    target := filepath.Join(c.root, pocoDir)
-    wait("No app data dir. Copy %v to %v?", c.userAppDataDir, target)
-    //func (c *config) copyPocoDir(f embed.FS, dir string) error {
-    //if err := cp.Copy(pocoFiles, target); err != nil {
-    //  quit(1, nil, c, "TODO: Unable to copy %v directory to %s", pocoDir, target)
-    //}
+	if !c.userAppDataDirValid() {
+    //kj:wtarget := filepath.Join(c.root, pocoDir)
+		debug("Need to create a .poco dir")
+		//c.copyPocoDirToProject()
+		//func (c *config) copyPocoDir(f embed.FS, dir string) error {
+		//if err := cp.Copy(pocoFiles, target); err != nil {
+		//  quit(1, nil, c, "TODO: Unable to copy %v directory to %s", pocoDir, target)
+		//}
+		// TODO: Reduce to minimal case for article
 
-    files, err := fs.ReadDir(pocoFiles,".poco")
-    if err != nil {
-        quit(1, err, c, "Couldn't read embed")
-    }
-    for _, file := range files {
-      debug("%+v", file.Name())
-    }
-  }
+		files, err := fs.ReadDir(&pocoFiles, pocoDir)
+		if err != nil {
+			quit(1, err, c, "Couldn't read embed")
+		}
+		for _, file := range files {
+			debug("%+v", file.Name())
+		}
+    var f []string
+    f, err = getAllFilenames(&pocoFiles);
+    //func getAllFilenames(efs *embed.FS) (files []string, err error) {
+    debug("%+v", f)
+
+		//err = fs.WalkDir(pocoFiles, func(path string, info os.FileInfo, err error) error {
+    /*
+		err = fs.WalkDir(pocoFiles, func(path string, d fs.DirEntry, err error) error {
+			debug("filepath.Walk()")
+			if err != nil {
+				// TODO: Improve error handling
+        debug("Error in filepath.Walk(): %s", err)
+				return nil
+			}
+			if info.IsDir() {
+				debug("MKDIR %v", path)
+				cp.Copy(c.userAppDataDir, target)
+			}
+			debug("%v", filepath.Join(path, info.Name()))
+			return nil
+		})
+		if err != nil {
+			// TODO: Improve error
+			quit(1, err, c, "Problem with filepath.Walk()")
+		}
+   */ 
+	}
 
 	// Save location of directories so they don't have to be recomputed
 	c.pocoDir = filepath.Join(c.root, pocoDir)
@@ -2044,7 +2107,7 @@ func (c *config) getProjectTree(path string, dirs *int, skipPublish searchInfo) 
 	return files, nil
 }
 
-// deleteWebroot deletesj the publish directory unless
+// deleteWebroot deletes the publish directory unless
 // user has set flag to the contrary.
 func (c *config) deleteWebroot() {
 	// Delete webroot directory unless otherwise requested
@@ -2493,7 +2556,9 @@ func (c *config) newSite() {
 	//target := filepath.Join(c.root, pocoDir)
 	target := dir
 	debug("newSite(): c.copyPocoDir(%v, %v)", pocoFiles, target)
-	c.copyPocoDir(pocoFiles, target)
+	//c.copyPocoDir(pocoFiles, target)
+	debug("newSite(%v)", c.root)
+	c.copyPocoDirToProject()
 	//c.copyPocoDir(pocoFiles, "")
 }
 
