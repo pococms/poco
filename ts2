@@ -78,6 +78,8 @@ function quit_exit() {
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
 tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+echo "Stress test: Removing factory themes"
+rm -rf /Users/tom/Library/Application\ Support/pococms/
 echo "Creating poco project at temp directory ${tmpdir}"
 poco -new $tmpdir              
 ALLDIRS=$tmpdir/level2/level3/                                     
