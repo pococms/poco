@@ -1075,9 +1075,9 @@ func (c *config) setupGlobals() { //
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
 	// Make sure it's a valid site. If not, create a minimal home page.
-	//if !isProject(c.root) {
-	//	quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
-	//}
+	if !isProject(c.root) {
+		quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
+	}
 
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
@@ -1791,7 +1791,6 @@ func (c *config) setDefaults() {
 // copyPocoDirToProject() copies the factory
 // .poco directory to a new project.
 func (c *config) copyPocoDirToProject() {
-	debug("copyPocoDirToProject: %v", c.root)
 	c.cpEmbed(pocoFiles, c.root)
 }
 
@@ -1799,7 +1798,6 @@ func (c *config) copyPocoDirToProject() {
 // .poco directory to webroot when a site
 // is generated.
 func (c *config) copyPocoDirToWebroot() {
-	debug("copyPocoDirToWebroot: %v", c.webroot)
 	c.cpEmbed(pocoFiles, c.webroot)
 }
 
@@ -1821,9 +1819,7 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 			if f, err := efs.ReadFile(path); err != nil {
 				quit(1, err, c, "Problem reading file %s from embed", dest)
 			} else {
-				debug("\tdest: %v. path: %v", dest, path)
 				dir := filepath.Join(dest, path)
-				debug("\tPretending to write file %v to %v", source, dir)
 				if err := os.WriteFile(dir, f, 0644); err != nil {
 					quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
 				}
@@ -1836,7 +1832,6 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 	}
 	// Last thing: add the INSTALLED file
 	timeFilename := filepath.Join(dest, installedFilename)
-	debug("About to write %v to %v", theTime(), timeFilename)
 	stringToFile(c, timeFilename, theTime()+"\n")
 
 	return nil
@@ -1853,14 +1848,12 @@ func main() {
 	c.setDefaults()
 	// Ensure there's a factory .poco directory to copy from
 	if !c.userAppDataDirValid() {
-		debug("NO valid user app data dir. About to create the factory dir")
-		debug("main(): embedded %s", c.userAppDataDir)
+		c.verbose("No valid user app data dir. About to restore factory dir from executable")
 		c.cpEmbed(pocoFiles, c.userAppDataDir)
-
-		debug("Need to create a local .poco dir in %v", c.pocoDir)
+		//debug("Need to create a local .poco dir in %v", c.pocoDir)
 		c.cpEmbed(pocoFiles, c.root)
 	} else {
-		debug("Valid user app data dir exists.")
+		//debug("Valid user app data dir exists.")
 	}
 
 	// xxx
@@ -3022,9 +3015,9 @@ func (c *config) askToCopyTheme() {
 			quit(1, nil, nil, "Need name of theme to create")
 		}
 	}
-	debug("Copy theme %s to %s", c.themeToCopy, c.themeToCreate)
+	//"Copy theme %s to %s", c.themeToCopy, c.themeToCreate)
 	c.themeCopy(c.themeToCopy, c.themeToCreate)
-	quit(1, nil, nil, "Done with %s", c.themeToCreate)
+	quit(1, nil, nil, "Theme %s created", c.themeToCreate)
 	// TODO: Improve error
 }
 
@@ -3080,8 +3073,6 @@ func (c *config) themeCopy(source string, target string) {
 
 `
 	skeletonFilename = filepath.Join(target, skeletonFilename)
-
-	debug("create %s", skeletonFilename)
 	stringToFile(c, skeletonFilename, skeleton)
 
 }
