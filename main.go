@@ -1075,9 +1075,10 @@ func (c *config) setupGlobals() { //
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
 	// Make sure it's a valid site. If not, create a minimal home page.
-	if !isProject(c.root) {
-		quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
-	}
+  // xxx
+	//if !isProject(c.root) {
+	//	quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
+	//}
 
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
@@ -1850,6 +1851,7 @@ func main() {
 	if !c.userAppDataDirValid() {
 		c.verbose("No valid user app data dir. About to restore factory dir from executable")
 		c.cpEmbed(pocoFiles, c.userAppDataDir)
+    // TODO: Not sure it follows that this must be done.
 		//debug("Need to create a local .poco dir in %v", c.pocoDir)
 		c.cpEmbed(pocoFiles, c.root)
 	} else {
@@ -1864,7 +1866,6 @@ func main() {
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
 	validProject := isProject(c.root)
-	//debug("Dir exists? %v\nc.root: %v\nValid project: %v\nHas files? %v\nNew requested? %v\n", is, c.root, validProject, hasFiles, c.newProjectFlag)
 
 	// Quit if running in main application directory
 	if executableDir() == c.root {
@@ -1881,8 +1882,9 @@ func main() {
 			quit(1, nil, nil, "Quitting.")
 		}
 
-	case rootDirPresent && !validProject && !c.newProjectFlag:
-	case rootDirPresent && !validProject && hasFiles:
+
+  case rootDirPresent && !validProject:
+    debug("Root dir present. Not a valid project")
 		// There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
@@ -1890,6 +1892,7 @@ func main() {
 		if promptYes("\n%v has files in it already but it's not yet a PocoCMS project.\nIf you start a new project here, everything is reversible:\n\n* No files will be destroyed.\n* A hidden directory named %v will be added. You can delete it anytime.\n* A directory called %v will be added. You can delete it anytime as well.\n\nCreate a project at %s? (Y/N) ", c.root, pocoDir, c.webroot, c.root) {
 			c.newSite()
 		}
+
 	case !rootDirPresent && c.newProjectFlag:
 		// New project requested for dir that doesn't exist.
 		// Create a project there.
