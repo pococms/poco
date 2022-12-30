@@ -157,15 +157,11 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		//		"\n<div id=\"page-container\">" +
-		//		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
-		//		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
-		//		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		scriptAfter +
@@ -1074,12 +1070,6 @@ func (c *config) setupGlobals() { //
 	// Prevent the home page from being read and converted again.
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
-	// Make sure it's a valid site. If not, create a minimal home page.
-  // xxx
-	//if !isProject(c.root) {
-	//	quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
-	//}
-
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
 
@@ -1201,9 +1191,6 @@ func (c *config) importRules() string {
 // See also inlineStylesheets(), which inserts stylesheet
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
-	//sliceToImportsRulesStr(c.pageTheme.importRuleNames)
-	// styleTagNames []string
-	// styleTags string
 
 	// Get any style tags on this page that might override
 	// the other stylesheets
@@ -1272,13 +1259,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
-			/* if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet \"%s\" in front matter can't be found",
-					filename)
-			}
-      */
-
+ 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
@@ -1291,23 +1272,14 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
-		// pageTheme := "/* PocoCMS pagetheme dude: " + c.pageTheme.name + " */\n"
 		slice = c.pageTheme.stylesheetFilenames
 
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			//fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			fullPath := regularize(filepath.Join(c.pageTheme.dir), filename)
-      /*
-			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
-					filename, c.theme.name)
-			}
-      */
-
-			// For debugging purposes, add commment with filename
+ 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
 				// If the file is local, read it in.
 				// If it's at a URL, download it.
@@ -1316,7 +1288,6 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
-			//return pageTheme + "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1357,13 +1328,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			//fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
 			fullPath := regularize(filepath.Join(c.theme.dir), filename)
-			//if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
-			//quit(1, nil, c, "Stylesheet \"%s\" in global theme %s can't be found",
-			//		filename, c.theme.name)
-			//}
-
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
 				// If the file is local, read it in.
@@ -1409,7 +1374,6 @@ func (c *config) stylesheets() string {
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// The theme is actually just a directory name.
 	var theme theme
-	theme.init() // xxx
 	theme.dir = dir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
@@ -1470,7 +1434,6 @@ func (c *config) getThemeData(filename string) {
 		// Pagetheme was specified like this in front mattter:
 		// pagetheme: foo
 		pageThemeDir := filepath.Join(themeDir, pageThemeName)
-		//debug("pagetheme seems to be: %s", pageThemeDir)
 		if dirExists(pageThemeDir) {
 			c.pageTheme = *c.themeDataStructures(pageThemeDir, false)
 			c.pageTheme.name = pageThemeName
@@ -1492,7 +1455,6 @@ func (c *config) getThemeData(filename string) {
 		// theme: foo
 		if globalThemeName != "" {
 			globalThemeDir := filepath.Join(themeDir, globalThemeName)
-			//debug("global theme seems to be: %s", globalThemeDir)
 			if dirExists(globalThemeDir) {
 				c.theme = *c.themeDataStructures(globalThemeDir, true)
 				c.theme.name = globalThemeName
@@ -1544,6 +1506,7 @@ func (c *config) loadTheme(filename string) {
 
 } // loadTheme (new version)
 
+// TODO: Document
 func (c *config) addPageElements(t *theme) {
 	c.layoutElement("article", t)
 	c.layoutElement("header", t)
@@ -1615,22 +1578,10 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 }
 
-// TODO: Either remove or explain
-func (t *theme) init() {
-	/*
-		t.header = "SUPPRESS"
-		t.nav = "SUPPRESS"
-		t.aside = "SUPPRESS"
-		t.footer = "SUPPRESS"
-	*/
-}
-
 // newConfig allocates a config object.
 // sitewide configuration info.
 func newConfig() *config {
 	config := config{}
-	config.pageTheme.init()
-	config.theme.init()
 	return &config
 
 }
@@ -1651,7 +1602,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// linkStylesOption controls whether stylesheets are inlined (normally they are)
-	flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
+	// flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -1748,26 +1699,18 @@ func promptYes(format string, ss ...interface{}) bool {
 // an INSTALLED file. Nothing else in the directory
 // is technically required to generate an HTML page
 func (c *config) userAppDataDirValid() bool {
-	//debug("userAppDataDirValid()")
 	// First check to see if the directory even exists.
-	//debug("\tLooking for user application data directory at %v", c.userAppDataDir)
 	c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
 	if !dirExists(c.userAppDataDir) {
 		c.verbose("\nUnable to find %v", c.userAppDataDir)
 		return false
-	} else {
-		//debug("\t\tFound %v", c.userAppDataDir)
 	}
 
 	// Then see if the INSTALLED file exists.
 	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
-	//debug("\tLooking for the file %v", lookFor)
 	c.verbose("Looking for the file %v", lookFor)
 	if !fileExists(lookFor) {
-		//debug("\tCouldn't find the file %v", lookFor)
 		return false
-	} else {
-		//debug("\t\tVALID user app data dir Found %s", lookFor)
 	}
 	return true
 }
@@ -1808,7 +1751,6 @@ func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
 	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			dest := filepath.Join(dest, path)
-			//wait("\tmkdir %s\tdest: %s\tpath: %s", dest, path)
 
 			err := os.MkdirAll(dest, os.ModePerm)
 			if err != nil && !os.IsExist(err) {
@@ -1852,10 +1794,8 @@ func main() {
 		c.verbose("No valid user app data dir. About to restore factory dir from executable")
 		c.cpEmbed(pocoFiles, c.userAppDataDir)
     // TODO: Not sure it follows that this must be done.
-		//debug("Need to create a local .poco dir in %v", c.pocoDir)
 		c.cpEmbed(pocoFiles, c.root)
 	} else {
-		//debug("Valid user app data dir exists.")
 	}
 
 	// xxx
@@ -1884,7 +1824,6 @@ func main() {
 
 
   case rootDirPresent && !validProject:
-    debug("Root dir present. Not a valid project")
 		// There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
@@ -1906,7 +1845,6 @@ func main() {
 		// Weird.Why create a project where a valid one exists?
 		quit(1, nil, nil, "There's already a project at %v. Quitting.", c.root)
 	case rootDirPresent && validProject:
-		//debug("Valid project at %v so just dropping through", c.root)
 	default:
 		quit(1, nil, nil, "Missed a case!")
 	}
@@ -2034,7 +1972,6 @@ func (c *config) treeVisit(files *[]string, count *int, skipPublish searchInfo) 
 			}
 		} else {
 			// DIRECTORY
-			//if path == "." || path == ".." || skipPublish.Found(path) {
 			// If this directory is to be skipped...
 			if skipPublish.Found(path) {
 				// Consume the whole thing
@@ -2171,7 +2108,6 @@ func (c *config) buildSite() {
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
 	c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", c.mdCopied), fileCount("asset", assetsCopied), c.copied)
-	//c.copied, mdCopied, assetsCopied)
 } // buildSite()
 
 // fileCount returns a string containing
@@ -2253,6 +2189,7 @@ func isProject(path string) bool {
 		return false
 	}
 
+  // If there's no .poco directory, it's not a project
 	if !projectPocoDirExists(path) {
 		return false
 	}
@@ -2320,7 +2257,6 @@ func executableDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
-	//debug("\t\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -2350,9 +2286,8 @@ func copyFile(c *config, source string, target string) {
 func dirExists(path string) bool {
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return true
-	} else {
-		return false
 	}
+  return false
 }
 
 // fileExists() returns true, well, if the named file exists
@@ -2362,9 +2297,8 @@ func fileExists(filename string) bool {
 	}
 	if _, err := os.Stat(filename); err == nil {
 		return true
-	} else {
-		return false
 	}
+  return false
 }
 
 // fileToBuf() reads the named file into a byte slice and returns
