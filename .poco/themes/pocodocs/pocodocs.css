@@ -9,7 +9,7 @@ article > img, article > p > img {
   margin-top:1em;margin-bottom:2em;
 }
 /* OVERRIDE FRAMEWORK PADDING, MARGIN, HEIGHTS */
-header{line-height:4em;}
+header{line-height:4em;padding-top:2em;}
 header>ul>li:first-child>a{padding-right:1rem;padding-left:0}
 
 nav>ul{line-height:2em;}

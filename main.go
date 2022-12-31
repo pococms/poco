@@ -86,7 +86,7 @@ var docType = `<!DOCTYPE html>
 
 // If a page lacks a title tag, it fails validation.
 // Insert this if none is found.
-var poweredBy = `Powered by PocoCMS`
+var poweredBy = `Powered with &hearts; by PocoCMS`
 
 // Adds Javascript after the body, just before the closing </body> tag
 func (c *config) scriptAfter() string {
@@ -304,7 +304,7 @@ func (c *config) endJs() string {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-title: "Powered by PocoCMS"
+title: "` + poweredBy + `"
 ---
 `
 	var indexMdBody = `
