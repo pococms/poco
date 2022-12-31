@@ -64,6 +64,7 @@ ol {
 }
 
 /* OVERRIDE FRAMEWORK COLORS */
+article>h2{color:red;}
 article>h5>strong{color:blue;}
 
 /* --------------------------------------------------

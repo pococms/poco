@@ -11,7 +11,7 @@ pre{
 header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
 header>ul>li,nav>ul>li{padding-right:.5em;}
 article ol,article ul{margin-left:1em;}
-article{width:80%;height:100vh;}  
+article{width:80%;height:80vh;}  
 article{padding-bottom:10vh}  /* Must match footer height */
 aside{width:20%;padding:0 2em 0 2em;}  
 footer {height:10vh;} /* Must match article padding-bottom */
