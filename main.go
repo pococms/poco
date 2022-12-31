@@ -10,7 +10,6 @@ import (
 	"fmt"
 	ytembed "github.com/13rac1/goldmark-embed"
 	cp "github.com/otiai10/copy"
-	"github.com/rodaine/table"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
@@ -21,12 +20,11 @@ import (
 	"github.com/yuin/goldmark/text"
 	"html/template"
 	"io"
-	"io/fs"
+	//"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
@@ -34,20 +32,6 @@ import (
 	//"text/template"
 	"time"
 )
-
-// App file/directory name for config dirs, etc.
-const appFilename = "pococms"
-
-// Actual name for the executable, as well as occasional
-// other entities
-const appNickname = "poco"
-
-// App name used for branding, error messages, etc.
-const appProperName = "PocoCMS"
-
-// This is the name of a file used as a flag to signify that
-// a .poco directory has been copied properly.
-const installedFilename = "INSTALLED"
 
 // IMPORTANT: This is the same name as used in the go:embed directive
 const pocoDir = ".poco"
@@ -65,7 +49,7 @@ const jsUserLastDir = "userlast"
 // Javascript files to be inserted just before
 // the closing body tag. (Poco goes before
 // user, meaning user gets the last word)
-const jsPocoLastDir = "last"
+const jsPocoLastDir = "pocolast"
 
 // Used to prevent use of a page layout elment. So to
 // prevent a header being dispallyed on the current page,
@@ -157,11 +141,15 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
+//		"\n<div id=\"page-container\">" +
+//		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
+//		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
+//		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		scriptAfter +
@@ -316,7 +304,7 @@ func (c *config) endJs() string {
 func defaultHomePage(dir string) string {
 
 	var indexMdFront = `---
-theme: "base"
+title: "Powered by PocoCMS"
 ---
 `
 	var indexMdBody = `
@@ -562,23 +550,12 @@ type config struct {
 	pageTheme theme
 	theme     theme
 
-	// Location of theme directory for this project
-	themeDir string
-
 	// Command-line flag -themes shows installed themes
 	themeList bool
-
-	// Command-line flag -themeCopy asks which theme to copy.
-	// Then the new theme is needed, and that's themeToCreate.
-	themeToCopy   string
-	themeToCreate string
 
 	// Command-line flag -timestamp inserts a timestamp at the
 	// top of the article when true
 	timestampFlag bool
-
-	// Directory where system prefers to store user application data
-	userAppDataDir string
 
 	// The --verbose flag. It shows progress as the site is created.
 	// Required by the verbose() function.
@@ -600,6 +577,23 @@ func (c *config) findHomePage() {
 		c.currentFilename = c.homePage
 		return
 	}
+
+	/*
+		if !dirEmpty(c.root) {
+			// No home page.
+			// Directory has files.
+			// User may not wish to create a new project.
+			if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
+				c.newSite()
+			} else {
+				quit(1, nil, c, "Can't build a project without an index.md or README.md")
+			}
+		} else {
+			// Empty dir, so create home page
+			c.newSite()
+			//writeDefaultHomePage(c, c.root)
+		}
+	*/
 	c.currentFilename = c.homePage
 }
 
@@ -1070,6 +1064,11 @@ func (c *config) setupGlobals() { //
 	// Prevent the home page from being read and converted again.
 	c.skipPublish.AddStr(filepath.Base(c.currentFilename))
 
+	// Make sure it's a valid site. If not, create a minimal home page.
+	//if !isProject(c.root) {
+	//	quit(1, nil, c, "No valid PocoCMS project at %s. Quitting.", c.root)
+	//}
+
 	// Convert home page to HTML
 	c.homePageStr, _ = buildFileToTemplatedString(c, c.currentFilename)
 
@@ -1093,6 +1092,7 @@ func (c *config) styleTags() string {
 	// Take the slice of tags and put each one
 	// on its own line.
 	t := c.getStyleTags(c.pageFm)
+	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
@@ -1191,6 +1191,9 @@ func (c *config) importRules() string {
 // See also inlineStylesheets(), which inserts stylesheet
 // code directly into the HTML document
 func (c *config) linkStylesheets() string {
+	//sliceToImportsRulesStr(c.pageTheme.importRuleNames)
+	// styleTagNames []string
+	// styleTags string
 
 	// Get any style tags on this page that might override
 	// the other stylesheets
@@ -1259,7 +1262,12 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
- 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet \"%s\" in front matter can't be found",
+					filename)
+			}
+
 			// If the file is local, read it in.
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
@@ -1272,14 +1280,20 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
+		// pageTheme := "/* PocoCMS pagetheme dude: " + c.pageTheme.name + " */\n"
 		slice = c.pageTheme.stylesheetFilenames
 
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(c.pageTheme.dir), filename)
- 			// For debugging purposes, add commment with filename
+			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
+					filename, c.theme.name)
+			}
+
+			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
 				// If the file is local, read it in.
 				// If it's at a URL, download it.
@@ -1288,6 +1302,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
+			//return pageTheme + "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1328,7 +1343,12 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
 			// Get full pathname or URL of file.
-			fullPath := regularize(filepath.Join(c.theme.dir), filename)
+			fullPath := regularize(filepath.Join(dir, c.theme.dir), filename)
+			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
+				quit(1, nil, c, "Stylesheet \"%s\" in theme %s can't be found",
+					filename, c.theme.name)
+			}
+
 			// For debugging purposes, add commment with filename
 			s = "\n/* " + filepath.Base(filename) + "*/\n" +
 				// If the file is local, read it in.
@@ -1346,6 +1366,21 @@ func (c *config) inlineStylesheets(dir string) string {
 	return ""
 }
 
+// copyPocoDirToWebroot copies the .poco directory
+// to the web publish directory. Only needed (so far)
+// when -link-stylesheets is active.
+func (c *config) copyPocoDirToWebroot() {
+	target := filepath.Join(c.webroot, pocoDir)
+	source := filepath.Join(c.root, pocoDir)
+	//if err := cp.Copy(pocoDir, target); err != nil {
+	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
+	if err := cp.Copy(source, target); err != nil {
+		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
+		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
+
+	}
+}
+
 // stylesheets() generates stylesheet tags required by themes
 // priority.
 func (c *config) stylesheets() string {
@@ -1354,7 +1389,6 @@ func (c *config) stylesheets() string {
 	if c.linkStylesOption {
 		// Normally stylesheets are inlined.
 		// This allows them to be linked to as usual.
-		// TODO: Is this required?
 		c.copyPocoDirToWebroot()
 		s = c.linkStylesheets()
 	} else {
@@ -1374,6 +1408,7 @@ func (c *config) stylesheets() string {
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// The theme is actually just a directory name.
 	var theme theme
+	theme.init() // xxx
 	theme.dir = dir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
@@ -1426,8 +1461,8 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
-	//themeDir := filepath.Join(".poco", "themes")
-	themeDir := c.themeDir
+	themeDir := filepath.Join(".poco", "themes")
+
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
 	if pageThemeName != "" {
@@ -1506,7 +1541,6 @@ func (c *config) loadTheme(filename string) {
 
 } // loadTheme (new version)
 
-// TODO: Document
 func (c *config) addPageElements(t *theme) {
 	c.layoutElement("article", t)
 	c.layoutElement("header", t)
@@ -1535,7 +1569,7 @@ func (c *config) validateAside(t *theme) {
 		t.asideLeftFilename == "right" ||
 		t.asideRightFilename == "left" ||
 		t.asideRightFilename == "right" {
-		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name")
+		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name", suppressToken)
 		return
 	}
 
@@ -1578,10 +1612,22 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 }
 
+// TODO: Either remove or explain
+func (t *theme) init() {
+	/*
+		t.header = "SUPPRESS"
+		t.nav = "SUPPRESS"
+		t.aside = "SUPPRESS"
+		t.footer = "SUPPRESS"
+	*/
+}
+
 // newConfig allocates a config object.
 // sitewide configuration info.
 func newConfig() *config {
 	config := config{}
+	config.pageTheme.init()
+	config.theme.init()
 	return &config
 
 }
@@ -1589,11 +1635,6 @@ func newConfig() *config {
 // parseCommandLine obtains command line flags and
 // initializes values.
 func (c *config) parseCommandLine() {
-	// themeToCopy contain the name of a theme to copy
-	// c.themeToCreate we hope, contains the name of the target dir
-	flag.StringVar(&c.themeToCopy, "from", "", "Name of theme to copy from")
-	flag.StringVar(&c.themeToCreate, "to", "", "Name of theme to create")
-
 	// cleanup determines whether or not the publish (aka WWW) directory
 	// gets deleted on start.
 	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
@@ -1602,7 +1643,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// linkStylesOption controls whether stylesheets are inlined (normally they are)
-	// flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
+	flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -1692,120 +1733,25 @@ func promptYes(format string, ss ...interface{}) bool {
 
 }
 
-// userAppDataDirValid() tries to see if there's a
-// populated directory from which we can copy
-// factory themes, etc. It uses a heuristic:
-// it checks for the directory, then loooks for
-// an INSTALLED file. Nothing else in the directory
-// is technically required to generate an HTML page
-func (c *config) userAppDataDirValid() bool {
-	// First check to see if the directory even exists.
-	c.verbose("Looking for user application data directory at %v", c.userAppDataDir)
-	if !dirExists(c.userAppDataDir) {
-		c.verbose("\nUnable to find %v", c.userAppDataDir)
-		return false
-	}
+func main() {
 
-	// Then see if the INSTALLED file exists.
-	lookFor := filepath.Join(c.userAppDataDir, installedFilename)
-	c.verbose("Looking for the file %v", lookFor)
-	if !fileExists(lookFor) {
-		return false
-	}
-	return true
-}
+	c := newConfig()
+	// Add snazzy Go template functions like ftime() etc.
+	c.addTemplateFunctions()
 
-// setDefaults() queries the system to find where
-// user application data should go
-func (c *config) setDefaults() {
+	// Collect command-line flags, directory to build,
+	// learn root location, etc.
+	c.parseCommandLine()
+
 	// Save location of directories so they don't have to be recomputed
 	c.pocoDir = filepath.Join(c.root, pocoDir)
 	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
 	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
-	c.themeDir = filepath.Join(c.pocoDir, "themes")
-	var err error
-	// Find out where system likes to store user application data.
-	if c.userAppDataDir, err = os.UserConfigDir(); err != nil {
-		quit(1, err, c, "Unable to determine user application data directory")
-	}
-	c.userAppDataDir = filepath.Join(c.userAppDataDir, appFilename /* , pocoDir*/)
-
-}
-
-// copyPocoDirToProject() copies the factory
-// .poco directory to a new project.
-func (c *config) copyPocoDirToProject() {
-	c.cpEmbed(pocoFiles, c.root)
-}
-
-// copyPocoDirToProject() copies the factory
-// .poco directory to webroot when a site
-// is generated.
-func (c *config) copyPocoDirToWebroot() {
-	c.cpEmbed(pocoFiles, c.webroot)
-}
-
-// cpEmbed() copies an embedded directory to the specified
-// destination directory.
-func (c *config) cpEmbed(efs embed.FS, dest string) (err error) {
-	if err := fs.WalkDir(&efs, ".", func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			dest := filepath.Join(dest, path)
-
-			err := os.MkdirAll(dest, os.ModePerm)
-			if err != nil && !os.IsExist(err) {
-				quit(1, err, c, "Unable to create embed directory %s", dest)
-			}
-		} else {
-			// It's a filename.
-			source := d.Name()
-			if f, err := efs.ReadFile(path); err != nil {
-				quit(1, err, c, "Problem reading file %s from embed", dest)
-			} else {
-				dir := filepath.Join(dest, path)
-				if err := os.WriteFile(dir, f, 0644); err != nil {
-					quit(1, err, c, "Problem copying embed file %s to %s", source, dest)
-				}
-			}
-		}
-		return nil
-	}); err != nil {
-		quit(1, err, c, "Failed to create walk embed directory %s", dest)
-		return err
-	}
-	// Last thing: add the INSTALLED file
-	timeFilename := filepath.Join(dest, installedFilename)
-	stringToFile(c, timeFilename, theTime()+"\n")
-
-	return nil
-}
-
-func main() {
-	c := newConfig()
-	// Add snazzy Go template functions like ftime() etc.
-	c.addTemplateFunctions()
-	// Collect command-line flags, directory to build,
-	// learn root location, etc.
-	c.parseCommandLine()
-	// Obtain location of user app data, etc.
-	c.setDefaults()
-	// Ensure there's a factory .poco directory to copy from
-	if !c.userAppDataDirValid() {
-		c.verbose("No valid user app data dir. About to restore factory dir from executable")
-		c.cpEmbed(pocoFiles, c.userAppDataDir)
-    // TODO: Not sure it follows that this must be done.
-		c.cpEmbed(pocoFiles, c.root)
-	} else {
-	}
-
-	// xxx
-	if c.themeToCopy != "" {
-		c.askToCopyTheme()
-	}
 
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
 	validProject := isProject(c.root)
+	//debug("Dir exists? %v\nc.root: %v\nValid project: %v\nHas files? %v\nNew requested? %v\n", is, c.root, validProject, hasFiles, c.newProjectFlag)
 
 	// Quit if running in main application directory
 	if executableDir() == c.root {
@@ -1822,8 +1768,8 @@ func main() {
 			quit(1, nil, nil, "Quitting.")
 		}
 
-
-  case rootDirPresent && !validProject:
+	case rootDirPresent && !validProject && !c.newProjectFlag:
+	case rootDirPresent && !validProject && hasFiles:
 		// There's a directory. It doesn't have a valid project.
 		// Dir has files, but not a valid project.
 		// User probably wants to turn an existing
@@ -1831,7 +1777,6 @@ func main() {
 		if promptYes("\n%v has files in it already but it's not yet a PocoCMS project.\nIf you start a new project here, everything is reversible:\n\n* No files will be destroyed.\n* A hidden directory named %v will be added. You can delete it anytime.\n* A directory called %v will be added. You can delete it anytime as well.\n\nCreate a project at %s? (Y/N) ", c.root, pocoDir, c.webroot, c.root) {
 			c.newSite()
 		}
-
 	case !rootDirPresent && c.newProjectFlag:
 		// New project requested for dir that doesn't exist.
 		// Create a project there.
@@ -1845,6 +1790,7 @@ func main() {
 		// Weird.Why create a project where a valid one exists?
 		quit(1, nil, nil, "There's already a project at %v. Quitting.", c.root)
 	case rootDirPresent && validProject:
+		//debug("Valid project at %v so just dropping through", c.root)
 	default:
 		quit(1, nil, nil, "Missed a case!")
 	}
@@ -1899,7 +1845,7 @@ func main() {
 // template values embedded.
 func doTemplate(templateName string, source string, c *config) (string, error) {
 	if templateName == "" {
-		templateName = appFilename
+		templateName = "PocoCMS"
 	}
 	tmpl, err := template.New(templateName).Parse(source)
 	if err != nil {
@@ -1972,6 +1918,7 @@ func (c *config) treeVisit(files *[]string, count *int, skipPublish searchInfo) 
 			}
 		} else {
 			// DIRECTORY
+			//if path == "." || path == ".." || skipPublish.Found(path) {
 			// If this directory is to be skipped...
 			if skipPublish.Found(path) {
 				// Consume the whole thing
@@ -2000,7 +1947,7 @@ func (c *config) getProjectTree(path string, dirs *int, skipPublish searchInfo) 
 	return files, nil
 }
 
-// deleteWebroot deletes the publish directory unless
+// deleteWebroot deletesj the publish directory unless
 // user has set flag to the contrary.
 func (c *config) deleteWebroot() {
 	// Delete webroot directory unless otherwise requested
@@ -2108,6 +2055,7 @@ func (c *config) buildSite() {
 	ensureIndexHTML(c.webroot, c)
 	// Display all files, Markdown or not, that were processed
 	c.verbose("%s converted, %s copied. %d total", fileCount("Markdown", c.mdCopied), fileCount("asset", assetsCopied), c.copied)
+	//c.copied, mdCopied, assetsCopied)
 } // buildSite()
 
 // fileCount returns a string containing
@@ -2170,9 +2118,9 @@ func (c *config) getSkipPublish() {
 	c.skipPublish.list = append(c.skipPublish.list, localSlice...)
 }
 
-// projectPocoDirExists returns if the named directory contains
+// pocoDirExists returns if the named directory contains
 // a directory by the name of pocoDir.
-func projectPocoDirExists(path string) bool {
+func pocoDirExists(path string) bool {
 	// See if there's a .poco directory
 	poco := filepath.Join(path, pocoDir)
 	if !dirExists(poco) {
@@ -2189,8 +2137,7 @@ func isProject(path string) bool {
 		return false
 	}
 
-  // If there's no .poco directory, it's not a project
-	if !projectPocoDirExists(path) {
+	if !pocoDirExists(path) {
 		return false
 	}
 
@@ -2257,6 +2204,7 @@ func executableDir() string {
 // FILE UTILITIES
 // copyFile, well, does just that. Doesn't return errors.
 func copyFile(c *config, source string, target string) {
+	//debug("\t\tcopyFile(%s,%s)", source, target)
 	if source == target {
 		quit(1, nil, c, "copyFile: %s and %s are the same", source, target)
 	}
@@ -2282,12 +2230,31 @@ func copyFile(c *config, source string, target string) {
 
 }
 
+// copyPocoDir copies the embedded .poco directory into
+// the given directory, which is normally
+// a new project directory.
+func (c *config) copyPocoDir(f embed.FS, dir string) error {
+	if dir == "" {
+		dir = currDir()
+	}
+
+	source := filepath.Join(executableDir(), pocoDir)
+	target := dir
+	//if err := cp.Copy(pocoDir, target); err != nil {
+	if err := cp.Copy(source, target); err != nil {
+		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
+	}
+	return nil
+
+}
+
 // dirExists() returns true if the name passed to it is a directory.
 func dirExists(path string) bool {
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return true
+	} else {
+		return false
 	}
-  return false
 }
 
 // fileExists() returns true, well, if the named file exists
@@ -2297,8 +2264,9 @@ func fileExists(filename string) bool {
 	}
 	if _, err := os.Stat(filename); err == nil {
 		return true
+	} else {
+		return false
 	}
-  return false
 }
 
 // fileToBuf() reads the named file into a byte slice and returns
@@ -2325,13 +2293,6 @@ func (c *config) fileToString(filename string) string {
 		quit(1, err, c, "")
 	}
 	return string(input)
-}
-
-// onPath() returns true if the named program
-// is on the path.
-func onPath(name string) bool {
-	_, err := exec.LookPath(name)
-	return err == nil
 }
 
 // replaceExtension() is passed a filename and returns a filename
@@ -2423,7 +2384,11 @@ func (c *config) newSite() {
 		quit(1, err, c, "Unable to create new project directory %s", dir)
 	}
 	writeDefaultHomePage(c, c.root)
-	c.copyPocoDirToProject()
+
+	//target := filepath.Join(c.root, pocoDir)
+	target := dir
+	c.copyPocoDir(pocoFiles, target)
+	//c.copyPocoDir(pocoFiles, "")
 }
 
 // Generates a simple home page
@@ -2533,9 +2498,9 @@ func quit(exitCode int, err error, c *config, format string, ss ...interface{}) 
 		// Prints name of source file being processed.
 		if exitCode != 0 {
 			if c != nil {
-				fmt.Printf("%s %s:\n \t%s%s\n", appProperName, c.currentFilename, msg, errmsg)
+				fmt.Printf("PocoCMS %s:\n \t%s%s\n", c.currentFilename, msg, errmsg)
 			} else {
-				fmt.Printf("%s %s\n \t%s\n", appProperName, msg, errmsg)
+				fmt.Printf("PocoCMS %s\n \t%s\n", msg, errmsg)
 			}
 		}
 	} else {
@@ -2599,34 +2564,6 @@ func fmtMsg(format string, ss ...interface{}) string {
 
 // dumpSettings() lists config values
 func (c *config) dumpSettings() {
-
-	table.DefaultHeaderFormatter = func(format string, vals ...interface{}) string {
-		return strings.ToUpper(fmt.Sprintf(format, vals...))
-	}
-	tbl := table.New("\nSettings", "")
-	if onPath(appNickname) {
-		tbl.AddRow("Poco dir", executableDir())
-	} else {
-		tbl.AddRow("NOTE", appNickname+"is not on the path")
-	}
-	tbl.AddRow("Application data dir should be", c.userAppDataDir)
-	tbl.AddRow("Application data dir valid?", c.userAppDataDirValid())
-
-	if !isProject(c.root) {
-		tbl.AddRow("NOTE", c.root+" is not a PocoCMS project directory")
-	} else {
-		// It's a valid project
-		tbl.AddRow("Project dir", c.root)
-		tbl.AddRow("Webroot dir", c.webroot)
-		tbl.AddRow("Ignore", c.skipPublish.list)
-		tbl.AddRow("Global theme", c.theme.dir)
-		tbl.AddRow("Home page", c.homePage)
-		tbl.AddRow(pocoDir, filepath.Join(executableDir(), pocoDir))
-
-	}
-	tbl.Print()
-	return
-
 	print("Global theme: %s", c.theme.dir)
 	print("Page theme: %s", c.pageTheme.dir)
 	print("Markdown extensions: %v", c.markdownExtensions.list)
@@ -2823,7 +2760,7 @@ func (c *config) serve() {
 		quit(1, err, c, "Unable to change to webroot directory %s", c.root)
 	}
 	// Simple static webserver:
-	print("\n%s Web server running at:\n\nhttp://localhost%s\n\nTo stop the web server, press Ctrl+C", theTime(), c.port)
+  print("\n%s Web server running at:\n\nhttp://localhost%s\n\nTo stop the web server, press Ctrl+C", theTime(), c.port)
 	if err := http.ListenAndServe(c.port, http.FileServer(http.Dir(c.webroot))); err != nil {
 		quit(1, err, c, "Error running web server")
 	}
@@ -2933,83 +2870,4 @@ func (c *config) ftime(param ...string) string {
 	}
 	t := time.Now()
 	return t.Format(format)
-}
-
-// TODO: document
-func (c *config) themeExists(themeName string) bool {
-	themeDir := filepath.Join(c.themeDir, themeName)
-	return dirExists(themeDir)
-}
-
-// TODO: document
-func (c *config) askToCopyTheme() {
-
-	debug("theme to copy: %s. theme to create: %s",
-		c.themeToCopy, c.themeToCreate)
-	if c.themeToCreate == "" {
-		c.themeToCreate = promptString("Name of new theme to create?")
-		if c.themeToCreate == "" {
-			quit(1, nil, nil, "Need name of theme to create")
-		}
-	}
-	//"Copy theme %s to %s", c.themeToCopy, c.themeToCreate)
-	c.themeCopy(c.themeToCopy, c.themeToCreate)
-	quit(1, nil, nil, "Theme %s created", c.themeToCreate)
-	// TODO: Improve error
-}
-
-// themeCopy() takes a theme named source and attempts to
-// create a theme called target. Only the theme names
-// are accepted, not full pathnames.
-func (c *config) themeCopy(source string, target string) {
-
-	// Can't copy a theme that doesn't exist
-	if !c.themeExists(source) {
-		quit(1, nil, nil, "Unable to find a source theme named %s", source)
-	}
-
-	// Don't replace an existing theme
-	if c.themeExists(target) {
-		quit(1, nil, nil, "There's already a theme named %s", target)
-	}
-
-	// This will be used to create a commented themename.css skeleton file */
-	skeletonFilename := target + ".css"
-
-	// Don't copy a theme onto itself.
-	if source == target {
-		quit(1, nil, nil, "Can't copy theme %s over itself. Madness will ensue", target)
-	}
-	source = filepath.Join(c.themeDir, source)
-	if !dirExists(source) {
-		quit(1, nil, c, "Somehow the source directory %s doesn't exist", source)
-	}
-
-	target = filepath.Join(c.themeDir, target)
-	if err := cp.Copy(source, target); err != nil {
-		quit(1, err, c, "Unable to copy Poco theme directory %s to %s",
-			source, target)
-	}
-
-	// Create themename.css skeleton file
-	const skeleton = `
-/* OVERRIDE FRAMEWORK PADDING, MARGIN, HEIGHTS */
-
-/* OVERRIDE FRAMEWORK LAYOUT */
-
-/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
-
-/* OVERRIDE FRAMEWORK COLORS */
-/* See "OVERRIDE FRAMEWORK COLORS FOR DARK MODE" further down */
-
-/* OVERRIDE FRAMEWORK MEDIA QUERIES */
-
-/* OVERRIDE FRAMEWORK COLORS FOR DARK MODE */
-@media (prefers-color-scheme: dark) {
-}
-
-`
-	skeletonFilename = filepath.Join(target, skeletonFilename)
-	stringToFile(c, skeletonFilename, skeleton)
-
 }
