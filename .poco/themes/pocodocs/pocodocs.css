@@ -75,7 +75,10 @@ html{
     'Tahoma',                             
     'sans-serif';
 }
+
 header>ul>li:first-child>a{font-weight:900;letter-spacing:-.1rem;}
+article>h5>strong{text-decoration:underline;}
+// xxxx article>h6>a{line-height:6em;padding:1em;background-color:var(--bg);border:1px solid black;}
 
 /* The article may be wider than you want text and
  * code listings to be. This narrows the text and
@@ -98,8 +101,8 @@ ol {
 }
 
 /* OVERRIDE FRAMEWORK COLORS */
-article>h2{color:red;}
-article>h5>strong{color:blue;}
+article>h2{color:var(--article-h2-fg);}
+article>h5>strong{color:var(--fg);}
 
 /* --------------------------------------------------
  * Special feature: Surround letters in first item 
@@ -108,7 +111,18 @@ article>h5>strong{color:blue;}
  */
 header>ul>li:first-child>a>del{text-decoration:none;color:red;}
 
-/* OVERRIDE FRAMEWORK MEDIA QUERIES */
+/* OVERRIDE MEDIA QUERIES. LIGHT AND DARK THEMES */
 
+@media (prefers-color-scheme:light) {
+:root {
+  --article-h2-fg:red;        /* Article h2 text color */
+}
+  article>h6>a{background-color:var(--bg);border:1px solid black;}
+}
 
-
+@media (prefers-color-scheme:dark) {
+:root {
+  --article-h2-fg:cyan;       /* Article h2 text color */
+}
+  article>h6>a{background-color:var(--bg);border:1px solid white;}
+}
