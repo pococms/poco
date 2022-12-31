@@ -1,4 +1,4 @@
-* [Base theme nav](#)
+* [Skyscraper theme nav](#)
 * [Subscribe](#)
 * [Technical overview](#)
 * [Free trial](#)

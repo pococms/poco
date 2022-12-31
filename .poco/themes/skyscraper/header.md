@@ -1,4 +1,4 @@
-* **[Base theme header](#)**
+* **[Skyscraper theme header](#)**
 * [Reviews](#)
 * [Github](#)
 * [Profile](#)

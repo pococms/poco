@@ -19,8 +19,3 @@ aside{float:left;}
 article{float:left;clear:left;}
 aside{float:right;}
 
-/* TODO: Removing this seems safe */
-/* Handle page with light text. Have to stretch article and aside.  
-footer {position:fixed;bottom:0;}
-*/
-
