@@ -49,7 +49,7 @@ const jsUserLastDir = "userlast"
 // Javascript files to be inserted just before
 // the closing body tag. (Poco goes before
 // user, meaning user gets the last word)
-const jsPocoLastDir = "pocolast"
+const jsPocoLastDir = "last"
 
 // Used to prevent use of a page layout elment. So to
 // prevent a header being dispallyed on the current page,
