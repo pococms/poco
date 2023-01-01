@@ -97,7 +97,7 @@ func (c *config) scriptAfter() string {
 
 	return c.pocoEndJs() + c.endJs()
 
-	slice := fmStrSlice("script-after", c.fm)
+	slice := fmStrSlice("scriptafter", c.fm)
 	if slice == nil {
 		return ""
 	}
@@ -1269,6 +1269,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
+      debug(filename)
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
@@ -1280,6 +1281,7 @@ func (c *config) inlineStylesheets(dir string) string {
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
 			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
+      debug("\t%s", s)
 			overrides = overrides + s + "\n"
 		}
 	}
@@ -1310,7 +1312,6 @@ func (c *config) inlineStylesheets(dir string) string {
 		}
 		// Page theme overrides global so exit with that.
 		if s != "" {
-			//return pageTheme + "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
@@ -1365,7 +1366,7 @@ func (c *config) inlineStylesheets(dir string) string {
 			stylesheets = stylesheets + s + themePageStyles + "\n"
 		}
 		if s != "" {
-			return "<style>\n" + stylesheets + "</style>" + "\n"
+			return "<style>\n" + stylesheets + overrides + "</style>" + "\n"
 		}
 	}
 	if overrides != "" {
@@ -1380,10 +1381,7 @@ func (c *config) inlineStylesheets(dir string) string {
 func (c *config) copyPocoDirToWebroot() {
 	target := filepath.Join(c.webroot, pocoDir)
 	source := filepath.Join(c.root, pocoDir)
-	//if err := cp.Copy(pocoDir, target); err != nil {
-	//wait("copyPocoDirToWebroot() About to copy %v to %v", source, target)
 	if err := cp.Copy(source, target); err != nil {
-		//wait("copyPocoDirToWebroot() About to copy %v to %v", pocoDir, target)
 		quit(1, nil, c, "Unable to copy Poco directory %s to webroot at %s", c.currentFilename, c.webroot)
 
 	}
@@ -1656,7 +1654,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// linkStylesOption controls whether stylesheets are inlined (normally they are)
-	flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
+	// flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
 
 	// lang sets HTML lang= value, such as <html lang="fr">
 	// for all files
@@ -2947,6 +2945,17 @@ func (c *config) themeCopy(source string, target string) {
 /* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
 
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+:root {
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+}
+}
+
+
 `
 	skeletonFilename = filepath.Join(target, skeletonFilename)
 
