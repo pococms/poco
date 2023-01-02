@@ -8,8 +8,8 @@
 # Create an array of theme names
 declare -a themes=(
   'base'
+  'clerk'
   'electro' 
-  'hack'
   'informer'
   'newman' 
   'paper'
