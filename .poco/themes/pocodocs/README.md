@@ -9,8 +9,6 @@ stylesheets:
 - ../../css/sizes.css
 - ../../css/layout.css
 - ../../css/type.css
-- ../../css/colors.css
-- ../../css/media.css
+- ../../css/mediacolors.css
 - "pocodocs.css"
-- "big-circles.css"
 ---

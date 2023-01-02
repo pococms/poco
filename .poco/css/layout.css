@@ -1,9 +1,4 @@
 
-/* Links show same if visited, underlined when hovered */
-a{text-decoration:none;}
-a:visited{text-decoration:none;}
-a:hover,a:active{color:inherit;text-decoration:underline;cursor:pointer}
-
 /* Table cells share borders */
 table{border-collapse:collapse;}
 

@@ -12,10 +12,9 @@ stylesheets:
 - ../../css/root.css
 - ../../css/reset.css
 - "https://unpkg.com/papercss/dist/paper.min.css"
-- ../../css/colors.css
 - ../../css/sizes.css
 - "../../css/layout.css"
-- "../../css/media.css"
+- "../../css/mediacolors.css"
 ---
 
 # Paper theme

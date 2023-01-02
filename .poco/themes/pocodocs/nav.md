@@ -1,1 +1,1 @@
-[Theme demos](/docs/theme-demos.html) [Creating themes](/docs/themes-creating.html) [Technical overiew](/docs/technical-overview.html) [CSS tips](/docs/css-tips.html) [Reference](/docs/reference.html) [Resources](/docs/resources.html)
+[Theme demos](/docs/theme-demos.html) [Technical overiew](/docs/technical-overview.html)

@@ -7,9 +7,8 @@ aside: aside.md
 stylesheets:
 - ../../css/root.css
 - "https://cdnjs.cloudflare.com/ajax/libs/tufte-css/1.8.0/tufte.min.css"
-# "tufte.css"
 - ../../css/layout.css
-- ../../css/media.css
+- ../../css/mediacolors.css
 - "tufte.css"
 ---
 # Tufte

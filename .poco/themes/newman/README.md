@@ -12,7 +12,7 @@ stylesheets:
 - ../../css/root.css
 - "https://fonts.xz.style/serve/inter.css"
 - "https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
-- "../../css/media.css"
+- "../../css/mediacolors.css"
 ---
 Newman is named after the New.css classless framework by [xz](https://xz.style/). 
 It is normally distributed as new.min.css. (Get it? new.min? Newman?)

@@ -1,4 +1,12 @@
 
+article>h1{padding-bottom:2em;}
+article>h2{font-size:1.75em;padding-top:2.5em;padding-bottom:.75em}
+aside>p{margin-top:0;padding-top:.5em;}
+aside>h3{padding:0;line-height:1.2em;}
+aside>h2{font-size:1.75em;color:DimGray;font-weight:bold;line-height:1.2em;padding-bottom:.75em;}
+article>h3{font-size:1.5em;padding-top:1.5em;padding-bottom:.5em;font-weight:bold;}
+article>h4{color:gray;font-weight:bold;}
+
 /*
  * --------------------------------------------------
  * If you have more than one item, use an unordered list. 
@@ -28,24 +36,3 @@ header>ul>li:first-child>a>del{text-decoration:none;color:red;}
 
 
 nav{margin-bottom:0;}
-
-/* OVERRIDE FRAMEWORK SIZES */
-
-/* OVERRIDE FRAMEWORK LAYOUT */
-
-/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
-
-/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
-@media (prefers-color-scheme:light) {
-:root {
-  --html-bg:gray
-}
-}
-
-@media (prefers-color-scheme:dark) {
-:root {
-  --html-bg:gray
-}
-}
-
-

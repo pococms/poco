@@ -10,9 +10,8 @@ stylesheets:
 - ../../css/sizes.css
 - ../../css/layout.css
 - ../../css/type.css
-- ../../css/colors.css
 - ../../css/skinny.css
-- ../../css/media.css
+- ../../css/mediacolors.css
 - skyscraper.css
 ---
 
