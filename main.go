@@ -1269,7 +1269,6 @@ func (c *config) inlineStylesheets(dir string) string {
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
-      debug(filename)
 			// Get full pathname or URL of file.
 			fullPath := regularize(filepath.Join(dir, c.pageTheme.dir), filename)
 			if !strings.HasPrefix(filename, "http") && !fileExists(fullPath) {
@@ -1281,7 +1280,6 @@ func (c *config) inlineStylesheets(dir string) string {
 			// If it's at a URL, download it.
 			// For debugging purposes, add commment with filename
 			s = "\n\n/* " + filename + " */\n" + c.getWebOrLocalFileStr(fullPath)
-      debug("\t%s", s)
 			overrides = overrides + s + "\n"
 		}
 	}
@@ -1651,7 +1649,7 @@ func (c *config) parseCommandLine() {
 	flag.BoolVar(&c.cleanup, "cleanup", true, "Delete publish directory before converting files")
 
 	// debugFrontmatter command-line option shows the front matter of each page
-	flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
+	//flag.BoolVar(&c.dumpFm, "dumpfm", false, "Shows the front matter of each page")
 
 	// linkStylesOption controls whether stylesheets are inlined (normally they are)
 	// flag.BoolVar(&c.linkStylesOption, "link-styles", false, "Link to stylesheets instead of inlining them")
@@ -1768,9 +1766,9 @@ func main() {
 	}
 
 	// Quit if running in main application directory
-	if executableDir() == c.root {
-		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
-	}
+	// if executableDir() == c.root {
+	//		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
+	// }
 
 	switch {
 	case !rootDirPresent && !c.newProjectFlag:
@@ -2900,7 +2898,7 @@ func (c *config) askToCopyTheme() {
 		}
 	}
 	c.themeCopy(c.themeToCopy, c.themeToCreate)
-	quit(1, nil, nil, "Created theme %s", c.themeToCreate)
+	quit(1, nil, nil, "%s created", c.themeToCreate)
 	// TODO: Improve error
 }
 
