@@ -20,7 +20,6 @@ import (
 	"github.com/yuin/goldmark/text"
 	"html/template"
 	"io"
-	//"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -29,7 +28,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	//"text/template"
 	"time"
 )
 
@@ -66,19 +64,6 @@ const suppressToken = "SUPPRESS"
 //
 //go:embed all:.poco
 var pocoFiles embed.FS
-
-// If javascript files are included, need this to avoid
-// starting before doc has loaded.
-// It's saved as "loading.js"
-var loading = `
-if (document.readyState !== 'loading') {
-    docReady();
-} else {
-    document.addEventListener('DOContentLoaded', function () {
-        docReady();
-    });
-}
-`
 
 // Required begininng for a valid HTML document
 var docType = `<!DOCTYPE html>
@@ -141,15 +126,11 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		//		"\n<div id=\"page-container\">" +
-		//		"\n<div id=\"content-wrap\">\n" +
 		"\t" + c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
-		//		"</div><!-- content-wrap -->\n" +
 		c.footer() + "\n" +
-		//		"</div><!-- page-container -->\n" +
 		"<script> {" + "\n" +
 		c.documentReady() +
 		scriptAfter +
@@ -208,6 +189,7 @@ func (c *config) getFm(filename string) map[string]interface{} {
 }
 
 // HTML UTILITIES
+
 // documentReady() inserts Javascript code to ensure that
 // user-defined Javascript executes only after the full
 // HTML DOM has been loaded.
@@ -2250,7 +2232,6 @@ func (c *config) copyPocoDir(f embed.FS, dir string) error {
 
 	source := filepath.Join(executableDir(), pocoDir)
 	target := dir
-	//if err := cp.Copy(pocoDir, target); err != nil {
 	if err := cp.Copy(source, target); err != nil {
 		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
 	}
