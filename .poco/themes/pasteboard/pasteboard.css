@@ -38,13 +38,13 @@ nav{margin-bottom:0;}
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
-  --html-bg:gray
+  --html-bg:gray;
 }
 }
 
 @media (prefers-color-scheme:dark) {
 :root {
-  --html-bg:gray
+  --html-bg:gray;
 }
 }
 

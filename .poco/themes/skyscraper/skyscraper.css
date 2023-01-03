@@ -1,13 +1,12 @@
 @media (prefers-color-scheme:light) {
 :root {
-  --html-bg:black;
+  --html-bg:gray
 }
 }
 
 @media (prefers-color-scheme:dark) {
 :root {
   --html-bg:SteelBlue;
-  --html-bg:red;
 }
 }
 
