@@ -1,4 +1,4 @@
-* **[Base theme header](#)**
+* [GOSSIP](/)
 * [Reviews](#)
 * [Github](#)
 * [Profile](#)

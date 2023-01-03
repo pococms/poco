@@ -1,14 +1,66 @@
-
+article>h1{padding-top:0;font-size:6rem;font-weight:bold;text-align:center;color:var(--header-bg);}
+article>p>img{width:100%;text-align:center}
 /* OVERRIDE FRAMEWORK SIZES */
+header>p,header>p>a,
+header ul li,header ul li>a
+{
+  font-size:2.25rem;
+  line-height:2.5em;
+}
+nav ul li,nav ul li>a
+{
+  font-size:2rem;
+  line-height:2em;
+}
+
 
 /* OVERRIDE FRAMEWORK LAYOUT */
-
+aside{margin-top:6rem;}
 /* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+h1,h2,h3,
+header>h1,header>h2,header>h3,
+header>p,header>p>a,
+header ul li,header ul li>a,
+nav>h1,nav>h2,nav>h3,
+nav ul li,nav ul li>a,
+aside>h1,aside>h2,aside>h3,aside>h4{
+  font-family:'Oswald',sans-serif;
+}
+
+aside>h4{
+  font-size:1rem;
+  text-align:center;
+  background-color:yellow;
+  color:black;
+  padding-top:.2em;
+  border:1px solid black;
+}
+aside>p>img{
+  border:1px solid black;
+  display:block;
+}
+aside>p{
+  background-color:black;
+  color:white;
+  font-size:1rem;
+  border:1px solid black;
+  margin-bottom:1em;
+  padding:.5em;
+}
+:root {
+  --aside-width:25%;
+  --article-width:75%;
+}
 
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
+  --header-fg:white;          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
+
 }
+  header a, nav a{color:var(--header-fg);}
+  nav{background-color:black;}
 }
 
 @media (prefers-color-scheme:dark) {

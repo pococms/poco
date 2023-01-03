@@ -7,7 +7,7 @@ header>ul>li,nav>ul>li{padding-right:.5em;}
 article{width:var(--article-width);height:auto;}  
 aside{width:var(--aside-width);padding:0 2em 0 2em;}  
 footer {padding-top:2em;}
-article,nav,header,aside,footer{padding-left:var(--padding-left);}
+article,nav,header,footer{padding-left:var(--padding-left);}
 article>dl>dt {padding-top:1em;}
 article>dl>dd {margin-left:0;padding-bottom:0;}
 

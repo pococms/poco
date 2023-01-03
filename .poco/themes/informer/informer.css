@@ -11,7 +11,7 @@ aside{border-left: 1px solid #DCDCDC;padding:1rem;}
 aside>h2{font-size:1.5em;font-weight:bold;}
 aside>h3{width:60%;font-size:1em;font-weight:bold;padding-top:3rem;}
 aside>h4{padding-top:2rem;font-size:1em;font-weight:bold;color:gray;}
-aside>p>img{float:right;width:45%}
+aside>p>img{float:right;width:40%;clear:right;display:block;}
 aside>p{line-height:1rem;padding-right:.5rem}
 
 /*

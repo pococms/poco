@@ -4,6 +4,9 @@ nav: nav.md
 aside: aside.md
 footer: footer.md
 
+importrules:
+- url('https://fonts.googleapis.com/css?family=Oswald:wght@700&display=swap');
+
 stylesheets:
 - ../../css/root.css
 - ../../css/reset.css
@@ -11,6 +14,7 @@ stylesheets:
 - ../../css/layout.css
 - ../../css/type.css
 - ../../css/mediacolors.css
+- gossip.css
 ---
 
 # Base theme

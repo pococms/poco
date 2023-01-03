@@ -9,6 +9,12 @@
   --bg:white;                 /* Default background color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
+  --header-fg:var(--fg);      /* Text color of header */
+  --header-bg:var(--bg);      /* Background color of header */
+  --nav-fg:var(--fg);         /* Text color of nav */
+  --nav-bg:var(--bg);         /* Background color of nav */
+  --aside-fg:var(--fg);       /* Text color of aside */
+  --aside-bg:var(--bg);       /* Background color of aside */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:gray;               /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
@@ -23,7 +29,7 @@
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
   --pre-fg:var(--code-fg);    /* Text color for fenced code */
   --pre-bg:var(--code-bg);    /* Background color for fenced code */
-  --padding-left:25%;         /* Where the header, nav, and footer usually start */
+  --padding-left:5%;          /* Where the header, nav, and footer usually start */
 }
 
 /* ************************************/
@@ -37,6 +43,12 @@
   --bg:white;                 /* Default background color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
+  --header-fg:var(--fg);      /* Text color of header */
+  --header-bg:var(--bg);      /* Background color of header */
+  --nav-fg:var(--fg);         /* Text color of nav */
+  --nav-bg:var(--bg);         /* Background color of nav */
+  --aside-fg:var(--fg);       /* Text color of aside */
+  --aside-bg:var(--bg);       /* Background color of aside */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:gray;               /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
@@ -45,7 +57,7 @@
   --h6-fg:var(--fg);          /* Default h6 text color */
   --article-h2-fg:var(--fg);  /* Article h2 text color */
   --article-width:80%;        /* Should add up to 100% with --aside-width */
-  --aside-width:20%;        /* Should add up to 100% with --aside-width */
+  --aside-width:20%;          /* Should add up to 100% with --aside-width */
   --aside-h2-fg:var(--fg);    /* Aside h2 text color */
   --code-fg:var(--fg);        /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
@@ -68,6 +80,14 @@
   --bg:MidnightBlue;          /* Default background color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
+  --header-fg:var(--fg);      /* Text color of header */
+  --header-bg:var(--bg);      /* Background color of header */
+  --nav-fg:var(--fg);         /* Text color of nav */
+  --nav-bg:var(--bg);         /* Background color of nav */
+  --aside-fg:var(--fg);       /* Text color of aside */
+  --aside-bg:var(--bg);       /* Background color of aside */
+  --footer-fg:var(--fg);      /* Text color of footer */
+  --footer-bg:var(--bg);      /* Background color of footer */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:Lavender;           /* Default h2 text color */
   --h3-fg:SkyBlue;            /* Default h3 text color */
@@ -76,7 +96,7 @@
   --h6-fg:var(--fg);          /* Default h6 text color */
   --article-h2-fg:var(--fg);  /* Article h2 text color */
   --article-width:80%;        /* Should add up to 100% with --aside-width */
-  --aside-width:20%;        /* Should add up to 100% with --aside-width */
+  --aside-width:20%;          /* Should add up to 100% with --aside-width */
   --aside-h2-fg:var(--fg);    /* Aside h2 text color */
   --code-fg:black;            /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */

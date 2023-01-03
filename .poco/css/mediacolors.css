@@ -1,5 +1,8 @@
 html{background-color:var(--html-bg);}
-article,nav,header,footer,aside{color:var(--fg);background-color:var(--bg);}
+header{color:var(--header-fg);background-color:var(--header-bg);}
+nav{color:var(--nav-fg);background-color:var(--nav-bg);}
+aside{color:var(--aside-fg);background-color:var(--aside-bg);}
+footer{color:var(--footer-fg);background-color:var(--footer-bg);}
 a{color:var(--a);}
 code{
   color:var(--code-fg);
