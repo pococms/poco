@@ -75,7 +75,6 @@ html{
 }
 
 header>ul>li:first-child>a{font-weight:900;letter-spacing:-.1rem;}
-article>h5>strong{text-decoration:underline;}
 
 /* The article may be wider than you want text and
  * code listings to be. This narrows the text and

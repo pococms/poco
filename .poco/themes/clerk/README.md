@@ -17,7 +17,7 @@ stylesheets:
 - ../../css/type.css
 - ../../css/skinny.css
 - ../../css/mediacolors.css
-- newhack.css
+- clerk.css
 ---
 
 # Base theme

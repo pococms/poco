@@ -1299,7 +1299,6 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the global theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.theme.present {
-
 		// See if there are any styles listed in the
 		// theme's README.md. If the README's
 		// front matter contains something like this, the
