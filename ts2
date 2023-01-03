@@ -10,6 +10,7 @@ declare -a themes=(
   'base'
   'clerk'
   'electro' 
+  'gossip' 
   'informer'
   'newman' 
   'paper'
