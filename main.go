@@ -158,7 +158,7 @@ func (c *config) article() string {
 	if c.articleReplaced == "" {
 		return "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
 	} else {
-		return "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleReplaced + "\n" + "</article>" + "\n"
+		return /* "\n<article id=\"article-poco\">\n" + */ c.timestamp() + c.articleReplaced + "\n" /* + "</article>" */ + "\n"
 	}
 }
 
