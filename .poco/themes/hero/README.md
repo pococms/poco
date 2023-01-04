@@ -14,7 +14,7 @@ stylesheets:
 - ../../css/layout.css
 - ../../css/type.css
 - ../../css/mediacolors.css
-- "https://fonts.googleapis.com/css2?family=Catamaran:wght@600&display=swap"
+- "https://fonts.googleapis.com/css2?family=Secular+One:wght@400&display=swap"
 - "hero.css"
 ---
 

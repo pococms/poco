@@ -1,3 +1,3 @@
-* [Base theme header](#)
-* [Want to talk?](#)
+* [Hero](/)
+* [Give us a call](#)
 
