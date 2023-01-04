@@ -1,6 +1,6 @@
 * [poco~~CMS~~](https://pococms.com)
-* [Theme demos](/docs/theme-demos.html)
 * [Download](https://github.com/pococms/downloads/tree/main/dist)
-* [Docs](/docs/index.html)
+* [Documentation](/docs/index.html)
+* [Report an issue](https://github.com/pococms/poco/issues)
 * [GitHub](https://github.com/pococms/poco)
 

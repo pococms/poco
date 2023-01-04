@@ -54,8 +54,6 @@ article>h2{padding-top:.5em;}
 
 /* Centers it vertically. Old-school, I know. */
 header{padding-top:3em;padding-bottom:3em}
-header{
-}
 /* Requires newer browser but degrades gracefully */
 /* Necessary to get last item on header menu to the right side */
 header ul{
@@ -72,6 +70,7 @@ header>p,header>p>a,
 header ul li,header ul li>a {
   text-shadow: 1px 1px 0 black;
   font-size:2.25rem;
+  padding-right:.25em;
 }
 
 
@@ -129,6 +128,7 @@ nav>h1,nav>h2,nav>h3,
 nav ul li,nav ul li>a,
 aside>h1,aside>h2,aside>h3,aside>h4{
   font-family:'Oswald',sans-serif;
+  padding-right:.5em;
 }
 
 article>h1{text-shadow: 2px 2px 0 black;}
@@ -171,11 +171,11 @@ aside>p{
   header a, nav a{color:var(--header-fg);}
   nav{background-color:var(--nav-bg);}
   footer, footer a{color:var(--header-fg); background-color:var(--nav-bg);}
-  article>h1{color:var(--h1-fg);}
+  article>h1{color:var(--header-bg);}
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
-  --header-fg:var(--fg);          /* Text color of header */
+  --header-fg:var(--bg);          /* Text color of header */
   --header-bg:red;            /* Background color of header */
   --nav-bg:black;
   --h2-fg:var(--header-bg);   /* Background coloro of h2 */
