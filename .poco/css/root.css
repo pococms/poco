@@ -11,6 +11,7 @@
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */
   --header-bg:var(--bg);      /* Background color of header */
+  --header-height:auto;       /* Height of header */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */
@@ -86,6 +87,7 @@
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */
   --header-bg:var(--bg);      /* Background color of header */
+  --header-height:auto;       /* Height of header */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */

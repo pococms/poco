@@ -1,6 +1,6 @@
 * [GOSSIP](/)
-* [Reviews](#)
-* [Github](#)
-* [Profile](#)
-* [About](#)
+* [Sports](#)
+* [TV](#)
+* [Vids](#)
+* [Log in](#)
 
