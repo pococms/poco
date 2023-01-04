@@ -11,6 +11,7 @@ declare -a themes=(
   'clerk'
   'electro' 
   'gossip' 
+  'hero'
   'informer'
   'newman' 
   'paper'
@@ -99,6 +100,7 @@ EOM
 
 # Generate links to low-content page tests
 read -r -d '' lcpanel << EOM
+## Ease of use like something something
 #####
 [Low-content](short_page.html) tests: 
 [Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  

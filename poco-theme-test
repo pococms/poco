@@ -91,6 +91,9 @@ wait_for_yes() {
 # Explanation of how to test the theme interactively
 read -r -d '' INTERACTIVE_TESTING << EOM
 
+# Default sans-serif, weight 900
+## Font stack default, weight 900
+
 * Level 1 bullet
   - Level 2 bullet
 * Another level 1 bullet
