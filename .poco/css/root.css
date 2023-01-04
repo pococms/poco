@@ -15,6 +15,8 @@
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */
   --aside-bg:var(--bg);       /* Background color of aside */
+  --footer-fg:var(--fg);      /* Text color of footer */
+  --footer-bg:var(--bg);      /* Background color of footer */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:var(--fg);          /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
@@ -49,6 +51,8 @@
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */
   --aside-bg:var(--bg);       /* Background color of aside */
+  --footer-fg:var(--fg);      /* Text color of footer */
+  --footer-bg:var(--bg);      /* Background color of footer */
   --h1-fg:var(--fg);          /* Default h1 text color */
   --h2-fg:var(--fg);          /* Default h2 text color */
   --h3-fg:var(--fg);          /* Default h3 text color */
