@@ -34,10 +34,6 @@ article > h3 + ul li > p > img {
 article > h3 + ul li:nth-child(3) > p {
 }
 
-article > h3::before {
-  content: '\a';
-}
-
 
 
 article>h1{padding-top:0;font-size:6rem;font-weight:bold;text-align:center;color:var(--header-bg);}
@@ -100,6 +96,7 @@ header>ul>li:first-child>a,header>p:first-child>a{
  */   
 
 header li:last-of-type {
+  font-size:1em;
   margin-left: auto;
   margin-right:2em;
 }
@@ -116,7 +113,7 @@ header li:last-of-type {
  * --------------------------------------------------
  */
 /* Make the last item look and act like a button */
-header > ul > li:last-child > a {border: .125em solid var(--header-fg);border-radius:.5em;padding: .25em;color: var(--header-bg);background-color:var(--header-fg);padding: .25em;text-decoration: none;text-transform:uppercase;font-weight:bold;text-shadow:none;text-align:right}
+header > ul > li:last-child > a {font-size:smaller;border: .125em solid var(--header-fg);border-radius:.5em;padding: .25em;color: var(--header-bg);background-color:var(--header-fg);padding: .25em;text-decoration: none;text-transform:uppercase;font-weight:bold;text-shadow:none;text-align:right}
 header > ul > li:last-child > a:hover {color: var(--header-bg);background-color: var(--header-fg);cursor: pointer;}
 
 
@@ -127,6 +124,7 @@ h1,h2,h3,
 header>h1,header>h2,header>h3,
 header>p,header>p>a,
 header ul li,header ul li>a,
+footer>ul li,footer>ul li>a,
 nav>h1,nav>h2,nav>h3,
 nav ul li,nav ul li>a,
 aside>h1,aside>h2,aside>h3,aside>h4{
@@ -175,10 +173,14 @@ aside>p{
 :root {
   --header-fg:white;          /* Text color of header */
   --header-bg:red;            /* Background color of header */
+  --nav-bg:black;
   --h2-fg:var(--header-bg);   /* Background coloro of h2 */
+  --footer-fg:white;          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
 }
   header a, nav a{color:var(--header-fg);}
-  nav{background-color:black;}
+  nav{background-color:var(--nav-bg);}
+  footer, footer a{color:var(--header-fg); background-color:var(--nav-bg);}
 }
 
 @media (prefers-color-scheme:dark) {
