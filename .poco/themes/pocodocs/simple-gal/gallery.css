@@ -1,0 +1,24 @@
+/* */
+
+article {
+  height:auto;
+  margin:0 auto;
+  position:relative;
+}
+
+article h2 {
+  float:left;
+  padding-right:1em;
+  width:50%;
+  line-height:1em;
+}
+
+article h2 + img{
+  float:right;
+  width:50%;
+  position:absolute;
+  right:0;
+  top:0;
+}
+
+ 
