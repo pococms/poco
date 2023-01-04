@@ -3,7 +3,7 @@
  */
 
 
-nav{color:white;background-color:black;}
+inav{color:white;background-color:black;}
 article>p2{font-size:6rem;}
 
 /* --------------------------------------------------
@@ -18,7 +18,7 @@ article>p2{font-size:6rem;}
 
 
 /* Centers it vertically. Old-school, I know. */
-header{padding-top:2em;padding-bottom:2em}
+header{padding-top:2em;padding-bottom:2em;border-bottom:1px solid gray;}
 /* Requires newer browser but degrades gracefully */
 /* Necessary to get last item on header menu to the right side */
 header ul{
@@ -86,9 +86,10 @@ nav{
 
 nav p{
   float:left;
+  padding-right:1em;
   width:50%;
-  color:var(--bg);
-  background-color:var(--fg);
+  icolor:var(--bg);
+  ibackground-color:var(--fg);
   font-size:6rem;
   font-weight:900;
   line-height:.92em;
@@ -104,8 +105,8 @@ nav p>img{
 
 @media (prefers-color-scheme:light) {
 :root {
-  nav-fg:var(--bg);
-  nav-bg:var(--fg);
+  nav-fg:var(--fg);
+  nav-bg:var(--bg);
 }
 }
 
