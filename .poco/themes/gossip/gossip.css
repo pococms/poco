@@ -168,23 +168,27 @@ aside>p{
   --article-width:75%;
 }
 
+  header a, nav a{color:var(--header-fg);}
+  nav{background-color:var(--nav-bg);}
+  footer, footer a{color:var(--header-fg); background-color:var(--nav-bg);}
+  article>h1{color:var(--h1-fg);}
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
-  --header-fg:white;          /* Text color of header */
+  --header-fg:var(--fg);          /* Text color of header */
   --header-bg:red;            /* Background color of header */
   --nav-bg:black;
   --h2-fg:var(--header-bg);   /* Background coloro of h2 */
   --footer-fg:white;          /* Text color of header */
   --header-bg:red;            /* Background color of header */
 }
-  header a, nav a{color:var(--header-fg);}
-  nav{background-color:var(--nav-bg);}
-  footer, footer a{color:var(--header-fg); background-color:var(--nav-bg);}
 }
 
 @media (prefers-color-scheme:dark) {
 :root {
+  --header-fg:white;          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
+  --h1-fg:white;              /* Text color of header */
 }
 }
 
