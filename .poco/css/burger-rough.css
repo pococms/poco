@@ -1,4 +1,3 @@
-
 :root {
   --header-bg: black;
   --menu-a-fg: cyan; /* Normal, not burger, menu */
@@ -56,3 +55,23 @@ header > label + input {display:none;}
 }
 
 
+/* TEST
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure CSS Burger Menu</title>
+    <link href="burger.css" rel="stylesheet">
+  </head>
+  <body>
+    <header id="header-poco">
+      <label for="hamburger">&#9776;</label>
+      <input type="checkbox" id="hamburger"/>
+      <ul>
+        <li><a href="1.html">1</a></li>
+        <li><a href="2.html">2</a></li>
+        <li><a href="3.html">3</a></li>
+      </ul>
+    </header>
+  </body>
+</html>
+*/
