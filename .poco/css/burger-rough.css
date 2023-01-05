@@ -1,0 +1,46 @@
+header {
+  width: 100%;
+  background: #000;
+}
+header a {
+  padding-right: 1rem;
+  color: yellow;
+  text-decoration: none;
+}
+
+header ul > li, header ul > li > a {
+  list-style-type: none;
+  display: inline;
+
+}
+header a:hover { background: orange; }
+iheader  label, #hamburger { display: none; }
+header > label,  { display: none; }
+
+/* [ON SMALL SCREENS] */
+@media screen and (max-width: 960px){
+  /* (A) BREAK INTO VERTICAL MENU */
+  header ul li a {
+    box-sizing: border-box;
+    color: cyan;
+    display: block;
+    width: 100%;https://jsfiddle.net/tomcam/fsvnbrzu/122/#
+    border-top: 1px solid purple;
+  }
+  
+    /* (B) SHOW HAMBURGER ICON */
+  header label {
+    display: inline-block;
+    color: yellow;
+    background: #a02620;
+    font-style: normal;
+    font-size: 1.2em;
+    padding: 10px;
+  }
+
+  /* (C) TOGGLE SHOW/HIDE MENU */
+  header > ul { display:none;}
+  header > input:checked + ul   { display: block; }
+
+}
+
