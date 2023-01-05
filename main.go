@@ -1,7 +1,8 @@
-// main.go
+// main.goy
 package main
 
 import (
+  "reflect"
 	"bufio"
 	"bytes"
 	"embed"
@@ -127,6 +128,7 @@ func (c *config) assemble(filename string) string {
 		c.styleTags() +
 		"</head>\n<body>" +
 		"\t" + c.header() +
+    "\t" + c.burger() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
@@ -567,23 +569,6 @@ func (c *config) findHomePage() {
 		c.currentFilename = c.homePage
 		return
 	}
-
-	/*
-		if !dirEmpty(c.root) {
-			// No home page.
-			// Directory has files.
-			// User may not wish to create a new project.
-			if promptYes(c.root + " isn't a PocoCMS project, but the directory has files in it.\nCreate a home page?") {
-				c.newSite()
-			} else {
-				quit(1, nil, c, "Can't build a project without an index.md or README.md")
-			}
-		} else {
-			// Empty dir, so create home page
-			c.newSite()
-			//writeDefaultHomePage(c, c.root)
-		}
-	*/
 	c.currentFilename = c.homePage
 }
 
@@ -768,6 +753,86 @@ func (c *config) suppress(tag string) bool {
 		return true
 	}
 	return false
+}
+
+// Return keys of the given map
+func Keys(m map[string]interface{}) (keys []string) {
+    for k := range m {
+        keys = append(keys, k)
+    }
+    return keys
+}
+
+
+// burger() generates code for the burger menu
+// items, defined like this in the front matter:
+//
+// burger:
+// - Home: pococms.com
+// - Docs: pococoms.com/docs
+// - Tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+//
+// The output:
+// <ul>
+// 	<li><a href="pococms.com">Home</a></li>
+// 	<li><a href="pococoms.com/docs">Docs</a></li>
+// 	<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Tutorial</a></li>
+// </ul>
+
+
+// Thanks to the amazing larsk for a quick answer
+// while I suffered Geneva convention-level 
+// sleep deprivation:
+// https://stackoverflow.com/users/147356/larsks
+func (c *config) burger() string {
+	b, ok := c.pageFm["burger"].([]interface{})
+	if !ok {
+    // No burger entry  in yaml
+		return ""
+	}
+  list := "\n"
+  for _, item := range b {
+    for k, v := range item.(map[interface{}]interface{}) {
+      link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
+      list = list + link;
+    }
+  }
+  debug(tagSurround("ul", list, "\n"))
+  return  tagSurround("ul", list, "\n")
+}
+func (c *config) oldburger() string {
+  debug("burger()")
+	t, ok := c.pageFm[strings.ToLower("burger")].([]interface{})
+  if !ok {
+    return ""
+  }
+
+  debug("%v elements",len(t))
+  debug("Type of t: %v", reflect.TypeOf(t))
+  debug("\n\nSo...")
+	//for i, value := range v {
+	for k, v := range t {
+    fmt.Printf("\tkey[%v]: [%v]\n", k, v)
+
+    debug("\tType: %v", reflect.TypeOf(v))
+    switch t := reflect.ValueOf(t); t.Kind() {
+    case reflect.String:
+      fmt.Printf("\t\t%v", t.String())
+    default:
+      fmt.Printf("\t\tFell through to %v", t.Kind())
+    }
+    /*
+    vals := reflect.ValueOf(v)
+    typesOf := vals.Type()
+    for i := 0; i < vals.NumField(); i++ {
+      fmt.Printf("Field: %s\tValue: %v\n",
+        typesOf.Field(i).Name, vals.Field(i).Interface())
+    }
+    */
+	}
+
+
+  return ""
 }
 
 // If there's a local header, return it.
