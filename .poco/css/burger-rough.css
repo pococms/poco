@@ -1,10 +1,20 @@
+
+:root {
+  --header-bg: black;
+  --menu-a-fg: cyan; /* Normal, not burger, menu */
+  --menu-a-hover: orange; /* Color when hovering over normal menu */
+  --burger-menu-fg: white; /* Color of the burger menu */
+  --burger-menu-bg: black;    /* Background color of the burger menu */
+  --burger-menu-separator-color: white; /* Line between burger menu items  */
+}
+
 header {
   width: 100%;
-  background: #000;
+  background: var(--header-bg);
 }
 header a {
   padding-right: 1rem;
-  color: yellow;
+  color: var(--menu-a-fg);
   text-decoration: none;
 }
 
@@ -13,34 +23,36 @@ header ul > li, header ul > li > a {
   display: inline;
 
 }
-header a:hover { background: orange; }
-iheader  label, #hamburger { display: none; }
-header > label,  { display: none; }
+header a:hover { background: var(--menu-a-hover); }
+header > label  { display: none; }
 
-/* [ON SMALL SCREENS] */
+/* Default: hidden */
+header > label + input {display:none;}
+
 @media screen and (max-width: 960px){
-  /* (A) BREAK INTO VERTICAL MENU */
+
+  /* Format of hamburger menu items */
   header ul li a {
+    color: var(--menu-a-fg);
     box-sizing: border-box;
-    color: cyan;
     display: block;
-    width: 100%;https://jsfiddle.net/tomcam/fsvnbrzu/122/#
-    border-top: 1px solid purple;
+    width: 100%;
+    border-top: 1px solid var(--burger-menu-separator-color);
   }
   
-    /* (B) SHOW HAMBURGER ICON */
+  /* Actual burger icon */
   header label {
+    color: var(--burger-menu-fg);
     display: inline-block;
-    color: yellow;
-    background: #a02620;
+    background: var(--burger-menu-bg);
     font-style: normal;
-    font-size: 1.2em;
-    padding: 10px;
+    font-size: 1.5em;
+    padding: .5em;
   }
 
-  /* (C) TOGGLE SHOW/HIDE MENU */
   header > ul { display:none;}
   header > input:checked + ul   { display: block; }
 
 }
+
 
