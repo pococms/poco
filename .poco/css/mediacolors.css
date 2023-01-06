@@ -30,9 +30,35 @@ h4{color:var(--h4-fg);}
 }
 @media (max-width:720px){
   html{font-size:1.25rem;}
-  header,nav,aside,footer{display:none}
+  nav,aside,footer{display:none}
   article{padding:1em;}
   article{float:left;clear:left;width:100%}
+  article{background-color:pink;}
+  header{display:block;}
+  /* Format of hamburger menu items */
+  header ul li a {
+    color: var(--menu-a-fg);
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    border-top: 1px solid var(--burger-menu-separator-color);
+  }
+  
+  /* Actual burger icon */
+  header label {
+    color: var(--burger-menu-fg);
+    color: black;
+    display: inline-block;
+    background-color: var(--burger-menu-bg);
+    font-style: normal;
+    font-size: 1.5em;
+    padding: .5em;
+  }
+
+  header > ul { display:none;}
+  header > input:checked + ul   { display: block; }
+
+
 }
 
 

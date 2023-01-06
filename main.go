@@ -126,8 +126,8 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		"\t" + c.header() +
-    "\t" + c.burger() +
+		// "\t" + c.header() +
+		"\t" + c.burger() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
@@ -346,8 +346,8 @@ type theme struct {
 
 	asideType int
 
-  // List of burger items already parsed and ready to publish
-  burger string
+	// List of burger items already parsed and ready to publish
+	burger string
 
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
@@ -760,9 +760,9 @@ func (c *config) suppress(tag string) bool {
 	return false
 }
 
-
-// burger() generates code for the burger menu
-// items, defined as an array of maps named "burger" in the front matter:
+// getBurger() generates code for the burger menu
+// items, defined as an array of maps named "burger" in
+// the theme READE.me:
 //
 // burger:
 // - Home: pococms.com
@@ -775,56 +775,43 @@ func (c *config) suppress(tag string) bool {
 // 	<li><a href="pococoms.com/docs">Docs</a></li>
 // 	<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Tutorial</a></li>
 // </ul>
-
 func (t *theme) getBurger(fm map[string]interface{}) {
- 	b, ok := fm["burger"].([]interface{})
+	b, ok := fm["burger"].([]interface{})
 	if !ok {
-    // No burger entry  in yaml
+		// No burger entry  in yaml
 		t.burger = ""
-    return
+		return
 	}
 
-  list := ""
-  for _, item := range b {
-    for k, v := range item.(map[interface{}]interface{}) {
-      link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
-      list = list + link;
-    }
-  }
-  if list != "" {
-    t.burger = "\n" + tagSurround("ul", list, "\n")
-  }
-}
-
-
-// TODO: Delete
-// TODO: Document. This happens when the theme is parsed.
-func (c *config) readBurger(fm map[string]interface{}) string {
-	b, ok := c.pageFm["burger"].([]interface{})
-	if !ok {
-    // No burger entry  in yaml
-		return ""
+	list := ""
+	for _, item := range b {
+		for k, v := range item.(map[interface{}]interface{}) {
+			link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
+			list = list + link
+		}
 	}
-
-
-  list := "\n"
-  for _, item := range b {
-    for k, v := range item.(map[interface{}]interface{}) {
-      link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
-      list = list + link;
-    }
-  }
-  return  tagSurround("ul", list, "\n")
+	if list != "" {
+		t.burger = "\n" +
+			`<label for="hamburger">&#9776;</label>` + "\n" +
+			`<input type="checkbox" id="hamburger"/>` + "\n" +
+			"<ul>" + "\n" +
+			list +
+			"</ul>" + "\n"
+	}
 }
+
 // Thanks to the amazing larsk for a quick answer
-// while I suffered Geneva convention-level 
+// while I suffered Geneva convention-level
 // sleep deprivation:
 // https://stackoverflow.com/users/147356/larsks
 func (c *config) burger() string {
-  debug(c.theme.burger)
-  return ""
+	//debug(c.theme.burger)
+	if c.theme.burger != "" {
+		header := "\n" + tagSurround("header", c.theme.burger, "\n")
+		return header
+	}
+	return ""
 }
-
 
 // If there's a local header, return it.
 // If not and there's a global header, return it.
@@ -1135,9 +1122,22 @@ func (c *config) setupGlobals() { //
 // aside > h1 {font-size:2em}
 // </style>
 func (c *config) styleTags() string {
+	t := c.getStyleTags(c.pageFm)
 	// Take the slice of tags and put each one
 	// on its own line.
-	t := c.getStyleTags(c.pageFm)
+	if c.theme.burger != "" {
+		debug("%s has burger", c.theme.name)
+		burgerFilename := filepath.Join(c.stylesDir, "burger-rough.css")
+		if !fileExists(burgerFilename) {
+			quit(1, nil, c, "Can't find supporting CSS for burger menu")
+		}
+		s := c.fileToString(burgerFilename)
+		if s != "" {
+			t = t + s
+		}
+		debug("Adding to styles:\n%v", t)
+	}
+
 	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
@@ -1501,7 +1501,6 @@ func (c *config) getThemeData(filename string) {
 
 	themeDir := filepath.Join(".poco", "themes")
 
-
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
 	if pageThemeName != "" {
@@ -1555,7 +1554,7 @@ func (c *config) loadTheme(filename string) {
 	// c.pageFm = map[string]interface{}{}
 	c.pageFm = c.getFm(filename)
 
-  // Get the page theme, if any.
+	// Get the page theme, if any.
 	// If on the home page, look for both global
 	// and local theme names.
 	// Load data structures for those themes.
@@ -1633,10 +1632,10 @@ func (c *config) validateAside(t *theme) {
 // readThemeFm() happens when a theme is being
 // loaded and parsed.
 func (t *theme) readThemeFm(fm map[string]interface{}) {
-  debug("readThemeFm()")
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
-  t.getBurger(fm)
+	// TODO: Why not do this with header, footer, etc.-just suck them up now
+	t.getBurger(fm)
 	t.ver = fmStr("ver", fm)
 	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
@@ -1652,7 +1651,6 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 }
-
 
 // newConfig allocates a config object.
 // sitewide configuration info.

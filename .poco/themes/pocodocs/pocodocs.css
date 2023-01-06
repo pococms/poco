@@ -42,7 +42,7 @@ header{/*line-height:2em;*/ padding-top:2em;}
 header>ul>li:first-child>a{padding-right:1rem;padding-left:0}
 
 nav>ul{line-height:2em;}
-nav>p>a{padding-right:1em;}
+nav>p>a{padding-right:1.25em;}
 /*
  * --------------------------------------------------
  * Special feature: First item in list has biggest

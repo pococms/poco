@@ -1,12 +1,3 @@
-:root {
-  --header-bg: black;
-  --menu-a-fg: cyan; /* Normal, not burger, menu */
-  --menu-a-hover: orange; /* Color when hovering over normal menu */
-  --burger-menu-fg: white; /* Color of the burger menu */
-  --burger-menu-bg: black;    /* Background color of the burger menu */
-  --burger-menu-separator-color: white; /* Line between burger menu items  */
-}
-
 header {
   width: 100%;
   background: var(--header-bg);
@@ -22,14 +13,26 @@ header ul > li, header ul > li > a {
   display: inline;
 
 }
+/* TC: altered */
+header > label {color:var(--burger-menu-fg);background-color:var(--burger-menu-fg);}
+ 
 header a:hover { background: var(--menu-a-hover); }
 header > label  { display: none; }
 
 /* Default: hidden */
 header > label + input {display:none;}
 
+/* TC: Was: */
+/* header > input:checked + ul   { display: block; } */
+/* No effect */
+header > input:checked + ul   { color:var(--burger-menu-fg);background-color:var(--burger-menu-fg);display: block; }
+
+
+
+
 @media screen and (max-width: 960px){
 
+  article { background-color:salmon;}
   /* Format of hamburger menu items */
   header ul li a {
     color: var(--menu-a-fg);
@@ -55,23 +58,3 @@ header > label + input {display:none;}
 }
 
 
-/* TEST
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Pure CSS Burger Menu</title>
-    <link href="burger.css" rel="stylesheet">
-  </head>
-  <body>
-    <header id="header-poco">
-      <label for="hamburger">&#9776;</label>
-      <input type="checkbox" id="hamburger"/>
-      <ul>
-        <li><a href="1.html">1</a></li>
-        <li><a href="2.html">2</a></li>
-        <li><a href="3.html">3</a></li>
-      </ul>
-    </header>
-  </body>
-</html>
-*/

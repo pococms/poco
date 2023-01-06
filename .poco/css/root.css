@@ -12,6 +12,11 @@
   --header-fg:var(--fg);      /* Text color of header */
   --header-bg:var(--bg);      /* Background color of header */
   --header-height:auto;       /* Height of header */
+  --burger-menu-fg: white;    /* Color of the burger menu */
+  --burger-menu-bg: black;    /* Background color of the burger menu */
+  --burger-menu-separator-color: white; /* Line between burger menu items  */
+  --menu-a-fg:var(--fg);      /* Text color for normal (aka header), not burger, menu */
+  --menu-a-hover: orange;     /* Color when hovering over normal menu */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */
@@ -48,6 +53,12 @@
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */
   --header-bg:var(--bg);      /* Background color of header */
+  --header-height:auto;       /* Height of header */
+  --burger-menu-fg: white;    /* Color of the burger menu */
+  --burger-menu-bg: black;    /* Background color of the burger menu */
+  --burger-menu-separator-color: white; /* Line between burger menu items  */
+  --menu-a-fg:var(--fg);      /* Text color for normal (aka header), not burger, menu */
+  --menu-a-hover: orange;     /* Color when hovering over normal menu */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */
@@ -70,14 +81,13 @@
   --pre-bg:var(--code-bg);    /* Background color for fenced code */
   --padding-left:5%;          /* Where the header, nav, and footer usually start */
 }
-
+}
 
 
 /* ************************************/
 /*  DARK COLOR SCHEME                 */
 /* ************************************/
 
-}
 @media (prefers-color-scheme: dark) {
 :root {
   --a:cyan;                   /* Default link color */
@@ -88,6 +98,11 @@
   --header-fg:var(--fg);      /* Text color of header */
   --header-bg:var(--bg);      /* Background color of header */
   --header-height:auto;       /* Height of header */
+  --burger-menu-fg: white;    /* Color of the burger menu */
+  --burger-menu-bg: black;    /* Background color of the burger menu */
+  --burger-menu-separator-color: white; /* Line between burger menu items  */
+  --menu-a-fg:var(--fg);      /* Text color for normal (aka header), not burger, menu */
+  --menu-a-hover: orange;     /* Color when hovering over normal menu */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
   --aside-fg:var(--fg);       /* Text color of aside */

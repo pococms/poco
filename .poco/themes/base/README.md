@@ -4,6 +4,13 @@ nav: nav.md
 aside: aside.md
 footer: footer.md
 
+
+burger:
+- Home: pococms.com
+- Docs: pococoms.com/docs
+- Tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+
 stylesheets:
 - ../../css/root.css
 - ../../css/reset.css
