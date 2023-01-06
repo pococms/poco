@@ -2,7 +2,6 @@
 package main
 
 import (
-  "reflect"
 	"bufio"
 	"bytes"
 	"embed"
@@ -347,6 +346,9 @@ type theme struct {
 
 	asideType int
 
+  // List of burger items already parsed and ready to publish
+  burger string
+
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
 	header string
@@ -533,6 +535,9 @@ type config struct {
 	// plus the global (default) theme directory.
 	pageTheme theme
 	theme     theme
+
+	// Location of stylesheets directory for this project
+	stylesDir string
 
 	// Location of theme directory for this project
 	themeDir string
@@ -755,17 +760,9 @@ func (c *config) suppress(tag string) bool {
 	return false
 }
 
-// Return keys of the given map
-func Keys(m map[string]interface{}) (keys []string) {
-    for k := range m {
-        keys = append(keys, k)
-    }
-    return keys
-}
-
 
 // burger() generates code for the burger menu
-// items, defined like this in the front matter:
+// items, defined as an array of maps named "burger" in the front matter:
 //
 // burger:
 // - Home: pococms.com
@@ -779,17 +776,37 @@ func Keys(m map[string]interface{}) (keys []string) {
 // 	<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Tutorial</a></li>
 // </ul>
 
+func (t *theme) getBurger(fm map[string]interface{}) {
+ 	b, ok := fm["burger"].([]interface{})
+	if !ok {
+    // No burger entry  in yaml
+		t.burger = ""
+    return
+	}
 
-// Thanks to the amazing larsk for a quick answer
-// while I suffered Geneva convention-level 
-// sleep deprivation:
-// https://stackoverflow.com/users/147356/larsks
-func (c *config) burger() string {
+  list := ""
+  for _, item := range b {
+    for k, v := range item.(map[interface{}]interface{}) {
+      link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
+      list = list + link;
+    }
+  }
+  if list != "" {
+    t.burger = "\n" + tagSurround("ul", list, "\n")
+  }
+}
+
+
+// TODO: Delete
+// TODO: Document. This happens when the theme is parsed.
+func (c *config) readBurger(fm map[string]interface{}) string {
 	b, ok := c.pageFm["burger"].([]interface{})
 	if !ok {
     // No burger entry  in yaml
 		return ""
 	}
+
+
   list := "\n"
   for _, item := range b {
     for k, v := range item.(map[interface{}]interface{}) {
@@ -797,43 +814,17 @@ func (c *config) burger() string {
       list = list + link;
     }
   }
-  debug(tagSurround("ul", list, "\n"))
   return  tagSurround("ul", list, "\n")
 }
-func (c *config) oldburger() string {
-  debug("burger()")
-	t, ok := c.pageFm[strings.ToLower("burger")].([]interface{})
-  if !ok {
-    return ""
-  }
-
-  debug("%v elements",len(t))
-  debug("Type of t: %v", reflect.TypeOf(t))
-  debug("\n\nSo...")
-	//for i, value := range v {
-	for k, v := range t {
-    fmt.Printf("\tkey[%v]: [%v]\n", k, v)
-
-    debug("\tType: %v", reflect.TypeOf(v))
-    switch t := reflect.ValueOf(t); t.Kind() {
-    case reflect.String:
-      fmt.Printf("\t\t%v", t.String())
-    default:
-      fmt.Printf("\t\tFell through to %v", t.Kind())
-    }
-    /*
-    vals := reflect.ValueOf(v)
-    typesOf := vals.Type()
-    for i := 0; i < vals.NumField(); i++ {
-      fmt.Printf("Field: %s\tValue: %v\n",
-        typesOf.Field(i).Name, vals.Field(i).Interface())
-    }
-    */
-	}
-
-
+// Thanks to the amazing larsk for a quick answer
+// while I suffered Geneva convention-level 
+// sleep deprivation:
+// https://stackoverflow.com/users/147356/larsks
+func (c *config) burger() string {
+  debug(c.theme.burger)
   return ""
 }
+
 
 // If there's a local header, return it.
 // If not and there's a global header, return it.
@@ -1152,12 +1143,10 @@ func (c *config) styleTags() string {
 	// Handle aside orientation
 	aside := fmStr("aside", c.pageFm)
 	if aside == "left" {
-		//if t.asideType == asideLeft
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
 
 	if aside == "right" {
-		//if t.asideType == asideRight
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
 	}
 	if t != "" {
@@ -1458,7 +1447,6 @@ func (c *config) stylesheets() string {
 func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *theme {
 	// The theme is actually just a directory name.
 	var theme theme
-	theme.init() // xxx
 	theme.dir = dir
 	// The theme's heart is its README.md file, which lists
 	// assets required by the theme.
@@ -1513,6 +1501,7 @@ func (c *config) getThemeData(filename string) {
 
 	themeDir := filepath.Join(".poco", "themes")
 
+
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
 	if pageThemeName != "" {
@@ -1566,7 +1555,7 @@ func (c *config) loadTheme(filename string) {
 	// c.pageFm = map[string]interface{}{}
 	c.pageFm = c.getFm(filename)
 
-	// Get the page theme, if any.
+  // Get the page theme, if any.
 	// If on the home page, look for both global
 	// and local theme names.
 	// Load data structures for those themes.
@@ -1644,8 +1633,10 @@ func (c *config) validateAside(t *theme) {
 // readThemeFm() happens when a theme is being
 // loaded and parsed.
 func (t *theme) readThemeFm(fm map[string]interface{}) {
+  debug("readThemeFm()")
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
+  t.getBurger(fm)
 	t.ver = fmStr("ver", fm)
 	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
@@ -1662,22 +1653,11 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 }
 
-// TODO: Either remove or explain
-func (t *theme) init() {
-	/*
-		t.header = "SUPPRESS"
-		t.nav = "SUPPRESS"
-		t.aside = "SUPPRESS"
-		t.footer = "SUPPRESS"
-	*/
-}
 
 // newConfig allocates a config object.
 // sitewide configuration info.
 func newConfig() *config {
 	config := config{}
-	config.pageTheme.init()
-	config.theme.init()
 	return &config
 
 }
@@ -1803,6 +1783,7 @@ func main() {
 	c.jsUserLastDir = filepath.Join(c.pocoDir, jsDir, jsUserLastDir)
 	c.jsPocoLastDir = filepath.Join(c.pocoDir, jsDir, jsPocoLastDir)
 	c.themeDir = filepath.Join(c.pocoDir, "themes")
+	c.stylesDir = filepath.Join(c.pocoDir, "css")
 	rootDirPresent := dirExists(c.root)
 	hasFiles := !dirEmpty(c.root)
 	validProject := isProject(c.root)
