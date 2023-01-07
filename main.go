@@ -762,11 +762,12 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
   filename := fmStr("burger", fm)
   if filename == "" {
-    debug("NO BURGE")
     return
   }
 	filename = regularize(t.dir, filename)
- 
+  if !fileExists(filename) {
+    quit(1, nil, nil, "Can't fine burger file %s", filename)
+  }
 	// Need to go back and convert any
 	// template variables in the README.
 	// The tersely named mdYAMLStringToTemplatedHTMLString()
