@@ -7,14 +7,7 @@ footer: footer.md
 hicon: "&#9776;"
 #hicon: "MENU"
 
-hamburger: hamburger.md
-
-
-burger:
-- Home: pococms.com
-- Docs: pococoms.com/docs
-- Tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-
+burger: burger.md
 
 stylesheets:
 - ../../css/root.css

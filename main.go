@@ -760,8 +760,9 @@ func (c *config) suppress(tag string) bool {
 //
 func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
-  filename := fmStr("hamburger", fm)
+  filename := fmStr("burger", fm)
   if filename == "" {
+    debug("NO BURGE")
     return
   }
 	filename = regularize(t.dir, filename)
@@ -790,54 +791,6 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 		// Convert it to a header tag but with a bespoke id value
 	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
   return
-
-
-
-  // TODO: No reason to keep this. Stop being sentimental. 
-	// Get the list of URLS, which are a Markup unordered list
-	// - [Ham](burger.com)
-	// - [Burger](ham.com)
-	// - [With Fries](withfries.com)
-	slice := fmStrSlice("hamburger", fm)
-
-	// Quit if no burger defined
-	if len(slice) < 1 {
-		return
-	}
-
-	//links := ""
-	links = ""
-
-	// Restore their Markupness by making each one
-	// a list item
-	for _, link := range slice {
-		link = "* " + link + "\n"
-		links = links + link
-	}
-
-	// Need to go back and convert any
-	// template variables in the README.
-	// The tersely named mdYAMLStringToTemplatedHTMLString()
-	// replaces its config object, so that's why we're
-	// rehashing this.
-	// Get a new config object to avoid stepping on c.config
-	//tmpConfig := newConfig()
-
-	// Convert the front matter for this theme into
-	// an interface object containing the raw, parsed YAML.
-	tmpConfig.fm = tmpConfig.getFm(t.readme)
-
-	// Convert the hamburger menu to HTML, adding some code
-	// rquired to make the specialized CSS work.
-	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
-	links = "\n" +
-		"<label for=\"hamburger\">" + t.hicon + "</label>" + "\n" +
-		`<input type="checkbox" id="hamburger"/>` + "\n" +
-		links
-
-		// Convert it to a header tag but with a bespoke id value
-	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
-
 
 }
 
