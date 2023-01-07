@@ -5,6 +5,13 @@ aside: aside.md
 footer: footer.md
 
 
+hamburger:
+- "[foo](bar)"
+- "[Reviews](#)"
+- "[Github](#)"
+- "[Profile](#)"
+
+
 burger:
 - Home: pococms.com
 - Docs: pococoms.com/docs

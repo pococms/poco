@@ -1,4 +1,4 @@
-// main.goy
+// main.go
 package main
 
 import (
@@ -126,8 +126,7 @@ func (c *config) assemble(filename string) string {
 		c.stylesheets() +
 		c.styleTags() +
 		"</head>\n<body>" +
-		// "\t" + c.header() +
-		"\t" + c.burger() +
+		c.header() +
 		"\n\t" + c.nav() +
 		"\n\t" + c.aside() +
 		c.article() +
@@ -348,6 +347,8 @@ type theme struct {
 
 	// List of burger items already parsed and ready to publish
 	burger string
+	// TODO: Choose this or the previous
+	//hamburger string
 
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
@@ -695,7 +696,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 		// into c
 		c.theme = theme
 	} else {
-		// It's a local theme declaration
+		// It's a pagetheme declaration
 		c.pageTheme = theme
 	}
 	return theme
@@ -760,52 +761,72 @@ func (c *config) suppress(tag string) bool {
 	return false
 }
 
-// getBurger() generates code for the burger menu
-// items, defined as an array of maps named "burger" in
-// the theme READE.me:
+/// hamburgerToHTML() takes the hamburger shown below
+// in the theme README.md's front matter and converts to a
+// specially constructed HTML sequence.
+// It's an array of  Markdown links, which get
+// converted to a <ul> with preface that makes
+// it accessible to the stylesheet.  It deposits
+// the result in t.burger.
 //
-// burger:
-// - Home: pococms.com
-// - Docs: pococoms.com/docs
-// - Tutorial: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+// Typical markup as seen in the theme README.md file:
 //
-// The output:
-// <ul>
-// 	<li><a href="pococms.com">Home</a></li>
-// 	<li><a href="pococoms.com/docs">Docs</a></li>
-// 	<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Tutorial</a></li>
-// </ul>
-func (t *theme) getBurger(fm map[string]interface{}) {
-	b, ok := fm["burger"].([]interface{})
-	if !ok {
-		// No burger entry  in yaml
-		t.burger = ""
-		return
+// hamburger:
+// - "[Ham](burger.com)"
+// - "[Burger](ham.com)"
+// - "[With Fries](withfries.com)"
+//
+func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
+	// Get the list of URLS, which are a Markup unordered list
+	// - [Ham](burger.com)
+	// - [Burger](ham.com)
+	// - [With Fries](withfries.com)
+	slice := fmStrSlice("hamburger", fm)
+
+  // Quit if no burger defined
+  if len(slice) < 1 {
+    return
+  }
+
+	links := ""
+
+	// Restore their Markupness by making each one
+	// a list item
+	for _, link := range slice {
+		link = "* " + link + "\n"
+		links = links + link
 	}
 
-	list := ""
-	for _, item := range b {
-		for k, v := range item.(map[interface{}]interface{}) {
-			link := fmt.Sprintf("\t<li><a href=\"%s\">%s</a></li>\n", v, k)
-			list = list + link
-		}
-	}
-	if list != "" {
-		t.burger = "\n" +
-			`<label for="hamburger">&#9776;</label>` + "\n" +
-			`<input type="checkbox" id="hamburger"/>` + "\n" +
-			"<ul>" + "\n" +
-			list +
-			"</ul>" + "\n"
-	}
+	// Need to go back and convert any
+	// template variables in the README.
+	// The tersely named mdYAMLStringToTemplatedHTMLString()
+	// replaces its config object, so that's why we're
+	// rehashing this.
+	// Get a new config object to avoid stepping on c.config
+	tmpConfig := newConfig()
+
+	// Convert the front matter for this theme into
+	// an interface object containing the raw, parsed YAML.
+	tmpConfig.fm = tmpConfig.getFm(t.readme)
+
+	// Convert the hamburger menu to HTML, adding some code
+	// rquired to make the specialized CSS work.
+	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
+	links = "\n" +
+		`<label for="hamburger">&#9776;</label>` + "\n" +
+		`<input type="checkbox" id="hamburger"/>` + "\n" +
+		links
+
+  // TODO: Not dry enough? Can I integrate with the other
+  // code in which they add the id tag? 
+	t.burger = "<header id=\"header-poco\">" + links + "</header>"
+  // xxx
+	return
+
 }
 
-// Thanks to the amazing larsk for a quick answer
-// while I suffered Geneva convention-level
-// sleep deprivation:
-// https://stackoverflow.com/users/147356/larsks
+// pre: getBurger()
 func (c *config) burger() string {
-	//debug(c.theme.burger)
 	if c.theme.burger != "" {
 		header := "\n" + tagSurround("header", c.theme.burger, "\n")
 		return header
@@ -813,12 +834,31 @@ func (c *config) burger() string {
 	return ""
 }
 
+
 // If there's a local header, return it.
 // If not and there's a global header, return it.
 func (c *config) header() string {
+	// If there's a burger defined, it becomes the header
 	if c.suppress("header") {
 		return ""
 	}
+  debug("header()")
+ 	if c.pageTheme.burger != "" {
+    debug("\tpagetheme %s has burger:\n%v", c.pageTheme.name, c.pageTheme.burger)
+    return c.pageTheme.burger
+	} else {
+    debug("\tpagetheme %s has NO burger", c.pageTheme.name)
+    return c.pageTheme.header
+  }
+
+ if c.theme.burger != "" {
+    debug("\tglobal theme %s has burger:\n%v", c.theme.name, c.theme.burger)
+    return c.theme.burger
+  } else  {
+    debug("\ttheme %s has NO burger", c.theme.name)
+    return c.theme.header
+  }
+	// xxx
 
 	if c.pageTheme.present {
 		return c.pageTheme.header
@@ -1125,19 +1165,6 @@ func (c *config) styleTags() string {
 	t := c.getStyleTags(c.pageFm)
 	// Take the slice of tags and put each one
 	// on its own line.
-	if c.theme.burger != "" {
-		debug("%s has burger", c.theme.name)
-		burgerFilename := filepath.Join(c.stylesDir, "burger-rough.css")
-		if !fileExists(burgerFilename) {
-			quit(1, nil, c, "Can't find supporting CSS for burger menu")
-		}
-		s := c.fileToString(burgerFilename)
-		if s != "" {
-			t = t + s
-		}
-		debug("Adding to styles:\n%v", t)
-	}
-
 	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
@@ -1326,7 +1353,10 @@ func (c *config) inlineStylesheets(dir string) string {
 	if c.pageTheme.present {
 		// pageTheme := "/* PocoCMS pagetheme dude: " + c.pageTheme.name + " */\n"
 		slice = c.pageTheme.stylesheetFilenames
-
+    if c.pageTheme.burger != "" {
+      debug("pagetheme %v has burger %s", c.pageTheme.name, c.pageTheme.burger)
+      slice = append(slice, "../../css/burger-rough.css")
+    }
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -1381,6 +1411,10 @@ func (c *config) inlineStylesheets(dir string) string {
 		// ---
 		//
 		slice = c.theme.stylesheetFilenames
+    if c.theme.burger != "" {
+      debug("Theme %v has burger %s", c.theme.name, c.theme.burger)
+      slice = append(slice, "../../css/burger-rough.css")
+    }
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -1499,7 +1533,8 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
-	themeDir := filepath.Join(".poco", "themes")
+  // TODO: REdundant with t.themeDir I tink
+	themeDir := filepath.Join(pocoDir, "themes")
 
 	// Check for a local theme on this page.
 	pageThemeName := fmStr("pagetheme", c.pageFm)
@@ -1634,8 +1669,7 @@ func (c *config) validateAside(t *theme) {
 func (t *theme) readThemeFm(fm map[string]interface{}) {
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
-	// TODO: Why not do this with header, footer, etc.-just suck them up now
-	t.getBurger(fm)
+  debug("after hamburgerToHTML():\n%v", t.burger)
 	t.ver = fmStr("ver", fm)
 	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
@@ -1647,9 +1681,13 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	//t.asideLeftFilename = fmStr("asideleft", fm)
 	//t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
-	t.styleTagNames = fmStrSlice("styles", fm)
+  t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
+	// TODO: Why not do this with header, footer, etc.-just suck them up now
+	//j:t.getBurger(fm)
+	t.hamburgerToHTML(fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
+
 }
 
 // newConfig allocates a config object.

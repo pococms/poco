@@ -28,16 +28,18 @@ h4{color:var(--h4-fg);}
   aside{display:none}
   article{margin:0;float:left;clear:left;width:100%}
 }
-@media (max-width:720px){
+@media (max-width:1000px){
   html{font-size:1.25rem;}
   nav,aside,footer{display:none}
   article{padding:1em;}
   article{float:left;clear:left;width:100%}
-  article{background-color:pink;}
+  article{background-color:lightgreen;}
   header{display:block;}
+
   /* Format of hamburger menu items */
   header ul li a {
     color: var(--menu-a-fg);
+    color:black;
     box-sizing: border-box;
     display: block;
     width: 100%;

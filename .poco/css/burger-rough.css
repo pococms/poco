@@ -1,3 +1,4 @@
+
 header {
   width: 100%;
   background: var(--header-bg);
@@ -13,8 +14,6 @@ header ul > li, header ul > li > a {
   display: inline;
 
 }
-/* TC: altered */
-header > label {color:var(--burger-menu-fg);background-color:var(--burger-menu-fg);}
  
 header a:hover { background: var(--menu-a-hover); }
 header > label  { display: none; }
@@ -22,15 +21,10 @@ header > label  { display: none; }
 /* Default: hidden */
 header > label + input {display:none;}
 
-/* TC: Was: */
-/* header > input:checked + ul   { display: block; } */
-/* No effect */
-header > input:checked + ul   { color:var(--burger-menu-fg);background-color:var(--burger-menu-fg);display: block; }
+header > input:checked + ul   { display: block; }
 
 
-
-
-@media screen and (max-width: 960px){
+@media screen and (max-width: 1000px){
 
   article { background-color:salmon;}
   /* Format of hamburger menu items */
