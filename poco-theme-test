@@ -217,7 +217,7 @@ EOM
 
 read -r -d '' ASIDE_RIGHT << EOM
 ---
-aside: "right"
+sidebar: right
 ---
 # Aside right 
 $MDEMO
@@ -225,7 +225,7 @@ EOM
 
 read -r -d '' ASIDE_LEFT << EOM
 ---
-aside: "left"
+sidebar: left
 ---
 # Aside left 
 $MDEMO
