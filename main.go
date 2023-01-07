@@ -194,7 +194,7 @@ func (c *config) getFm(filename string) map[string]interface{} {
 // user-defined Javascript executes only after the full
 // HTML DOM has been loaded.
 func (c *config) documentReady() string {
-	return c.fileToString(".poco/js/docready.js")
+	return c.fileToString(filepath.Join(pocoDir, "js/docready.js"))
 }
 
 // copyDirToString() takes a directory location,
@@ -347,6 +347,7 @@ type theme struct {
 
 	// List of burger items already parsed and ready to publish
 	burger string
+  hicon string
 	// TODO: Choose this or the previous
 	//hamburger string
 
@@ -697,7 +698,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 		// If this is a globaltheme declaration, read that
 		// into c
 		c.theme = theme
-		debug("themeDescription: global theme %s has a burger:\n %v", c.theme.name, c.theme.burger)
 	} else {
 		// It's a pagetheme declaration
 		c.pageTheme = theme
@@ -780,6 +780,42 @@ func (c *config) suppress(tag string) bool {
 // - "[With Fries](withfries.com)"
 //
 func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
+
+  filename := fmStr("hamburger", fm)
+  filename = filepath.Join(t.dir, filename)
+  
+	// Need to go back and convert any
+	// template variables in the README.
+	// The tersely named mdYAMLStringToTemplatedHTMLString()
+	// replaces its config object, so that's why we're
+	// rehashing this.
+	// Get a new config object to avoid stepping on c.config
+	tmpConfig := newConfig()
+
+	// Convert the front matter for this theme into
+	// an interface object containing the raw, parsed YAML.
+	tmpConfig.fm = tmpConfig.getFm(t.readme)
+
+  links := tmpConfig.fileToString(filename)
+	// Convert the hamburger menu to HTML, adding some code
+	// rquired to make the specialized CSS work.
+	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
+	links = "\n" +
+		"<label for=\"hamburger\">" + t.hicon + "</label>" + "\n" +
+		`<input type="checkbox" id="hamburger"/>` + "\n" +
+		links
+
+		// Convert it to a header tag but with a bespoke id value
+	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
+
+
+
+
+
+  return
+
+
+
 	// Get the list of URLS, which are a Markup unordered list
 	// - [Ham](burger.com)
 	// - [Burger](ham.com)
@@ -791,7 +827,8 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 		return
 	}
 
-	links := ""
+	//links := ""
+	links = ""
 
 	// Restore their Markupness by making each one
 	// a list item
@@ -806,7 +843,7 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 	// replaces its config object, so that's why we're
 	// rehashing this.
 	// Get a new config object to avoid stepping on c.config
-	tmpConfig := newConfig()
+	//tmpConfig := newConfig()
 
 	// Convert the front matter for this theme into
 	// an interface object containing the raw, parsed YAML.
@@ -816,7 +853,7 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 	// rquired to make the specialized CSS work.
 	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
 	links = "\n" +
-		`<label for="hamburger">&#9776;</label>` + "\n" +
+		"<label for=\"hamburger\">" + t.hicon + "</label>" + "\n" +
 		`<input type="checkbox" id="hamburger"/>` + "\n" +
 		links
 
@@ -832,24 +869,17 @@ func (c *config) header() string {
 	if c.suppress("header") {
 		return ""
 	}
-	debug("header()")
 	if c.pageTheme.present {
 		if c.pageTheme.burger != "" {
-			//debug("\tpagetheme %s has burger:\n%v", c.pageTheme.name, c.pageTheme.burger)
-			debug("\tpagetheme %s has burger", c.pageTheme.name)
       return c.pageTheme.burger + c.pageTheme.header
 		} else {
-			debug("\tpagetheme %s has NO burger", c.pageTheme.name)
 			return c.pageTheme.header
 		}
 	}
 	if c.theme.present {
 		if c.theme.burger != "" {
-			debug("\tglobal theme %s has burger:\n%v", c.theme.name, c.theme.burger)
-			//kdebug("\tglobal theme %s has burger", c.theme.name)
 			return c.theme.burger + c.theme.header
 		} else {
-			debug("\ttheme %s has NO burger", c.theme.name)
 			return c.theme.header
 		}
 	}
@@ -1667,10 +1697,8 @@ func (c *config) validateAside(t *theme) {
 // loaded and parsed. The theme's README.md's front
 // matter is read in.
 func (t *theme) getThemeReadme(fm map[string]interface{}) {
-	debug("getThemeReadme %s", t.name)
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
-	debug("after hamburgerToHTML():\n%v", t.burger)
 	t.ver = fmStr("ver", fm)
 	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
@@ -1685,6 +1713,7 @@ func (t *theme) getThemeReadme(fm map[string]interface{}) {
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 	// TODO: Why not do this with header, footer, etc.-just suck them up now
+	t.hicon = fmStr("hicon", fm)
 	t.hamburgerToHTML(fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 
@@ -2360,6 +2389,9 @@ func fileToBuf(filename string) []byte {
 
 // fileToString() sucks up a file and returns its contents as a string.
 func (c *config) fileToString(filename string) string {
+  if !fileExists(filename) {
+    quit(1, nil, c, "Can't find the file %s", filename)
+  }
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
 		quit(1, err, c, "")
