@@ -3,13 +3,6 @@ header#header-poco-burger {
   width: 100%;
   background: var(--header-bg);
 }
-header#header-poco-burger a {
-  /*
-  padding-right: 1rem;
-  color: var(--menu-a-fg);
-  text-decoration: none;
-  */
-}
 
 header#header-poco-burger ul > li, header#header-poco-burger ul > li > a {
   list-style-type: none;
@@ -29,7 +22,7 @@ header#header-poco-burger > input:checked + ul   { display: block; }
 
 @media screen and (max-width: 1000px){
   #header-poco-burger { display: block; }
-
+  #header-poco { display: none; }
   /* Format of hamburger menu items */
   header#header-poco-burger ul li a {
     display: block;
@@ -46,7 +39,6 @@ header#header-poco-burger > input:checked + ul   { display: block; }
     font-size: 1.5em;
     padding: .5em;
   }
-
   header#header-poco-burger > ul { display:none;}
   header#header-poco-burger > input:checked + ul   { display: block; }
 

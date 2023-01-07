@@ -821,7 +821,7 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 		links
 
 		// Convert it to a header tag but with a bespoke id value
-	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>"
+	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
 
 
 }
@@ -837,7 +837,7 @@ func (c *config) header() string {
 		if c.pageTheme.burger != "" {
 			//debug("\tpagetheme %s has burger:\n%v", c.pageTheme.name, c.pageTheme.burger)
 			debug("\tpagetheme %s has burger", c.pageTheme.name)
-			return c.pageTheme.burger
+      return c.pageTheme.burger + c.pageTheme.header
 		} else {
 			debug("\tpagetheme %s has NO burger", c.pageTheme.name)
 			return c.pageTheme.header
@@ -847,7 +847,7 @@ func (c *config) header() string {
 		if c.theme.burger != "" {
 			debug("\tglobal theme %s has burger:\n%v", c.theme.name, c.theme.burger)
 			//kdebug("\tglobal theme %s has burger", c.theme.name)
-			return c.theme.burger
+			return c.theme.burger + c.theme.header
 		} else {
 			debug("\ttheme %s has NO burger", c.theme.name)
 			return c.theme.header
