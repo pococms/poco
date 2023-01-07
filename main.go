@@ -2953,3 +2953,5 @@ func (c *config) themeCopy(source string, target string) {
 	stringToFile(c, skeletonFilename, skeleton)
 
 }
+
+
