@@ -1412,7 +1412,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		//
 		slice = c.theme.stylesheetFilenames
 		if c.theme.burger != "" {
-			slice = append(slice, "../../css/burger-ex.css")
+			slice = append(slice, "../../css/burger-x.css")
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
