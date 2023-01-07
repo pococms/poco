@@ -764,26 +764,26 @@ func (c *config) suppress(tag string) bool {
 	return false
 }
 
-/// hamburgerToHTML() takes the hamburger shown below
-// in the theme README.md's front matter and converts to a
-// specially constructed HTML sequence.
-// It's an array of  Markdown links, which get
-// converted to a <ul> with preface that makes
-// it accessible to the stylesheet.  It deposits
-// the result in t.burger.
+// hamburgerToHTML() takes the hamburger shown below
+// in markdown file and converts to a
+// specially constructed HTML patch to use the 
+// hamburge stylesheet.
 //
-// Typical markup as seen in the theme README.md file:
+// Typical markup as seen in a hamburger.md file:
 //
-// hamburger:
-// - "[Ham](burger.com)"
-// - "[Burger](ham.com)"
-// - "[With Fries](withfries.com)"
+// - [Google](https://google.com)
+// - [PocoCMS](https://pococms.com)
+// - [Docs](/docs)
+// - [About](/about.html)
 //
 func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
   filename := fmStr("hamburger", fm)
-  filename = filepath.Join(t.dir, filename)
-  
+  if filename == "" {
+    return
+  }
+	filename = regularize(t.dir, filename)
+ 
 	// Need to go back and convert any
 	// template variables in the README.
 	// The tersely named mdYAMLStringToTemplatedHTMLString()
@@ -807,15 +807,11 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
 		// Convert it to a header tag but with a bespoke id value
 	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
-
-
-
-
-
   return
 
 
 
+  // TODO: No reason to keep this. Stop being sentimental. 
 	// Get the list of URLS, which are a Markup unordered list
 	// - [Ham](burger.com)
 	// - [Burger](ham.com)
