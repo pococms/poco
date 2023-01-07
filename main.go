@@ -71,7 +71,7 @@ var docType = `<!DOCTYPE html>
 
 // If a page lacks a title tag, it fails validation.
 // Insert this if none is found.
-var poweredBy = `Powered with &hearts; by PocoCMS`
+var poweredBy = `&#129502; Powered by PocoCMS` // &hearts;
 
 // Adds Javascript after the body, just before the closing </body> tag
 func (c *config) scriptAfter() string {
@@ -320,8 +320,6 @@ func tagSurround(tag string, txt string, extra ...string) string {
 // TODO: Document this
 const (
 	asideUnspecified int = 0
-	asideLeft            = 1
-	asideRight           = 2
 )
 
 // TODO: Document
@@ -343,8 +341,6 @@ type theme struct {
 	// One or more sentences selling the theme.
 	description string
 
-	asideType int
-
 	// List of burger items already parsed and ready to publish
 	burger string
   hicon string
@@ -363,26 +359,15 @@ type theme struct {
 	// Filename for nav specified in front matter.
 	navFilename string
 
-	// aside can be "SUPPRESS", "left", "right", or a filename.
-	// What if you want to supply a filename AND control
-	// which side it's on? Use asideleft or asideright,
-	// represented by asideLeftFilename and asideRightFilename
+	// aside can be "SUPPRESS" or a filename.
 	aside string
 
 	// Filename for aside specified in front matter.
 	asideFilename string
 
-	// Filename for when 1) The user wants to use a filename,
-	// and 2) wants to ensure it's on the left.
-	asideLeftFilename string
-
-	// Filename for when 1) The user wants to use a filename,
-	// and 2) wants to ensure it's on the right.
-	// Supersedes aside.
-	asideRightFilename string
-
 	// Holds converted and template-parsed markdown source
 	// for the <footer> tag.
+
 	footer string
 	// Filename for footer specified in front matter.
 	footerFilename string
@@ -690,9 +675,6 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
 	theme.getThemeReadme(tmpConfig.fm)
-
-	// Check for conflicts between "aside", "asideleft", etc.
-	//c.validateAside(&theme)
 
 	if possibleGlobalTheme && !c.theme.present {
 		// If this is a globaltheme declaration, read that
@@ -1006,10 +988,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		}
 	case "aside":
 		override := fmStr(tag, c.pageFm)
-		t.asideType = asideUnspecified
-		if override != "left" &&
-			override != "right" &&
-			override != "" {
+		if override != "" {
 			// Yes, on this page only, override the aside.
 			// Use whatever filename was provided.
 			filename = override
@@ -1021,31 +1000,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 				filename = t.asideFilename
 			}
 		}
-		switch override {
-		case "right":
-			state = ASIDE_RIGHT
-			t.asideType = asideRight
-		case "left":
-			state = ASIDE_LEFT
-			t.asideType = asideLeft
-		}
-
-	case "asideleft":
-		t.asideLeftFilename = fmStr(tag, c.pageFm)
-		// Check for conflicts between "aside", "asideleft", etc.
-		c.validateAside(t)
-		state = ASIDE_LEFT
-		t.asideType = asideLeft
-		filename = t.asideLeftFilename
-
-	case "asideright":
-		t.asideRightFilename = fmStr(tag, c.pageFm)
-		// Check for conflicts between "aside", "asideleft", etc.
-		c.validateAside(t)
-		state = ASIDE_RIGHT
-		t.asideType = asideRight
-		filename = t.asideRightFilename
-
 	case "footer":
 		// Was footer overridden on this page?
 		// Example front matter:
@@ -1089,9 +1043,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 		}
 
 		if s != "" {
-			if tag == "asideleft" || tag == "asideright" {
-				tag = "aside"
-			}
 			// Add a unique id tag to each page layout element
 			s = addPocoTag(tag, s)
 		}
@@ -1106,15 +1057,12 @@ func (c *config) layoutElement(tag string, t *theme) {
 		t.nav = s
 	case "aside":
 		t.aside = s
-	case "asideright":
-		t.aside = s
-	case "asideleft":
-		t.aside = s
 	case "footer":
 		t.footer = s
 	}
 
 }
+
 
 // addPocoTag takes a tag like "header" and returuns it formmatted
 // as a tag with an id, so "header" becomes
@@ -1196,19 +1144,20 @@ func (c *config) styleTags() string {
 	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
-	aside := fmStr("aside", c.pageFm)
-	if aside == "left" {
+	side := fmStr("sidebar", c.pageFm)
+	if side == "right" {
+		t = t + "article{float:left;clear:left;}\naside{float:right;}"
+  }
+	if side == "left" {
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
 
-	if aside == "right" {
-		t = t + "article{float:left;clear:left;}\naside{float:right;}"
-	}
 	if t != "" {
 		t = "\n" + tagSurround("style", t, "\n")
 	}
 	return t
 }
+
 
 // getStyleTags() converts front matter that looks like this
 //
@@ -1644,49 +1593,7 @@ func (c *config) addPageElements(t *theme) {
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
-	c.layoutElement("asideleft", t)
-	c.layoutElement("asideright", t)
 	c.layoutElement("footer", t)
-}
-
-// validateAside() handles conflicts between aside,
-// asideleft, and asideright.
-// TODO: If this works, document
-// - Can't use SUPPRESS
-// - Only for filenames
-// - Overridden by aside: "SUPPRESS"
-func (c *config) validateAside(t *theme) {
-	if t.asideLeftFilename == "" &&
-		t.asideRightFilename == "" {
-		return
-	}
-
-	// asideright and asideleft only accept a filename,
-	// not "left" or "right" the way aside can.
-	if t.asideLeftFilename == "left" ||
-		t.asideLeftFilename == "right" ||
-		t.asideRightFilename == "left" ||
-		t.asideRightFilename == "right" {
-		quit(1, nil, nil, "Can't use left and right for asideleft or asideright, only a file name", suppressToken)
-		return
-	}
-
-	// asideright and asideleft won't accept "SUPPRESS".
-	// If aside is set to it then they will be suppressed.
-	if t.asideLeftFilename == suppressToken ||
-		t.asideRightFilename == suppressToken {
-		quit(1, nil, nil, "Can't use %s for asideleft or asideright, only a filenames", suppressToken)
-		return
-	}
-
-	// asideright and asideleft can't be used to specify a filename
-	// at the same time.
-	if t.asideLeftFilename != "" &&
-		t.asideRightFilename != "" {
-		quit(1, nil, nil, "Can't only use asideleft or asideright. Not both.")
-		return
-	}
-
 }
 
 // getThemeReadme() happens when a theme is being
@@ -1701,10 +1608,6 @@ func (t *theme) getThemeReadme(fm map[string]interface{}) {
 	t.headerFilename = fmStr("header", fm)
 	t.navFilename = fmStr("nav", fm)
 	t.asideFilename = fmStr("aside", fm)
-	// TODO: Are the next 2 needed? Thisis only at theme reading time, not
-	// page generation, correct?
-	//t.asideLeftFilename = fmStr("asideleft", fm)
-	//t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
