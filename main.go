@@ -1355,7 +1355,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	if c.pageTheme.present {
 		slice = c.pageTheme.stylesheetFilenames
 		if c.pageTheme.burger != "" {
-			slice = append(slice, "../../css/burger-ex.css")
+			slice = append(slice, "../../css/burger.css")
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1412,7 +1412,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		//
 		slice = c.theme.stylesheetFilenames
 		if c.theme.burger != "" {
-			slice = append(slice, "../../css/burger-x.css")
+			slice = append(slice, "../../css/burger.css")
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
