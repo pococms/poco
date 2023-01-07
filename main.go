@@ -635,6 +635,7 @@ func regularize(dir string, filename string) string {
 	return ""
 }
 
+// TODO WTF THIS ISN'T USED
 // themeDescription() takes the name of a theme directory and returns
 // the name of the page layout files, stylesheets, style tags
 // in the theme object. It does not read any of those files in.
@@ -675,6 +676,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 		theme.license = c.fileToString(license)
 		// Met minimal requirements for a theme.
 		theme.present = true
+		theme.name = themeDir
 	}
 
 	// Get a new config object to avoid stepping on c.config
@@ -686,7 +688,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 	// A temporary config object has been created.
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
-	theme.readThemeFm(tmpConfig.fm)
+	theme.getThemeReadme(tmpConfig.fm)
 
 	// Check for conflicts between "aside", "asideleft", etc.
 	//c.validateAside(&theme)
@@ -695,6 +697,7 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 		// If this is a globaltheme declaration, read that
 		// into c
 		c.theme = theme
+		debug("themeDescription: global theme %s has a burger:\n %v", c.theme.name, c.theme.burger)
 	} else {
 		// It's a pagetheme declaration
 		c.pageTheme = theme
@@ -783,10 +786,10 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 	// - [With Fries](withfries.com)
 	slice := fmStrSlice("hamburger", fm)
 
-  // Quit if no burger defined
-  if len(slice) < 1 {
-    return
-  }
+	// Quit if no burger defined
+	if len(slice) < 1 {
+		return
+	}
 
 	links := ""
 
@@ -817,47 +820,38 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 		`<input type="checkbox" id="hamburger"/>` + "\n" +
 		links
 
-  // TODO: Not dry enough? Can I integrate with the other
-  // code in which they add the id tag? 
-	t.burger = "<header id=\"header-poco\">" + links + "</header>"
-  // xxx
-	return
+		// Convert it to a header tag
+	t.burger = addPocoTag("header", links)
 
 }
 
-// pre: getBurger()
-func (c *config) burger() string {
-	if c.theme.burger != "" {
-		header := "\n" + tagSurround("header", c.theme.burger, "\n")
-		return header
-	}
-	return ""
-}
-
-
-// If there's a local header, return it.
 // If not and there's a global header, return it.
 func (c *config) header() string {
 	// If there's a burger defined, it becomes the header
 	if c.suppress("header") {
 		return ""
 	}
-  debug("header()")
- 	if c.pageTheme.burger != "" {
-    debug("\tpagetheme %s has burger:\n%v", c.pageTheme.name, c.pageTheme.burger)
-    return c.pageTheme.burger
-	} else {
-    debug("\tpagetheme %s has NO burger", c.pageTheme.name)
-    return c.pageTheme.header
-  }
-
- if c.theme.burger != "" {
-    debug("\tglobal theme %s has burger:\n%v", c.theme.name, c.theme.burger)
-    return c.theme.burger
-  } else  {
-    debug("\ttheme %s has NO burger", c.theme.name)
-    return c.theme.header
-  }
+	debug("header()")
+	if c.pageTheme.present {
+		if c.pageTheme.burger != "" {
+			//debug("\tpagetheme %s has burger:\n%v", c.pageTheme.name, c.pageTheme.burger)
+			debug("\tpagetheme %s has burger", c.pageTheme.name)
+			return c.pageTheme.burger
+		} else {
+			debug("\tpagetheme %s has NO burger", c.pageTheme.name)
+			return c.pageTheme.header
+		}
+	}
+	if c.theme.present {
+		if c.theme.burger != "" {
+			debug("\tglobal theme %s has burger:\n%v", c.theme.name, c.theme.burger)
+			//kdebug("\tglobal theme %s has burger", c.theme.name)
+			return c.theme.burger
+		} else {
+			debug("\ttheme %s has NO burger", c.theme.name)
+			return c.theme.header
+		}
+	}
 	// xxx
 
 	if c.pageTheme.present {
@@ -1071,9 +1065,8 @@ func (c *config) layoutElement(tag string, t *theme) {
 			if tag == "asideleft" || tag == "asideright" {
 				tag = "aside"
 			}
-			// Add a unique id tag to each page layout element:
-			// <footer id="footer-poco">, etc.
-			s = "\n<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + s + "</" + tag + ">"
+			// Add a unique id tag to each page layout element
+			s = addPocoTag(tag, s)
 		}
 	}
 
@@ -1094,6 +1087,14 @@ func (c *config) layoutElement(tag string, t *theme) {
 		t.footer = s
 	}
 
+}
+
+// addPocoTag takes a tag like "header" and returuns it formmatted
+// as a tag with an id, so "header" becomes
+// <header id="header-poco">Headname</header>
+// code is HTML that needs to appear between the tags
+func addPocoTag(tag, code string) string {
+	return "\n<" + tag + " id=\"" + tag + "-poco" + "\"" + ">" + code + "</" + tag + ">"
 }
 
 // setupGlobals() sets sitewide values such as
@@ -1351,12 +1352,10 @@ func (c *config) inlineStylesheets(dir string) string {
 	// Get list of stylesheets for the page theme, if there is one.
 	// It overrides any global theme so exit afterwards.
 	if c.pageTheme.present {
-		// pageTheme := "/* PocoCMS pagetheme dude: " + c.pageTheme.name + " */\n"
 		slice = c.pageTheme.stylesheetFilenames
-    if c.pageTheme.burger != "" {
-      debug("pagetheme %v has burger %s", c.pageTheme.name, c.pageTheme.burger)
-      slice = append(slice, "../../css/burger-rough.css")
-    }
+		if c.pageTheme.burger != "" {
+			slice = append(slice, "../../css/burger-rough.css")
+		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -1411,10 +1410,9 @@ func (c *config) inlineStylesheets(dir string) string {
 		// ---
 		//
 		slice = c.theme.stylesheetFilenames
-    if c.theme.burger != "" {
-      debug("Theme %v has burger %s", c.theme.name, c.theme.burger)
-      slice = append(slice, "../../css/burger-rough.css")
-    }
+		if c.theme.burger != "" {
+			slice = append(slice, "../../css/burger-rough.css")
+		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
 		for _, filename := range slice {
@@ -1522,7 +1520,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 	// A temporary config object has been created.
 	// Get from the theme's front matter, author, branding,
 	// description, etc.
-	theme.readThemeFm(tmpConfig.fm)
+	theme.getThemeReadme(tmpConfig.fm)
 
 	return &theme
 }
@@ -1533,7 +1531,7 @@ func (c *config) themeDataStructures(dir string, possibleGlobalTheme bool) *them
 // filename is the name of the current Markdown source file.
 func (c *config) getThemeData(filename string) {
 
-  // TODO: REdundant with t.themeDir I tink
+	// TODO: REdundant with t.themeDir I tink
 	themeDir := filepath.Join(pocoDir, "themes")
 
 	// Check for a local theme on this page.
@@ -1664,12 +1662,14 @@ func (c *config) validateAside(t *theme) {
 
 }
 
-// readThemeFm() happens when a theme is being
-// loaded and parsed.
-func (t *theme) readThemeFm(fm map[string]interface{}) {
+// getThemeReadme() happens when a theme is being
+// loaded and parsed. The theme's README.md's front
+// matter is read in.
+func (t *theme) getThemeReadme(fm map[string]interface{}) {
+	debug("getThemeReadme %s", t.name)
 	t.author = fmStr("author", fm)
 	t.branding = fmStr("branding", fm)
-  debug("after hamburgerToHTML():\n%v", t.burger)
+	debug("after hamburgerToHTML():\n%v", t.burger)
 	t.ver = fmStr("ver", fm)
 	t.importRuleNames = fmStrSlice("importrules", fm)
 	t.description = fmStr("description", fm)
@@ -1681,10 +1681,9 @@ func (t *theme) readThemeFm(fm map[string]interface{}) {
 	//t.asideLeftFilename = fmStr("asideleft", fm)
 	//t.asideRightFilename = fmStr("asideright", fm)
 	t.footerFilename = fmStr("footer", fm)
-  t.styleTagNames = fmStrSlice("styles", fm)
+	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 	// TODO: Why not do this with header, footer, etc.-just suck them up now
-	//j:t.getBurger(fm)
 	t.hamburgerToHTML(fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 
