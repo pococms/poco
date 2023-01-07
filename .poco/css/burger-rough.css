@@ -17,6 +17,7 @@ header ul > li, header ul > li > a {
 
 }
  
+/* TODO: Probably eliminate */
 header a:hover { background: var(--menu-a-hover); }
 header > label  { display: none; }
 
@@ -32,7 +33,6 @@ header > input:checked + ul   { display: block; }
   header ul li a {
     display: block;
     box-sizing: border-box;
-    color: var(--menu-a-fg);
     width: 100%;
     border-top: 1px solid var(--burger-menu-separator-color);
   }

@@ -1,0 +1,55 @@
+#header-poco-burger { display: none; }
+header#header-poco-burger {
+  width: 100%;
+  background: var(--header-bg);
+}
+header#header-poco-burger a {
+  /*
+  padding-right: 1rem;
+  color: var(--menu-a-fg);
+  text-decoration: none;
+  */
+}
+
+header#header-poco-burger ul > li, header#header-poco-burger ul > li > a {
+  list-style-type: none;
+  display: inline;
+
+}
+ 
+/* TODO: Probably eliminate */
+header#header-poco-burger a:hover { background: var(--menu-a-hover); }
+header#header-poco-burger > label  { display: none; }
+
+/* Default: hidden */
+header#header-poco-burger > label + input {display:none;}
+
+header#header-poco-burger > input:checked + ul   { display: block; }
+
+
+@media screen and (max-width: 1000px){
+  #header-poco-burger { display: block; }
+
+  /* Format of hamburger menu items */
+  header#header-poco-burger ul li a {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    border-top: 1px solid var(--burger-menu-separator-color);
+  }
+  /* Actual burger icon */
+  header#header-poco-burger label {
+    color: var(--burger-menu-fg);
+    display: inline-block;
+    background: var(--burger-menu-bg);
+    font-style: normal;
+    font-size: 1.5em;
+    padding: .5em;
+  }
+
+  header#header-poco-burger > ul { display:none;}
+  header#header-poco-burger > input:checked + ul   { display: block; }
+
+}
+
+

@@ -820,8 +820,9 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 		`<input type="checkbox" id="hamburger"/>` + "\n" +
 		links
 
-		// Convert it to a header tag
-	t.burger = addPocoTag("header", links)
+		// Convert it to a header tag but with a bespoke id value
+	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>"
+
 
 }
 
@@ -1354,7 +1355,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	if c.pageTheme.present {
 		slice = c.pageTheme.stylesheetFilenames
 		if c.pageTheme.burger != "" {
-			slice = append(slice, "../../css/burger-rough.css")
+			slice = append(slice, "../../css/burger-ex.css")
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
@@ -1411,7 +1412,7 @@ func (c *config) inlineStylesheets(dir string) string {
 		//
 		slice = c.theme.stylesheetFilenames
 		if c.theme.burger != "" {
-			slice = append(slice, "../../css/burger-rough.css")
+			slice = append(slice, "../../css/burger-ex.css")
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
