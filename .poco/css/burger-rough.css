@@ -4,9 +4,11 @@ header {
   background: var(--header-bg);
 }
 header a {
+  /*
   padding-right: 1rem;
   color: var(--menu-a-fg);
   text-decoration: none;
+  */
 }
 
 header ul > li, header ul > li > a {
@@ -26,16 +28,14 @@ header > input:checked + ul   { display: block; }
 
 @media screen and (max-width: 1000px){
 
-  article { background-color:salmon;}
   /* Format of hamburger menu items */
   header ul li a {
-    color: var(--menu-a-fg);
-    box-sizing: border-box;
     display: block;
+    box-sizing: border-box;
+    color: var(--menu-a-fg);
     width: 100%;
     border-top: 1px solid var(--burger-menu-separator-color);
   }
-  
   /* Actual burger icon */
   header label {
     color: var(--burger-menu-fg);

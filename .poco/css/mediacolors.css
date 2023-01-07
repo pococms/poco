@@ -33,10 +33,10 @@ h4{color:var(--h4-fg);}
   nav,aside,footer{display:none}
   article{padding:1em;}
   article{float:left;clear:left;width:100%}
-  article{background-color:lightgreen;}
   header{display:block;}
 
   /* Format of hamburger menu items */
+  /*
   header ul li a {
     color: var(--menu-a-fg);
     color:black;
@@ -46,7 +46,7 @@ h4{color:var(--h4-fg);}
     border-top: 1px solid var(--burger-menu-separator-color);
   }
   
-  /* Actual burger icon */
+  /* Actual burger icon 
   header label {
     color: var(--burger-menu-fg);
     color: black;
@@ -56,9 +56,9 @@ h4{color:var(--h4-fg);}
     font-size: 1.5em;
     padding: .5em;
   }
-
   header > ul { display:none;}
   header > input:checked + ul   { display: block; }
+  */
 
 
 }

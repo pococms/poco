@@ -14,7 +14,7 @@
   --header-height:auto;       /* Height of header */
   --burger-menu-fg: white;    /* Color of the burger menu */
   --burger-menu-bg: black;    /* Background color of the burger menu */
-  --burger-menu-separator-color: white; /* Line between burger menu items  */
+  --burger-menu-separator-color: var(--burger-menu-fg); /* Line between burger menu items  */
   --menu-a-fg:var(--fg);      /* Text color for normal (aka header), not burger, menu */
   --menu-a-hover: orange;     /* Color when hovering over normal menu */
   --nav-fg:var(--fg);         /* Text color of nav */
