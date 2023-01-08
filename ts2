@@ -1,4 +1,5 @@
 #!/bin/zsh
+# ############## TS3 ##################
 # ts2
 # Generates a complete theme gallery in a temp directory.
 # Visual demonstrations of both high and low content pages:
@@ -224,10 +225,7 @@ read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
 
-header: "SUPPRESS"
-nav: "SUPPRESS"
-aside: "SUPPRESS"
-footer: "SUPPRESS"
+hide: header, nav, aside, footer
 ---
 # Theme $1
 $hcontent
@@ -324,7 +322,7 @@ function long_page_no_header() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
+hide: header
 ---
 # Theme $1
 $hcontent
@@ -364,7 +362,7 @@ function long_page_no_article() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-article: "SUPPRESS"
+hide: article
 ---
 # Theme $1
 $hcontent
@@ -384,7 +382,7 @@ function long_page_no_aside() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-aside: "SUPPRESS"
+hide: aside
 ---
 # Theme $1
 $hcontent
@@ -407,7 +405,7 @@ function long_page_no_header() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
+hide: header
 ---
 # Theme $1
 $hcontent
@@ -427,7 +425,7 @@ function long_page_no_nav() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-nav: "SUPPRESS"
+hide: nav
 ---
 # Theme $1
 $hcontent
@@ -448,7 +446,7 @@ function long_page_no_footer() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-footer: "SUPPRESS"
+hide: footer
 ---
 # Theme $1
 $hcontent
@@ -468,11 +466,7 @@ function long_page_no_everything() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
-nav: "SUPPRESS"
-aside: "SUPPRESS"
-article: "SUPPRESS"
-footer: "SUPPRESS"
+hide: header, nav, aside, article, footer
 ---
 # Theme $1
 $hcontent
@@ -497,10 +491,7 @@ function short_page_article_only() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
-nav: "SUPPRESS"
-aside: "SUPPRESS"
-footer: "SUPPRESS"
+hide: header, nav, aside, footer
 ---
 # Theme $1
 $lpcontent
@@ -561,7 +552,7 @@ function short_page_no_header() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
+hide: header
 ---
 # Theme $1
 $lpcontent
@@ -581,7 +572,7 @@ function short_page_no_nav() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-nav: "SUPPRESS"
+hide: nav
 ---
 # Theme $1
 $lpcontent
@@ -601,7 +592,7 @@ function short_page_no_article() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-article: "SUPPRESS"
+hide: article
 ---
 # Theme $1
 $lpcontent
@@ -623,7 +614,7 @@ function short_page_no_aside() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-aside: "SUPPRESS"
+hide: aside
 ---
 # Theme $1
 $lpcontent
@@ -644,7 +635,7 @@ function short_page_no_footer() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-footer: "SUPPRESS"
+hide: footer
 ---
 # Theme $1
 $lpcontent
@@ -664,11 +655,7 @@ function short_page_no_everything() {
 read -r -d '' page << EOM
 ---
 pagetheme: "${1}"
-header: "SUPPRESS"
-nav: "SUPPRESS"
-aside: "SUPPRESS"
-article: "SUPPRESS"
-footer: "SUPPRESS"
+hide: header, nav, article, aside, footer
 ---
 # Theme $1
 $lpcontent
