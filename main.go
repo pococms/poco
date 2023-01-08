@@ -826,6 +826,44 @@ func (c *config) header() string {
 	return ""
 }
 
+
+// checkHidden() gets called to see if the user has
+// chose to "hide: " any elements in the front matter.
+func (c *config) checkHidden(tag string) string {
+	hidden := fmStr("hide", c.pageFm)
+  debug("seeing if %s is contained in %s", tag, hidden)
+  if strings.Contains(hidden,tag) {
+    debug("\treturning %s", suppressToken)
+    return suppressToken
+  } else {
+    return tag
+  }
+
+	//suppress := strings.Split(hidden, ",")
+	//debug("\t%v", suppress)
+  /*
+	for _, hide := range suppress {
+		//debug("hide:\t%s", hide)
+		switch strings.ToLower(hide) {
+		case "header":
+			debug("\thide header")
+			c.theme.headerSuppressed = true
+		case "nav":
+			debug("\thide nav")
+			c.theme.navSuppressed = true
+		case "aside":
+			debug("\thide aside")
+			c.theme.asideSuppressed = true
+		case "footer":
+			debug("\thide footer")
+			c.theme.footerSuppressed = true
+		}
+	}
+  */
+}
+
+
+
 // layoutElement() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
 // A layout element is one of the HTML tags such
@@ -884,11 +922,17 @@ func (c *config) layoutElement(tag string, t *theme) {
 		ASIDE_RIGHT = 4
 	)
 
+  // See if the user chose to hide this layout element 
+  if c.checkHidden(tag) == suppressToken {
+    return
+  }
+
 	state := GLOBAL
 	filename := ""
 
 	// Converted/templated HTML */
 	s := ""
+
 	switch tag {
 	case "article":
 		// Was article overridden on this page?
@@ -909,6 +953,16 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// header: "newheader.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
+    if c.checkHidden(tag) == suppressToken {
+      return
+    }
+
+    /*
+    override = c.checkHidden(tag)
+    if override == suppressToken {
+      return
+    }
+    */
 		if override != "" && override != suppressToken {
 			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
