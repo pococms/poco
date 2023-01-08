@@ -1,5 +1,5 @@
 ---
-Nav: SUPPRESS
+hide: nav
 ---
 # This page should have layout elements
 

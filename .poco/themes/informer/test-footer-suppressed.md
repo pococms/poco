@@ -1,5 +1,5 @@
 ---
-Footer: SUPPRESS
+hide: footer
 ---
 # This page should have layout elements
 

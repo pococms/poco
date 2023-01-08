@@ -1,5 +1,5 @@
 ---
-Aside: SUPPRESS
+hide: aside
 ---
 # This page should have layout elements
 

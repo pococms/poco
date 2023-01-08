@@ -1,5 +1,5 @@
 ---
-Header: SUPPRESS
+hide: header
 ---
 # This page should have layout elements
 
