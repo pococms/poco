@@ -25,9 +25,23 @@ like [The Wall Street Journal](https://www.wsj.com/) and
 
 
 ## Special features
+
+
+### SEO-enabled bullet summaries
+
+A well-chosen bullet list at the top of an article lets
+people decide whether they want to read more with a quick
+scan, and search engines like this. If you follow
+an h4 (used for bylines) with one or more h2s, or
+and h4 followed by an image, then those h2s will
+automatically appear as bold, bulleted lists.
+They won't appear that way in the rest of the article.
+
 * The h4 byline followed by an image and some h2s, or
 just the h4 byline followed by some h2s, shows the h2s
 as bulletted. But not in the rest of the article. So either this:
+
+#### Variation 1:
 
 ```
 #### **By** [Tom Campbell](https://pococms.com) [![Twitter profile](twitter-14px-blue.svg)@pococms](https://twitter.com/pococms)  | Dec 21, 2022 at 7:30pm
@@ -39,6 +53,8 @@ as bulletted. But not in the rest of the article. So either this:
 ## They're great time savers
 ````
 
+#### Variation 2:
+
 * Or this:
 
 ```
@@ -49,9 +65,12 @@ as bulletted. But not in the rest of the article. So either this:
 ## They're great time savers
 ```
 
-Will show only the h2s immediately  after with bullets
 
 ### aside.md
+
+There are a couple of patterns for [asides](glossary.html#aside) to
+make them visually more distinct and give some variety to
+the page appearance.
 
 #### Pattern 1
 
