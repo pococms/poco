@@ -831,35 +831,11 @@ func (c *config) header() string {
 // chose to "hide: " any elements in the front matter.
 func (c *config) checkHidden(tag string) string {
 	hidden := fmStr("hide", c.pageFm)
-  debug("seeing if %s is contained in %s", tag, hidden)
   if strings.Contains(hidden,tag) {
-    debug("\treturning %s", suppressToken)
     return suppressToken
   } else {
     return tag
   }
-
-	//suppress := strings.Split(hidden, ",")
-	//debug("\t%v", suppress)
-  /*
-	for _, hide := range suppress {
-		//debug("hide:\t%s", hide)
-		switch strings.ToLower(hide) {
-		case "header":
-			debug("\thide header")
-			c.theme.headerSuppressed = true
-		case "nav":
-			debug("\thide nav")
-			c.theme.navSuppressed = true
-		case "aside":
-			debug("\thide aside")
-			c.theme.asideSuppressed = true
-		case "footer":
-			debug("\thide footer")
-			c.theme.footerSuppressed = true
-		}
-	}
-  */
 }
 
 
@@ -941,7 +917,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// article: "myarticle.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != suppressToken {
+		if override != "" {
 			// Yes, on this page only, override the article.
 			// Use whatever filename was provided.
 			filename = override
@@ -953,17 +929,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// header: "newheader.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
-    if c.checkHidden(tag) == suppressToken {
-      return
-    }
-
-    /*
-    override = c.checkHidden(tag)
-    if override == suppressToken {
-      return
-    }
-    */
-		if override != "" && override != suppressToken {
+ 		if override != ""  {
 			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
 			filename = override
@@ -982,7 +948,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// nav: "newnav.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != suppressToken {
+		if override != ""  {
 			// Yes, on this page only, override the nav.
 			// Use whatever filename was provided.
 			filename = override
@@ -1015,7 +981,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// footer: "newfooter.html"
 		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != "" && override != suppressToken {
+		if override != ""  {
 			// Yes, on this page only, override the footer.
 			// Use whatever filename was provided.
 			filename = override
@@ -1029,7 +995,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		}
 	}
 
-	if filename == "" || filename == suppressToken {
+	if filename == "" {
 		return
 	}
 
