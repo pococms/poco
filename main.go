@@ -114,7 +114,7 @@ func (c *config) assemble(filename string) string {
 
 	// Get Javascript that goes just before last body tag
 	scriptAfter := c.scriptAfter()
-	// Build the completed HTML document from the component pieces.
+	// Build the completed HTML document froe the component pieces.
 	htmlFile = docType + "\"" + c.lang + "\">" + "\n" +
 		"<head>" +
 		"\n\t<meta charset=\"utf-8\">" +
@@ -152,7 +152,7 @@ func (c *config) timestamp() string {
 }
 
 func (c *config) article() string {
-	if c.suppress("article") {
+	if c.theme.articleHidden {
 		return ""
 	}
 	if c.articleReplaced == "" {
@@ -343,35 +343,51 @@ type theme struct {
 
 	// List of burger items already parsed and ready to publish
 	burger string
-  hicon string
-	// TODO: Choose this or the previous
-	//hamburger string
+	hicon  string
+  
+  // If true, don't insert article into output stream
+  articleHidden bool
 
+  // TODO: no articlefilename?
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
 	header string
 	// Filename for header specified in front matter.
 	headerFilename string
+  // If true, don't insert header into output stream
+  headerHidden bool
 
+ 
 	// Holds converted and template-parsed markdown source
 	// for the <nav> tag.
 	nav string
 	// Filename for nav specified in front matter.
 	navFilename string
+  // If true, don't insert nav into output stream
+  navHidden bool
 
-	// aside can be "SUPPRESS" or a filename.
+ 
+	// Holds converted and template-parsed markdown source
+	// for the <aside> tag, I think
 	aside string
 
 	// Filename for aside specified in front matter.
 	asideFilename string
 
+  // If true, don't insert aside into output stream
+  asideHidden bool
+
+ 
 	// Holds converted and template-parsed markdown source
 	// for the <footer> tag.
 
 	footer string
 	// Filename for footer specified in front matter.
 	footerFilename string
+  // If true, don't insert footer into output stream
+  footerHidden bool
 
+ 
 	// List of rules to import
 	importRuleNames []string
 	importRulesStr  string
@@ -690,13 +706,14 @@ func (c *config) themeDescription(themeDir string, possibleGlobalTheme bool) the
 // If there's a local footer, return it.
 // If not and there's a global footer, return it.
 func (c *config) footer() string {
-	if c.suppress("footer") {
+	if c.theme.footerHidden {
 		return ""
 	}
 
 	if c.pageTheme.present {
 		return c.pageTheme.footer
 	}
+
 	if c.theme.present {
 		return c.theme.footer
 	}
@@ -706,7 +723,7 @@ func (c *config) footer() string {
 // If there's a local aside, return it.
 // If not and there's a global aside, return it.
 func (c *config) aside() string {
-	if c.suppress("aside") {
+	if c.theme.asideHidden {
 		return ""
 	}
 
@@ -722,7 +739,7 @@ func (c *config) aside() string {
 // If there's a local nav, return it.
 // If not and there's a global nav, return it.
 func (c *config) nav() string {
-	if c.suppress("nav") {
+	if c.theme.navHidden {
 		return ""
 	}
 	if c.pageTheme.present {
@@ -734,21 +751,9 @@ func (c *config) nav() string {
 	return ""
 }
 
-// supporess checks to see if the value of a tag
-// such as "header" or "footer" is given
-// the value "SUPPRESS", which means it
-// shouldn't have code generated for that tag.
-func (c *config) suppress(tag string) bool {
-	suppress := fmStr(tag, c.pageFm)
-	if suppress == suppressToken {
-		return true
-	}
-	return false
-}
-
 // hamburgerToHTML() takes the hamburger shown below
 // in markdown file and converts to a
-// specially constructed HTML patch to use the 
+// specially constructed HTML patch to use the
 // hamburge stylesheet.
 //
 // Typical markup as seen in a hamburger.md file:
@@ -760,14 +765,14 @@ func (c *config) suppress(tag string) bool {
 //
 func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
-  filename := fmStr("burger", fm)
-  if filename == "" {
-    return
-  }
+	filename := fmStr("burger", fm)
+	if filename == "" {
+		return
+	}
 	filename = regularize(t.dir, filename)
-  if !fileExists(filename) {
-    quit(1, nil, nil, "Can't find burger file %s", filename)
-  }
+	if !fileExists(filename) {
+		quit(1, nil, nil, "Can't find burger file %s", filename)
+	}
 	// Need to go back and convert any
 	// template variables in the README.
 	// The tersely named mdYAMLStringToTemplatedHTMLString()
@@ -780,7 +785,7 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 	// an interface object containing the raw, parsed YAML.
 	tmpConfig.fm = tmpConfig.getFm(t.readme)
 
-  links := tmpConfig.fileToString(filename)
+	links := tmpConfig.fileToString(filename)
 	// Convert the hamburger menu to HTML, adding some code
 	// rquired to make the specialized CSS work.
 	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
@@ -791,19 +796,19 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
 		// Convert it to a header tag but with a bespoke id value
 	t.burger = "<header id=\"header-poco-burger\">" + links + "</header>\n"
-  return
+	return
 
 }
 
 // If not and there's a global header, return it.
 func (c *config) header() string {
-	// If there's a burger defined, it becomes the header
-	if c.suppress("header") {
+	if c.theme.headerHidden {
 		return ""
 	}
+	// If there's a burger defined, it becomes the header
 	if c.pageTheme.present {
 		if c.pageTheme.burger != "" {
-      return c.pageTheme.burger + c.pageTheme.header
+			return c.pageTheme.burger + c.pageTheme.header
 		} else {
 			return c.pageTheme.header
 		}
@@ -826,19 +831,31 @@ func (c *config) header() string {
 	return ""
 }
 
-
-// checkHidden() gets called to see if the user has
+// hidden() gets called to see if the user has
 // chose to "hide: " any elements in the front matter.
-func (c *config) checkHidden(tag string) string {
-	hidden := fmStr("hide", c.pageFm)
-  if strings.Contains(hidden,tag) {
-    return suppressToken
-  } else {
-    return tag
+func (c *config) hidden(tag string) bool {
+	hidden := strings.ToLower(fmStr("hide", c.pageFm))
+  debug("Checking for '%s' in '%s'", tag, hidden)
+  r := strings.Contains(hidden,tag)
+  switch tag {
+  case "header":
+    c.theme.headerHidden = r 
+    return r
+  case "nav":
+    c.theme.navHidden = r 
+    return r
+  case "aside":
+    c.theme.asideHidden = r 
+    return r
+  case "footer":
+    c.theme.footerHidden = r 
+    return r
+   case "article":
+    c.theme.articleHidden = r 
+    return r
   }
+  return false
 }
-
-
 
 // layoutElement() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
@@ -898,10 +915,10 @@ func (c *config) layoutElement(tag string, t *theme) {
 		ASIDE_RIGHT = 4
 	)
 
-  // See if the user chose to hide this layout element 
-  if c.checkHidden(tag) == suppressToken {
-    return
-  }
+	// See if the user chose to hide this layout element
+	if c.hidden(tag) {
+			return
+	}
 
 	state := GLOBAL
 	filename := ""
@@ -911,17 +928,22 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	switch tag {
 	case "article":
-		// Was article overridden on this page?
-		// Example front matter:
-		// ---
-		// article: "myarticle.md"
-		// ---
 		override := fmStr(tag, c.pageFm)
 		if override != "" {
-			// Yes, on this page only, override the article.
+			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
 			filename = override
+		} else {
+			// Common case: no override on this page.
+			// Use the theme's default header.
+			if t.headerFilename != "" {
+				t.headerFilename = regularize(t.dir, t.headerFilename)
+				filename = t.headerFilename
+			}
 		}
+
+		// TODO: The "article" path doesn't seem to get executed
+		// so I removed it as an experiment
 	case "header":
 		// Was header overridden on this page?
 		// Example front matter:
@@ -929,7 +951,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// header: "newheader.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
- 		if override != ""  {
+		if override != "" {
 			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
 			filename = override
@@ -948,7 +970,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// nav: "newnav.md"
 		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != ""  {
+		if override != "" {
 			// Yes, on this page only, override the nav.
 			// Use whatever filename was provided.
 			filename = override
@@ -981,7 +1003,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 		// footer: "newfooter.html"
 		// ---
 		override := fmStr(tag, c.pageFm)
-		if override != ""  {
+		if override != "" {
 			// Yes, on this page only, override the footer.
 			// Use whatever filename was provided.
 			filename = override
@@ -1036,7 +1058,6 @@ func (c *config) layoutElement(tag string, t *theme) {
 	}
 
 }
-
 
 // addPocoTag takes a tag like "header" and returuns it formmatted
 // as a tag with an id, so "header" becomes
@@ -1118,10 +1139,13 @@ func (c *config) styleTags() string {
 	// Enclose these lines within "<style>" tags
 
 	// Handle aside orientation
+	// Secret sauce: A Sidebar statement requires that
+	// code be injected to make the aside either right
+	// or left.
 	side := fmStr("sidebar", c.pageFm)
 	if side == "right" {
 		t = t + "article{float:left;clear:left;}\naside{float:right;}"
-  }
+	}
 	if side == "left" {
 		t = t + "article{float:right;clear:right;}\naside{float:left;}"
 	}
@@ -1131,7 +1155,6 @@ func (c *config) styleTags() string {
 	}
 	return t
 }
-
 
 // getStyleTags() converts front matter that looks like this
 //
@@ -1561,6 +1584,9 @@ func (c *config) loadTheme(filename string) {
 	}
 
 } // loadTheme (new version)
+
+
+
 
 func (c *config) addPageElements(t *theme) {
 	c.layoutElement("article", t)
@@ -2262,9 +2288,9 @@ func fileToBuf(filename string) []byte {
 
 // fileToString() sucks up a file and returns its contents as a string.
 func (c *config) fileToString(filename string) string {
-  if !fileExists(filename) {
-    quit(1, nil, c, "Can't find the file %s", filename)
-  }
+	if !fileExists(filename) {
+		quit(1, nil, c, "Can't find the file %s", filename)
+	}
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
 		quit(1, err, c, "")
@@ -2927,5 +2953,3 @@ func (c *config) themeCopy(source string, target string) {
 	stringToFile(c, skeletonFilename, skeleton)
 
 }
-
-
