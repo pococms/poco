@@ -156,9 +156,10 @@ func (c *config) article() string {
 		return ""
 	}
 	if c.articleReplaced == "" {
-		return "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
+    s := "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
+    return s
 	} else {
-		return /* "\n<article id=\"article-poco\">\n" + */ c.timestamp() + c.articleReplaced + "\n" /* + "</article>" */ + "\n"
+		return c.timestamp() + c.articleReplaced + "\n" /* + "</article>" */ + "\n"
 	}
 }
 
@@ -805,14 +806,15 @@ func (c *config) header() string {
 	if c.theme.headerHidden {
 		return ""
 	}
+	if c.pageTheme.headerHidden {
+		return ""
+	}
 	// If there's a burger defined, it becomes the header
 	if c.pageTheme.present {
-		if c.pageTheme.burger != "" {
 			return c.pageTheme.burger + c.pageTheme.header
 		} else {
 			return c.pageTheme.header
 		}
-	}
 	if c.theme.present {
 		if c.theme.burger != "" {
 			return c.theme.burger + c.theme.header
@@ -821,13 +823,6 @@ func (c *config) header() string {
 		}
 	}
 	// xxx
-
-	if c.pageTheme.present {
-		return c.pageTheme.header
-	}
-	if c.theme.present {
-		return c.theme.header
-	}
 	return ""
 }
 
@@ -835,7 +830,6 @@ func (c *config) header() string {
 // chose to "hide: " any elements in the front matter.
 func (c *config) hidden(tag string) bool {
 	hidden := strings.ToLower(fmStr("hide", c.pageFm))
-  debug("Checking for '%s' in '%s'", tag, hidden)
   r := strings.Contains(hidden,tag)
   switch tag {
   case "header":
@@ -933,14 +927,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
 			filename = override
-		} else {
-			// Common case: no override on this page.
-			// Use the theme's default header.
-			if t.headerFilename != "" {
-				t.headerFilename = regularize(t.dir, t.headerFilename)
-				filename = t.headerFilename
-			}
-		}
+		} 
 
 		// TODO: The "article" path doesn't seem to get executed
 		// so I removed it as an experiment
