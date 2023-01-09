@@ -834,23 +834,19 @@ func (c *config) hidden(tag string) bool {
   switch tag {
   case "header":
     c.theme.headerHidden = r 
-    return r
   case "nav":
     c.theme.navHidden = r 
-    return r
   case "aside":
     c.theme.asideHidden = r 
-    return r
   case "footer":
     c.theme.footerHidden = r 
-    return r
    case "article":
     c.theme.articleHidden = r 
+   default:
     return r
   }
   return false
 }
-
 // layoutElement() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
 // A layout element is one of the HTML tags such
@@ -1565,7 +1561,7 @@ func (c *config) loadTheme(filename string) {
 
 
 func (c *config) addPageElements(t *theme) {
-	//c.layoutElement("article", t)
+	c.layoutElement("article", t)
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
