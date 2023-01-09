@@ -132,7 +132,7 @@ for theme in "${themes[@]}";
     mkdir -p $dir
     [ ! -d $dir ] && quit_exit "Unable to create demo theme directory ${dir}" 
     demo_page $theme $dir
-    echo "[${theme}]($theme/index.html) ">> $tmpdir/index.md
+    echo "[${theme}]($theme/index.html)  ">> $tmpdir/index.md
     #read -n fook
     echo "${theme}"
   done

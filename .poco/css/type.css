@@ -1,3 +1,4 @@
+p>img {width:100%;}
 /* Links show same if visited, underlined when hovered */
 a{text-decoration:none;}
 a:visited{text-decoration:none;}

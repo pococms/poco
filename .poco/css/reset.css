@@ -1,4 +1,4 @@
-html,body,nav,header,article,footer{width:100%;height:auto;max-width:100%;display:block;float:left;clear:both;overflow:auto;}
+html,body,nav,header,article,footer,img{width:100%;height:auto;max-width:100%;display:block;float:left;clear:both;overflow:auto;}
 html {box-sizing: border-box;}
 *, *:before, *:after {box-sizing: inherit;}
 

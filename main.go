@@ -902,19 +902,11 @@ func (c *config) hidden(tag string) bool {
 // body of the document.
 func (c *config) layoutElement(tag string, t *theme) {
 
-	const (
-		GLOBAL      = 1
-		HTML        = 2
-		ASIDE_LEFT  = 3
-		ASIDE_RIGHT = 4
-	)
-
 	// See if the user chose to hide this layout element
 	if c.hidden(tag) {
 			return
 	}
 
-	state := GLOBAL
 	filename := ""
 
 	// Converted/templated HTML */
@@ -1012,13 +1004,10 @@ func (c *config) layoutElement(tag string, t *theme) {
 	if path.Ext(filename) == ".html" {
 		if fileExists(filename) {
 			s = c.fileToString(filename)
-			state = HTML
 		} else {
 			quit(1, nil, c, "HTML theme layout file %s not found", filename)
 		}
-	}
-
-	if state != HTML {
+	} else {
 		var err error
 		s = convertMdYAMLFileToHTMLFragmentStr(filename, c)
 		if s, err = doTemplate("", s, c); err != nil {
@@ -1576,7 +1565,7 @@ func (c *config) loadTheme(filename string) {
 
 
 func (c *config) addPageElements(t *theme) {
-	c.layoutElement("article", t)
+	//c.layoutElement("article", t)
 	c.layoutElement("header", t)
 	c.layoutElement("nav", t)
 	c.layoutElement("aside", t)
