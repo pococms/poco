@@ -7,7 +7,6 @@ function bodyScroll()
   scrollTimer = window.setTimeout(sidebarHeight, 100);
 }
 function sidebarHeight() {
-    console.log("sidebarHeight()")
   s=document.getElementById('aside-poco');
   a=document.getElementById('article-poco'); 
   if (s != null && a != null) {
