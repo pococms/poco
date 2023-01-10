@@ -148,10 +148,7 @@ EOM
 
 read -r -d '' ARTICLE_ONLY << EOM
 ---
-header: "SUPPRESS"
-nav: "SUPPRESS"
-aside: "SUPPRESS"
-footer: "SUPPRESS"
+hide: header, nav, aside, footer
 ---
 # Article only
 
@@ -184,7 +181,7 @@ EOM
 
 read -r -d '' SUPPRESS_HEADER << EOM
 ---
-header: "SUPPRESS"
+hide: header
 ---
 # Header suppressed
 $MDEMO
@@ -192,7 +189,7 @@ EOM
 
 read -r -d '' SUPPRESS_ARTICLE << EOM
 ---
-article: "SUPPRESS"
+hide: article
 ---
 # Article suppressed.
 **This text should NOT be visible**
@@ -201,7 +198,7 @@ EOM
 
 read -r -d '' SUPPRESS_NAV << EOM
 ---
-nav: "SUPPRESS"
+hide: nav
 ---
 # Nav suppressed
 $MDEMO
@@ -209,7 +206,7 @@ EOM
 
 read -r -d '' SUPPRESS_ASIDE << EOM
 ---
-aside: "SUPPRESS"
+hide: aside
 ---
 # Aside suppressed
 $MDEMO
@@ -233,7 +230,7 @@ EOM
 
 read -r -d '' SUPPRESS_FOOTER << EOM
 ---
-footer: "SUPPRESS"
+hide: footer
 ---
 # Footer suppressed
 $MDEMO
@@ -243,7 +240,7 @@ read -r -d '' INDEX << EOM
 ---
 theme: $theme
 ---
-# Tests for theme $theme
+# hey Tests for theme $theme
 $MAIN_LINKS
 Supported  features: {{ .supportedfeatures }}
 EOM
