@@ -156,8 +156,8 @@ func (c *config) article() string {
 		return ""
 	}
 	if c.articleReplaced == "" {
-    s := "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
-    return s
+		s := "\n<article id=\"article-poco\">\n" + c.timestamp() + c.articleParsed + "\n" + "</article>" + "\n"
+		return s
 	} else {
 		return c.timestamp() + c.articleReplaced + "\n" /* + "</article>" */ + "\n"
 	}
@@ -345,29 +345,27 @@ type theme struct {
 	// List of burger items already parsed and ready to publish
 	burger string
 	hicon  string
-  
-  // If true, don't insert article into output stream
-  articleHidden bool
 
-  // TODO: no articlefilename?
+	// If true, don't insert article into output stream
+	articleHidden bool
+
+	// TODO: no articlefilename?
 	// Holds converted and template-parsed markdown source
 	// for the <header> tag.
 	header string
 	// Filename for header specified in front matter.
 	headerFilename string
-  // If true, don't insert header into output stream
-  headerHidden bool
+	// If true, don't insert header into output stream
+	headerHidden bool
 
- 
 	// Holds converted and template-parsed markdown source
 	// for the <nav> tag.
 	nav string
 	// Filename for nav specified in front matter.
 	navFilename string
-  // If true, don't insert nav into output stream
-  navHidden bool
+	// If true, don't insert nav into output stream
+	navHidden bool
 
- 
 	// Holds converted and template-parsed markdown source
 	// for the <aside> tag, I think
 	aside string
@@ -375,20 +373,18 @@ type theme struct {
 	// Filename for aside specified in front matter.
 	asideFilename string
 
-  // If true, don't insert aside into output stream
-  asideHidden bool
+	// If true, don't insert aside into output stream
+	asideHidden bool
 
- 
 	// Holds converted and template-parsed markdown source
 	// for the <footer> tag.
 
 	footer string
 	// Filename for footer specified in front matter.
 	footerFilename string
-  // If true, don't insert footer into output stream
-  footerHidden bool
+	// If true, don't insert footer into output stream
+	footerHidden bool
 
- 
 	// List of rules to import
 	importRuleNames []string
 	importRulesStr  string
@@ -801,7 +797,9 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
 }
 
-// If not and there's a global header, return it.
+
+// header() returns the header defined for this theme, if any.
+// If there's a burger defined for this theme, returns that too.
 func (c *config) header() string {
 	if c.theme.headerHidden {
 		return ""
@@ -809,19 +807,22 @@ func (c *config) header() string {
 	if c.pageTheme.headerHidden {
 		return ""
 	}
-	// If there's a burger defined, it becomes the header
 	if c.pageTheme.present {
-			return c.pageTheme.burger + c.pageTheme.header
-		} else {
-			return c.pageTheme.header
-		}
-	if c.theme.present {
-		if c.theme.burger != "" {
-			return c.theme.burger + c.theme.header
-		} else {
-			return c.theme.header
-		}
+    if c.pageTheme.burger != "" {
+		  return c.pageTheme.burger + c.pageTheme.header
+    } else {
+		  return c.pageTheme.header
+    }
 	}
+
+	if c.theme.present {
+    if c.theme.burger != "" {
+		  return c.theme.burger + c.theme.header
+    } else {
+		  return c.theme.header
+    }
+	}
+
 	// xxx
 	return ""
 }
@@ -830,23 +831,24 @@ func (c *config) header() string {
 // chose to "hide: " any elements in the front matter.
 func (c *config) hidden(tag string) bool {
 	hidden := strings.ToLower(fmStr("hide", c.pageFm))
-  r := strings.Contains(hidden,tag)
-  switch tag {
-  case "header":
-    c.theme.headerHidden = r 
-  case "nav":
-    c.theme.navHidden = r 
-  case "aside":
-    c.theme.asideHidden = r 
-  case "footer":
-    c.theme.footerHidden = r 
-   case "article":
-    c.theme.articleHidden = r 
-   default:
-    return r
-  }
-  return false
+	r := strings.Contains(hidden, tag)
+	switch tag {
+	case "header":
+		c.theme.headerHidden = r
+	case "nav":
+		c.theme.navHidden = r
+	case "aside":
+		c.theme.asideHidden = r
+	case "footer":
+		c.theme.footerHidden = r
+	case "article":
+		c.theme.articleHidden = r
+	default:
+		return r
+	}
+	return false
 }
+
 // layoutElement() takes a layout element file named in the front matter
 // and generates HTML, but it executes templates also.
 // A layout element is one of the HTML tags such
@@ -900,7 +902,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 
 	// See if the user chose to hide this layout element
 	if c.hidden(tag) {
-			return
+		return
 	}
 
 	filename := ""
@@ -915,7 +917,7 @@ func (c *config) layoutElement(tag string, t *theme) {
 			// Yes, on this page only, override the header.
 			// Use whatever filename was provided.
 			filename = override
-		} 
+		}
 
 		// TODO: The "article" path doesn't seem to get executed
 		// so I removed it as an experiment
@@ -1556,9 +1558,6 @@ func (c *config) loadTheme(filename string) {
 	}
 
 } // loadTheme (new version)
-
-
-
 
 func (c *config) addPageElements(t *theme) {
 	c.layoutElement("article", t)

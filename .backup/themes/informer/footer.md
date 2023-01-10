@@ -1,1 +1,0 @@
-Footer for Informer theme
