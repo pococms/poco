@@ -2726,6 +2726,9 @@ func promptStringDefault(prompt string, defaultValue string) string {
 // only. c.port is a string like ":12345" and c.webroot is the
 // pathname of the directory to serve static files from.
 func (c *config) serve() {
+  if !strings.HasPrefix(c.port, ":") {
+    c.port = ":" + c.port
+  }
 	if portBusy(c.port) {
 		print("Port %s is already in use", c.port)
 		os.Exit(1)
@@ -2752,7 +2755,7 @@ func theTime() string {
 // portBusy() returns true if the port
 // (in the form ":12345" is already in use.
 func portBusy(port string) bool {
-	ln, err := net.Listen("tcp", port)
+ 	ln, err := net.Listen("tcp", port)
 	if err != nil {
 		return true
 	}
