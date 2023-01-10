@@ -2262,7 +2262,7 @@ func (c *config) fileToString(filename string) string {
 	if !fileExists(filename) {
 		quit(1, nil, c, "Can't find the file %s", filename)
 	}
-	input, err := ioutil.ReadFile(filename)
+	input, err := os.ReadFile(filename)
 	if err != nil {
 		quit(1, err, c, "")
 	}
