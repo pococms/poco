@@ -1,12 +1,9 @@
-/* informer.css */
-body,article,header,footer,aside,a,p,h1,h2,h3,h4,h5,h6 {font-family:Cambria,'Hoefler Text',Utopia,'Liberation Serif','Nimbus Roman No9 L Regular',Times,'Times New Roman',serif;}
+html * {font-family:Cambria,'Hoefler Text',Utopia,'Liberation Serif','Nimbus Roman No9 L Regular',Times,'Times New Roman',serif;} 
 html{font-size:16px}
 p,p a,strong,em,a{font-size:1rem;line-height:1.75em}
 table{margin-top:1rem;}
 
 
-article{width:65%}
-aside{width:35%}
 aside{border-left: 1px solid #DCDCDC;padding:1rem;}
 aside>h2{font-size:1.5em;font-weight:bold;}
 aside>h3{width:60%;font-size:1em;font-weight:bold;padding-top:3rem;}
@@ -125,6 +122,11 @@ article>dl>dt {font-weight:bold;padding-top:1rem;}
 article>dl>dd {margin-left:0;padding-bottom:.5rem;}
 
 article>h3{color:dimgray;font-size:1.5rem;padding-top:1rem;;padding-bottom:.5rem}
+
+:root {
+  --aside-width:35%;
+  --article-width:65%;
+}
 
 @media (prefers-color-scheme:light) {
 :root {

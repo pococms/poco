@@ -1,0 +1,31 @@
+
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+footer>table th{border:0;}  /* Removes border from header row */
+footer>table td{border:0;}  /* Remove border from all other rows */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+header>ul>li:first-child>a,header>p:first-child>a{
+  color:var(--fg);
+}
+
+
+header > ul > li:first-child > a > del, header > p > del {
+  color:green;text-decoration:none;font-weight:900;
+}
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+
+:root {
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+}
+}
+
+

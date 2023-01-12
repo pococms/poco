@@ -1,3 +1,8 @@
+/* LESSON NOTES
+ * - Disabled aside
+ */
+
+
 /* --------------------------------------------------
  * HEADER: 
  * - First item is bigger and formatted differently
@@ -70,6 +75,7 @@ article>h1{
 
 
 
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 
 nav{
   height:auto;
@@ -77,32 +83,6 @@ nav{
   position:relative;
 }
 
-nav p{
-  float:left;
-  padding-right:1em;
-  width:50%;
-  font-size:2.5rem;
-  font-weight:900;
-  line-height:1em;
-}
-
-nav p>img{
-  float:right;
-  width:50%;
-  position:absolute;
-  right:0;
-  top:0;
-}
-
-nav pre{
-  float:right;
-  width:50%;
-  position:absolute;
-  right:0;
-  top:0;
-}
-
-/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
   nav-fg:var(--fg);
