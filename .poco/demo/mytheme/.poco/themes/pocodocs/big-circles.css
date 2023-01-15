@@ -1,0 +1,55 @@
+/* Does an oversized numbered list. Special effect seldom needed. */
+/* https://jsfiddle.net/yum3e2t6/ */
+
+
+ol {
+  list-style: circle outside;
+  counter-reset: poco-counter;
+}
+
+ol li {
+    display:block;
+    line-height:var(--size);
+    line-height:3em;
+    padding-left: 3em; /* Distance from bullet to text */
+    list-style: none;
+    overflow: hidden;
+    counter-increment:poco-counter;
+    width: 100%;
+    display: block;
+    float: left;
+    position: relative
+}
+
+ol li:before {
+    content: counter(poco-counter);
+    float: left;
+
+    position: absolute;
+    left: 0em; /* Increase to move bullet to right  */
+    text-align: center;
+    color: #fff;
+    /* line-height: 3em; */
+
+    /* Keep width and height the same size for a circle */
+    width: 3em; height: 3em;
+    background:blue;
+    -moz-border-radius: 999px;
+    -webkit-border-radius: 999px;
+    border-radius: 999px
+}
+
+/* To keep text centered, ol li line-height must match 
+ * ol li:before width and height */
+ol li {
+  font-size:1.5em; /* Scales up everything */
+  margin-bottom:.5em;
+  line-height:2em;
+}
+
+ol li:before {
+  width: 2em;
+  height: 2em;
+}
+
+

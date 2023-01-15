@@ -1,0 +1,47 @@
+
+/* OVERRIDE FRAMEWORK SIZES */
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+footer>table th{border:0;}  /* Remove border from header row */
+footer>table td{border:0;}  /* Remove border from all other rows */
+footer>table>tbody>tr{line-height:.5em;}
+footer>table>tbody>th{display:none;line-height:.5em;}
+
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+header>ul>li:first-child>a,header>p:first-child>a{
+  color:var(--fg);
+}
+
+header > ul > li > a {font-size:2em;}
+header > ul > li > a > img{display:inline;float:none;height:1em;width:1em;}
+
+
+/* Abuse strikethrough syntax to use it for a color change */
+header > ul > li:first-child > a > del, header > p > del {
+  color:green;text-decoration:none;font-weight:900;
+}
+
+nav > ul > li > a, nav > p > a {
+  color:var(--fg);
+  font-weight:900;
+}
+
+@media screen and (max-width: 768px){
+  article>h1{padding-top:0;}
+}
+
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+
+:root {
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+}
+}
+
+

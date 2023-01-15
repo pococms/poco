@@ -1,0 +1,44 @@
+
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+aside>p{
+  font-size:small;
+}
+aside>p>img {
+  width: 6em;
+  height: 6em;
+  overflow: hidden;
+  border-radius: 50%;
+  float:none;
+  margin: 0 auto;
+  text-align:center;
+}
+
+article>h6>a>img{width:1em;height:1em;display:inline;padding-right:1em;}
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+html * {font-family: 'Montserrat', sans-serif;font-size:x-large;line-height:1.5em;}
+article > h1, article > h2, article > h3{font-family: 'Abril Fatface', serif;}
+article > h1 {font-size:4rem;}
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+  article>h1,article>h2,article>h3{color:#252627;/* #003F91;*/}
+  a {color:#1C4284;}
+:root {
+  --fg:black;
+  --bg:#D8D5C5; /*#044389; */
+  --html-bg:#1C4284;
+}
+}
+
+@media (prefers-color-scheme:dark) {
+a {color:#8EC7D4;/*#FCFC62;*/}
+:root {
+  --fg:white;
+  --bg:#044389;
+  --html-bg:#8EC7D4;
+}
+}
+
