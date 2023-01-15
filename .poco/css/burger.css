@@ -33,15 +33,22 @@ header#header-poco-burger label {
   font-size:var(--burger-menu-font-size);
   padding:0;
 }
-@media screen and (max-width: 1000px){
-  #header-poco-burger {padding-left:0;margin-left:0;display: block; }
+
+
+/* At this web page width or less..  */
+@media screen and (max-width: 768px){
+  /* Make the normal header invisible. */
   #header-poco { display: none; }
+  /* Make the burger menu visible. */
+  #header-poco-burger {padding-left:0;margin-left:0;display: block; }
+  /* Display the burger menu and make it active. */
+  header#header-poco-burger label {padding-left:0;display: inline-block;} 
+  /* Stretch burger menu items across the containing area. */
   header#header-poco-burger ul li a {display: block;}
-  header#header-poco-burger label {padding-left:0;display: inline-block;} /* Burger icon */
+  /* Optional: hide the menu items until user clicks on burger icon. */
   header#header-poco-burger > ul { display:none;}
-  header#header-poco-burger > input:checked + ul   { display: block; }
-
-
+  iheader#header-poco-burger > input:checked + ul   { display: block; }
+  article>h1{padding-top:0;}
 }
 
 

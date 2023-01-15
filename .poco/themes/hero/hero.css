@@ -105,8 +105,10 @@ nav pre{
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
 :root {
-  nav-fg:var(--fg);
-  nav-bg:var(--bg);
+  --burger-menu-fg:var(--bg);
+  --burger-menu-bg:var(--fg);
+  --nav-fg:var(--fg);
+  --nav-bg:var(--bg);
 }
 }
 

@@ -1,11 +1,4 @@
-## LOCAL NEWS
+![Picture of nonexistent person](../.poco/demo/anna-256x256.jpg)
 
-### Town Erupts
+Hi. I'm Anna and this is my blog.
 
-Riots blocked downtown access last night
-when McDonald's stopped carrying the McRib.. again
-[MORE](#)
-
-### Cherry Poppin' Daddies at the Copa
-
-Great as you'd expect. [MORE](#)

@@ -3,7 +3,7 @@ header: header.md
 nav: nav.md
 aside: aside.md
 footer: footer.md
-
+burger: burger.md
 
 stylesheets:
 - ../../css/root.css
@@ -12,8 +12,6 @@ stylesheets:
 - ../../css/layout.css
 - ../../css/type.css
 - ../../css/mediacolors.css
-- "https://fonts.googleapis.com/css2?family=Secular+One:wght@400&display=swap"
-- "hero.css"
 - "local.css"
 ---
 

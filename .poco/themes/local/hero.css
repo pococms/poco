@@ -80,8 +80,8 @@ nav{
 
 @media (prefers-color-scheme:light) {
 :root {
-  nav-fg:var(--fg);
-  nav-bg:var(--bg);
+  nav-fg:var(--bg);
+  nav-bg:var(--fg);
 }
 }
 
