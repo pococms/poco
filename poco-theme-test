@@ -240,7 +240,13 @@ read -r -d '' INDEX << EOM
 ---
 theme: $theme
 ---
-# hey Tests for theme $theme
+# Tests for theme $theme
+
+This simple test suite tries to exercise the most
+critical parts of a theme.
+
+![Twitter](../../img/twitter-20px-blue.svg)
+
 $MAIN_LINKS
 Supported  features: {{ .supportedfeatures }}
 EOM
