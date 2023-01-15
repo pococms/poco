@@ -3,11 +3,11 @@ article>h1,article>h2,article>h3,article>h4,article>h5,article>h6 {clear:left;}
 /* Innocuous but at least legible block quote style */
 blockquote {
   width: 60%;
-  font-size: 1rem;
+  font-size: 1em;
   font-style: italic;
-  margin: .75em 4em .75em;
-  padding-left: 1em;
-  border-left: .3em solid var(--fg);
+  margin: .75rem 4rem .75rem;
+  padding-left: 1rem;
+  border-left: .3rem solid var(--fg);
 } 
 
 /* Table cells share borders */

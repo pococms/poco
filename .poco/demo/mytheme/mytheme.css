@@ -34,11 +34,8 @@ header > ul > li > a, header > ul > li:first-child > a > del {
 }
 
 article > h1, article > h2, article > h3{font-family: 'Abril Fatface', serif;}
-article > h1 {font-size:4rem;padding-bottom:2rem;}
-article > h2 {font-size:3rem;padding-bottom:1.5rem;}
-article > h3 {font-size:1.75rem;padding-bottom:1rem;}
-article > h4 {font-size:1.25rem;}
-article > p {line-height:1.75rem;}
+article > h1 {font-size:4rem;}
+
 aside>p{
   font-size:small;
 }
@@ -59,7 +56,7 @@ aside > p > a {color:var(--fg);}
 footer ul li a {font-size:small;}
 
 @media (prefers-color-scheme:light) {
-  article>h1,article>h2,article>h3{color:var(--html-bg);line-height:1em;}
+  article>h1,article>h2,article>h3{color:var(--bg);}
   header>ul>li>a,header>ul>li>a:hover,header>ul>li>a:active {color:var(--bg)}
   footer>ul>li>a,footer>ul>li>a:hover,footer>ul>li>a:active {color:var(--bg);}
   header > ul > li:first-child > a > del {color:red;}
