@@ -14,6 +14,8 @@
   --header-height:auto;       /* Height of header */
   --burger-menu-fg:var(--fg); /* Color of the burger menu */
   --burger-menu-bg:var(--bg); /* Background color of the burger menu */
+  --burger-menu-hover-fg:var(--fg); /* Foreground color for burger menu hover */
+  --burger-menu-hover-bg:var(--bg); /* Background color ifor burger menu hover */
   --burger-menu-font-border:none; /* Border around burger menu text/character */
   --burger-menu-font-size:1em; /* Size of the string representing the burger menu */
   --burger-menu-separator-color: var(--burger-menu-fg); /* Line between burger menu items  */
@@ -56,7 +58,9 @@
   --header-height:auto;       /* Height of header */
   --burger-menu-fg: white;    /* Color of the burger menu */
   --burger-menu-bg: black;    /* Background color of the burger menu */
-  --burger-menu-font-border:none; /* Border around burger menu text/character */
+  --burger-menu-hover-fg:var(--fg); /* Foreground color for burger menu hover */
+  --burger-menu-hover-bg:var(--bg); /* Background color ifor burger menu hover */
+   --burger-menu-font-border:none; /* Border around burger menu text/character */
   --burger-menu-font-size:1em; /* Size of the string representing the burger menu */
   --burger-menu-separator-color: white; /* Line between burger menu items  */
   --nav-fg:var(--fg);         /* Text color of nav */
@@ -100,6 +104,8 @@
   --header-height:auto;       /* Height of header */
   --burger-menu-fg: white;    /* Color of the burger menu */
   --burger-menu-bg: black;    /* Background color of the burger menu */
+  --burger-menu-hover-fg:var(--fg); /* Foreground color for burger menu hover */
+  --burger-menu-hover-bg:var(--bg); /* Background color ifor burger menu hover */
   --burger-menu-font-border:none; /* Border around burger menu text/character */
   --burger-menu-font-size:1em; /* Size of the string representing the burger menu */
   --burger-menu-separator-color: white; /* Line between burger menu items  */

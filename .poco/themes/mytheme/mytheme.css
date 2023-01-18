@@ -1,8 +1,13 @@
 /* OVERRIDE FRAMEWORK SIZES */
 
 /* OVERRIDE FRAMEWORK LAYOUT */
-/* Round portrait in aside. */
 
+/* Default to article on the right, aside on the left */
+article{float:right;clear:right;}    
+aside{float:left;}  
+
+
+/* Round portrait in aside. */
 aside>p>img {
   width: 6rem;
   height: 6rem;

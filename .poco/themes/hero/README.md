@@ -1,7 +1,7 @@
 ---
 header: header.md
 nav: nav.md
-aside: aside.md
+#aside: aside.md
 footer: footer.md
 burger: burger.md
 
@@ -12,7 +12,7 @@ stylesheets:
 - ../../css/layout.css
 - ../../css/type.css
 - ../../css/mediacolors.css
-- "https://fonts.googleapis.com/css2?family=Secular+One:wght@400&display=swap"
+# "https://fonts.googleapis.com/css2?family=Secular+One:wght@400&display=swap"
 - "hero.css"
 ---
 
@@ -35,4 +35,16 @@ depending on how limited screen real estate gets)
 
 
 It's easy to customize with minimal additions to CSS.
+
+
+
+It's all downhill from here.
+```
+$ poco -new mysite
+Site published to /Users/tom/pococms/poco/mysite/WWW/index.html
+$ cd mysite
+$ poco -serve
+
+```
+
 

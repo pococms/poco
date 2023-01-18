@@ -1,13 +1,5 @@
-It's all downhill from here.
-```
-$ poco -new mysite
-Site published to /Users/tom/pococms/poco/mysite/WWW/index.html
-$ cd mysite
-$ poco -serve
+It's all downhill from here. 
+You want results, fast, and we're here to deliver.
 
-```
-
-{{- /* ![](https://via.placeholder.com/400x200?text=400x200) */ -}}
-
-
+![](https://via.placeholder.com/600x600?text="hello,%20world") 
 

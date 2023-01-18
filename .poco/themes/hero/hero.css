@@ -11,8 +11,9 @@
 
 /* Centers it vertically. Old-school, I know. */
 header{padding-top:1em;padding-bottom:1em;border-bottom:1px solid gray;}
+
+/* Necessary to pull last item on header menu to the right side */
 /* Requires newer browser but degrades gracefully */
-/* Necessary to get last item on header menu to the right side */
 header ul{
     display: -webkit-flex;
     display: -ms-flex;
@@ -101,6 +102,9 @@ nav pre{
   right:0;
   top:0;
 }
+
+footer > ul > li {margin-left:0; margin-right: 1em;font-weight:900;}
+footer > ul > li > a {color:var(--fg);}
 
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
 @media (prefers-color-scheme:light) {
