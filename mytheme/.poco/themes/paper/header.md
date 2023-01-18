@@ -1,5 +1,0 @@
-* [Reviews](#)
-* [Github](#)
-* [Profile](#)
-* [About](#)
-

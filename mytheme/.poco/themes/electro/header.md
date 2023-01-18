@@ -1,2 +1,0 @@
-* **[Electro theme header](#)**
-
