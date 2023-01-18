@@ -344,7 +344,7 @@ type theme struct {
 
 	// List of burger items already parsed and ready to publish
 	burger string
-	hicon  string
+	hamburgerIcon string
 
 	// If true, don't insert article into output stream
 	articleHidden bool
@@ -787,7 +787,7 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 	// rquired to make the specialized CSS work.
 	links = mdYAMLStringToTemplatedHTMLString(tmpConfig, "", links)
 	links = "\n" +
-		"<label for=\"hamburger\">" + t.hicon + "</label>" + "\n" +
+		"<label for=\"hamburger\">" + t.hamburgerIcon + "</label>" + "\n" +
 		`<input type="checkbox" id="hamburger"/>` + "\n" +
 		links
 
@@ -1583,7 +1583,7 @@ func (t *theme) getThemeReadme(fm map[string]interface{}) {
 	t.styleTagNames = fmStrSlice("styles", fm)
 	t.stylesheetFilenames = fmStrSlice("stylesheets", fm)
 	// TODO: Why not do this with header, footer, etc.-just suck them up now
-	t.hicon = fmStr("hicon", fm)
+	t.hamburgerIcon = fmStr("burgericon", fm)
 	t.hamburgerToHTML(fm)
 	t.supportedFeatures = fmStrSlice("supportedfeatures", fm)
 
