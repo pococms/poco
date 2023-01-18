@@ -1,6 +1,6 @@
 /* OVERRIDE FRAMEWORK SIZES */
 article{padding-top:4rem;padding-right:3rem;}
-article>h1,article>h2,article>h3{color:var(--html-bg);line-height:1em;}
+article>h1,article>h2,article>h3{line-height:1em;}
 article > h1 {font-size:4rem;padding-bottom:2rem;}
 article > h2 {font-size:3rem;padding-bottom:1.5rem;}
 article > h3 {font-size:1.75rem;padding-bottom:1rem;}
@@ -67,6 +67,7 @@ footer ul li a {font-size:small;}
 
 header,footer {padding-left:0;background-color: var(--html-bg);}
 nav ul li a  {font-size:small;color:var(--a);} 
+article>h1,article>h2,article>h3{color:var(--html-bg);}
 aside > p > a:hover {
   text-decoration:underline;
   text-decoration-color:var(--html-bg);
@@ -93,7 +94,7 @@ footer  a {color:var(--bg);}
 }
 
 @media (prefers-color-scheme:dark) {
-  a,footer > a {color:#1B4284;}
+  footer > a {color:#1B4284;}
   header{color:#1B4284;}
   header > ul > li:first-child > a > del {color:#E63946;} /* Strikethrough text gets different color */
 :root {
