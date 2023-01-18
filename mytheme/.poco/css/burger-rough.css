@@ -1,0 +1,54 @@
+
+header {
+  width: 100%;
+  background: var(--header-bg);
+}
+header a {
+  /*
+  padding-right: 1rem;
+  color: var(--menu-a-fg);
+  text-decoration: none;
+  */
+}
+
+header ul > li, header ul > li > a {
+  list-style-type: none;
+  display: inline;
+
+}
+ 
+/* TODO: Probably eliminate */
+header a:hover { background: var(--menu-a-hover); }
+header > label  { display: none; }
+
+/* Default: hidden */
+header > label + input {display:none;}
+
+header > input:checked + ul   { display: block; }
+
+
+@media screen and (max-width: 1000px){
+
+  /* Format of hamburger menu items */
+  header ul li a {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    border-top: 1px solid var(--burger-menu-separator-color);
+  }
+  /* Actual burger icon */
+  header label {
+    color: var(--burger-menu-fg);
+    display: inline-block;
+    background: var(--burger-menu-bg);
+    font-style: normal;
+    font-size: 1.5em;
+    padding: .5em;
+  }
+
+  header > ul { display:none;}
+  header > input:checked + ul   { display: block; }
+
+}
+
+

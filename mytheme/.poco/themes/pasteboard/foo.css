@@ -1,0 +1,54 @@
+html{background-color:gray;margin-left:auto;margin-right:auto;width:80%;}
+body{margin:5% 5% 5% 10%;}
+aside{width:20%;padding-left:1rem;}
+header,nav,article,footer{margin-left:auto;margin-right:auto;}
+nav{margin-bottom:0}
+header{margin-top:2rem;}
+header>h1{font-size:3rem;}
+footer{padding-left:5%;max-width:80%;margin-top:2rem;}
+article{padding-left:5%;}
+article>ul>li>a,article>p>a{font-weight:normal}
+article>h1{font-size:2rem;font-weight:bold;letter-spacing:-.1rem;padding-bottom:2rem;}
+article>h2{font-size:1.75rem;padding-top:2.5rem;padding-bottom:.75rem}
+article>h3{font-size:1.5rem;padding-top:1.5rem;padding-bottom:.5rem;font-weight:bold;}
+article>h4{font-weight:bold;}
+
+
+header,nav{white-space:nowrap;overflow:hidden;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:4rem;}
+header > ul, nav > ul  {list-style-type:none;}
+header > ul > li{font-size:1.25rem;}
+header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
+header > ul > li > a,
+header > ul > li > a:link, 
+header > ul > li > a:visited
+	{color:blue;font-weight:normal;text-decoration:none;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+/* header>ul>li:first-child>a{font-size:3rem;font-weight:900;letter-spacing:-.1rem;padding-right:1rem;padding-left:0}
+ */
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+/* header>ul>li:first-child>a>del{text-decoration:none;color:red;} */
+
+

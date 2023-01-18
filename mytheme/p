@@ -1,0 +1,8 @@
+cd ~/pococms/poco/mytheme
+poco-dir-update force
+poco 
+if [[ $? -ne 0 ]]; then
+    echo "Quitting"
+    exit 1
+fi
+o

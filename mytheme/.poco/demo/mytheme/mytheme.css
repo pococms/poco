@@ -1,0 +1,85 @@
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+/* Round portrait in aside. */
+
+aside>p>img {
+  width: 6rem;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 50%;
+  float:none;
+  margin: 0 auto;
+  text-align:center;
+}
+
+/* Decrease this if there are more icon images next to header.  */
+article>h4{margin-right:20%;}
+
+/* Social media icons hang to right of header text. */
+article>h4>a>img{
+  clear:none;
+  float:right;
+  margin-right:1rem;
+  margin-top:.2rem; 
+  height:1.2rem;
+  width:1.2rem;
+}
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+html * {font-family: 'Montserrat', sans-serif;font-size:large;line-height:1.5rem;}
+header > ul > li > a, header > ul > li:first-child > a > del {
+  font-family: 'Abril Fatface', serif;
+  text-decoration:none;
+}
+
+article > h1, article > h2, article > h3{font-family: 'Abril Fatface', serif;}
+article > h1 {font-size:4rem;}
+
+aside>p{
+  font-size:small;
+}
+
+
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+/* https://coolors.co/98c5d2-bd9391-fcfc62-424242-044389 */
+
+header,footer {padding-left:0;background-color: var(--html-bg);}
+nav ul li a  {font-size:small;color:var(--a);} 
+aside > p > a:hover {
+  text-decoration:underline;
+  text-decoration-color:var(--html-bg);
+  -webkit-text-decoration-color:var(--html-bg);
+}
+aside > p > a {color:var(--fg);}
+footer ul li a {font-size:small;}
+
+@media (prefers-color-scheme:light) {
+  article>h1,article>h2,article>h3{color:var(--bg);}
+  header>ul>li>a,header>ul>li>a:hover,header>ul>li>a:active {color:var(--bg)}
+  footer>ul>li>a,footer>ul>li>a:hover,footer>ul>li>a:active {color:var(--bg);}
+  header > ul > li:first-child > a > del {color:red;}
+  nav ul li a {font-size:small;} 
+  nav  a:active,nav  a:hover {color:var(--html-bg);}
+  footer  a {color:var(--bg);}
+:root {
+  --fg:#252627;
+  --bg:#D8D5C5; 
+  --bg:white;
+  --html-bg:#1C4284;
+  --a:var(--html-bg);
+}
+}
+
+@media (prefers-color-scheme:dark) {
+  a,footer > a {color:#1B4284;}
+  header{color:#1B4284;}
+  header > ul > li:first-child > a > del {color:#E63946;}
+:root {
+  --fg:white;
+  --bg:#044389;
+  --html-bg:#8EC7D4;
+}
+}
+

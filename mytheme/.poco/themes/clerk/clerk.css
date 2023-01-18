@@ -1,0 +1,38 @@
+
+/* OVERRIDE FRAMEWORK SIZES */
+:root {
+  --padding-left:15%;
+  --article-width:60%
+}
+
+header {margin-top:4em;}
+footer{padding-top:2em;margin-bottom:2em;}
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+
+:root {
+  --html-font:courier;
+}
+
+html * {font-family:var(--html-font);}
+body {border: .1rem solid black;}
+body {box-shadow: .25em .25em .25em gray;}
+
+ol li, ul li  {margin-left:3em;}
+h1,h2,h3,h4,h5,h6 {font-size:1rem;}
+h1 {text-decoration:underline;}
+@media (prefers-color-scheme:light) {
+:root {
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+}
+}
+
+
