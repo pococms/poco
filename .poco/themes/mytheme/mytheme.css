@@ -1,4 +1,5 @@
 /* OVERRIDE FRAMEWORK SIZES */
+nav ul li a  {font-size:small;} 
 article{padding-top:4rem;padding-right:3rem;}
 article>h1,article>h2,article>h3{line-height:1em;}
 article > h1 {font-size:4rem;padding-bottom:2rem;}
@@ -9,10 +10,12 @@ article > p, article > ul > li, article > ol > li {line-height:2rem;}
 
 article > ul, article > ul {padding-bottom:1.5rem;}
 /* OVERRIDE FRAMEWORK LAYOUT */
+header,footer {padding-left:0;}
 
 /* Default to article on the right, aside on the left */
 article{float:right;clear:right;}    
 aside{float:left;}  
+header,footer {padding-left:0;}
 
 /* Round portrait in aside. */
 aside>p>img {
@@ -63,10 +66,13 @@ aside>p{
 footer ul li a {font-size:small;}
 
 /* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
-/* https://coolors.co/98c5d2-bd9391-fcfc62-424242-044389 */
 
-header,footer {padding-left:0;background-color: var(--html-bg);}
-nav ul li a  {font-size:small;color:var(--a);} 
+header,footer {background-color:var(--html-bg);}
+header ul li a,header ul li a:hover,header ul li a:active {color:var(--bg)}
+nav ul li a  {color:var(--a);} 
+nav ul li a  {color:var(--a);} 
+header > ul > li:first-child > a > del {color:red;}
+nav a:active,nav a:hover {color:var(--html-bg);}
 article>h1,article>h2,article>h3{color:var(--html-bg);}
 aside > p > a:hover {
   text-decoration:underline;
@@ -74,10 +80,7 @@ aside > p > a:hover {
   -webkit-text-decoration-color:var(--html-bg);
 }
 aside > p > a {color:var(--fg);}
-header>ul>li>a,header>ul>li>a:hover,header>ul>li>a:active {color:var(--bg)}
 footer>ul>li>a,footer>ul>li>a:hover,footer>ul>li>a:active {color:var(--bg);}
-header > ul > li:first-child > a > del {color:red;}
-nav a:active,nav a:hover {color:var(--html-bg);}
 footer  a {color:var(--bg);}
 
 :root {

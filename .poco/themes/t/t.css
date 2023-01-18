@@ -1,0 +1,36 @@
+
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+
+header,footer {background-color:var(--html-bg);}
+header ul li a,header ul li a:hover,header ul li a:active {color:var(--bg)}
+nav ul li a  {color:var(--a);} 
+nav a:active,nav a:hover {color:var(--html-bg);}
+aside>p> a {color:var(--fg);}
+footer>ul>li>a,footer>ul>li>a:hover,footer>ul>li>a:active {color:var(--bg);}
+
+@media (prefers-color-scheme:light) {
+:root {
+  --a:var(--html-bg);         /* Default link color */
+  --fg:#252627;               /* Default text color */ 
+  --bg:white;                 /* Default background color */ 
+  --html-bg:#1C4284;          /* Color enclosing skinny themes */
+}
+}
+
+@media (prefers-color-scheme:dark) {
+  a,footer > a {color:#1B4284;}
+  header{color:#1B4284;}
+  header > ul > li:first-child > a > del {color:#E63946;} /* Strikethrough text gets different color */
+:root {
+  --fg:white;                 /* Default text color */ 
+  --bg:#044389;               /* Default background color */
+  --html-bg:#8EC7D4;          /* Color enclosing skinny themes */
+}
+}
+

@@ -35,7 +35,7 @@
   --h6-fg:var(--fg);          /* Default h6 text color */
   --article-h2-fg:var(--fg);  /* Article h2 text color */
   --article-width:80%;        /* Should add up to 100% with --aside-width */
-  --aside-width:20%;          /* Should add up to 100% with --aside-width */
+  --aside-width:20%;          /* Should add up to 100% with --article-width */
   --aside-h2-fg:var(--fg);    /* Aside h2 text color */
   --code-fg:var(--fg);        /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
@@ -81,7 +81,7 @@
   --h6-fg:var(--fg);          /* Default h6 text color */
   --article-h2-fg:var(--fg);  /* Article h2 text color */
   --article-width:80%;        /* Should add up to 100% with --aside-width */
-  --aside-width:20%;          /* Should add up to 100% with --aside-width */
+  --aside-width:20%;          /* Should add up to 100% with --article-width */
   --aside-h2-fg:var(--fg);    /* Aside h2 text color */
   --code-fg:var(--fg);        /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
@@ -129,7 +129,7 @@
   --h6-fg:var(--fg);          /* Default h6 text color */
   --article-h2-fg:var(--fg);  /* Article h2 text color */
   --article-width:80%;        /* Should add up to 100% with --aside-width */
-  --aside-width:20%;          /* Should add up to 100% with --aside-width */
+  --aside-width:20%;          /* Should add up to 100% with --article-width */
   --aside-h2-fg:var(--fg);    /* Aside h2 text color */
   --code-fg:black;            /* Text color for code inside a paragraph */
   --code-bg:ghostwhite;       /* Background color for code inside a paragraph */
