@@ -1,0 +1,143 @@
+#!/bin/zsh
+# Bonus, unsupported shell (MacOS and Linux-only) utility to loop through an array of theme names and generate pages for them
+
+
+# Display help for command line options
+function print_help(){
+  #echo "Options:"
+}
+
+# Exit to the OS with a message and error code.
+# $1 is the message to display
+# $2 is the error code
+function quit_exit() {
+  echo $1
+  exit $2
+}
+
+
+# PARSE COMMAND LINE
+echo ""
+while :; do
+    case $1 in
+    
+   	 -t|--theme)
+   		 if [ -n "$2" ]; then
+   			 THEME=$2
+         #echo "Chose theme ${THEME}"
+         #pause
+   			 shift 2
+   			 continue
+   		 else
+   			 echo "ERROR: --theme needs a theme name. The default is ${THEME}. \nExample:\n\t${0} --theme pocodocs\n" >&2
+   			 #printf 'ERROR: "--theme" needs a theme name.\nExample:\n\t${0} --theme pocodocs\n' >&2
+   			 exit 1
+   		 fi
+   		 ;;
+   		 
+   	 -h|--help)
+        # xxx
+       print_help $0
+       exit 1
+       ;;
+
+   	 --)
+   		 shift
+   		 break
+   		 ;;
+   		 
+   	 --?*)
+   		 printf 'WARNING: Unknown option %s\n' "$1" >&2
+       exit 1
+       break
+   		 ;;
+   		 
+   	 *)
+   		 # No more options. Break out of loop.
+   		 break;
+    esac
+    
+    command shift
+done
+
+
+# Create an array of theme names
+declare -a themes=(
+  'base'
+  'clerk'
+  'electro' 
+  'gossip' 
+  'hero'
+  'informer'
+  'newman' 
+  'paper'
+  'pasteboard'
+  'pocodocs'
+  'rawdog'
+  'skyscraper'
+  'tufte'
+  )
+
+
+
+# -------------------------------------
+# demo_page function
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function demo_page() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
+# Theme "${1}"
+
+Short page theme test
+
+
+EOM
+echo $page >> $2/index.md
+}
+
+
+
+
+
+
+# Create a temporary directory.
+# Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
+# https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+# echo "Stress test: Removing factory themes"
+# rm -rf /Users/tom/Library/Application\ Support/pococms/
+
+
+
+
+# -------------------------------------
+# MAIN LOOP 
+# -------------------------------------
+#echo "Creating poco project at temp directory ${tmpdir}"
+poco -new $tmpdir              
+# Go a couple of directories deep to test PocoCMS
+ALLDIRS=$tmpdir/level2/level3/
+mkdir -p  $ALLDIRS
+# Quit if the directory couldn't be created.
+[ ! -d $ALLDIRS ] && quit_exit "Error creating root directory at ${tmpdir}" 
+for theme in "${themes[@]}";
+  do
+    # Create a directory for each theme.
+    dir=$tmpdir/$theme
+    mkdir -p $dir
+    [ ! -d $dir ] && quit_exit "Unable to create demo theme directory ${dir}" 
+    demo_page $theme $dir
+    echo "[${theme}]($theme/index.html)  ">> $tmpdir/index.md
+    #read -n fook
+    echo "${theme}"
+  done
+  
+poco $tmpdir
+[ $? -ne 0 ] && quit_exit "Poco failed on ${tmpdir} with error code $?", 1
+open ${tmpdir}/WWW/index.html
+

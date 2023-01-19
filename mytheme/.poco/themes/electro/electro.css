@@ -1,0 +1,106 @@
+article > h2 {padding-top:4rem;}
+
+
+article > p > strong {font-family:'Roboto Condensed','sans-serif';font-weight:700;}
+article > p > code, article > code, article > pre, article > pre > code {
+		font-family:'monospace';
+		overflow:auto;
+    padding-bottom:1em;
+    line-height:1.5em;
+		}
+
+article > p > a,
+article > p > a:link,
+article > p >  a:visited
+	{font-family:'Roboto Condensed','sans-serif';font-weight:bold;text-decoration:underline;}
+article > img, article > p > img {width:100%;}
+aside > p > img, aside > img {float:left;}
+
+
+/* OVERRIDE FRAMEWORK FONTS */
+header > p {font-size:6rem;font-weight:700;display:inline;} 
+
+header > p, nav > p,
+  header > h1, nav > h1,
+  header > ul, nav > ul,
+  header > ul li a, nav > ul li a,
+  header > ol, nav > ol {
+	  font-family:'Nova Mono','sans-serif';
+}
+
+article > p, 
+  article > ul, 
+  article > ul li a, 
+  article > ol, 
+  article > dd, 
+  article > dl,
+  article > hr {
+	  font-family:'Roboto Condensed','sans-serif';
+		font-size:1.5rem;
+		line-height:2.25rem;
+		padding-bottom:1rem;
+}
+
+article > h1, article > h2, article > h3 {
+  font-family:'Nova Mono','sans-serif';font-weight:700;
+}
+
+article > h4 {
+  font-weight:normal;
+} /* Byline */
+
+article > h4 > strong {
+  font-weight:bold;
+} /* Byline */
+
+
+aside > p, 
+  aside > h1,
+  aside > h2,
+  aside > h3,
+  aside > ul, 
+  aside > ul li a, 
+  aside > ol {
+	  font-family:'Nova Mono','sans-serif';
+}
+
+
+footer > p, 
+  footer > p > a,
+  footer > h1,
+  footer > h2,
+  footer > h3,
+  footer > ul, 
+  footer > ul li a, 
+  footer> ol {
+	  font-family:'Nova Mono','sans-serif';
+}
+footer{height:3em;font-height:3rem;line-height:3em;padding-bottom:5em;padding-top:2em;}
+
+/* OVERRIDE FRAMEWORK COLORS */
+
+
+
+
+/* OVERRIDE FRAMEWORK SIZES */
+header{height:3em;font-size:3rem;line-height:3em;margin-bottom:0;}
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+:root {
+  --a:white;              /* Default link color */
+  --fg:white;             /* Default text color. */
+  --bg:red;               /* Default background color */
+  --html-bg:black;        /* Color enclosing skinny themes */
+ }
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+  --html-bg:black;        /* Color enclosing skinny themes */
+}
+}

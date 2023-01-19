@@ -1,0 +1,4 @@
+header,nav,article,sidebar,footer{background-color:gray;color:white;}
+html{margin-block-start:0;margin-block-end:0;}
+body{margin:4rem;background-color:black;}
+aside{float:right}

@@ -7,10 +7,11 @@ article > h2 {font-size:3rem;padding-bottom:1.5rem;}
 article > h3 {font-size:1.75rem;padding-bottom:1rem;}
 article > h4 {font-size:1.25rem;}
 article > p, article > ul > li, article > ol > li {line-height:2rem;}
+article > ul, article > ol {padding-bottom:1.5rem;}
 
-article > ul, article > ul {padding-bottom:1.5rem;}
 /* OVERRIDE FRAMEWORK LAYOUT */
 header,footer {padding-left:0;}
+footer > ul > li {margin-left:0; margin-right: 1em;}
 
 /* Default to article on the right, aside on the left */
 article{float:right;clear:right;}    
@@ -28,19 +29,19 @@ aside>p>img {
   text-align:center;
 }
 
+/* Icons following an h6 in the aside */
 aside>h6+p>a>img {
   width: 2rem;
   height: 2rem;
-  overflow: hidden;
   float:none;
   margin: 0;
   text-align:left;
 }
 
-/* Decrease this if there are more icon images next to header.  */
+/* Decrease this if there are more icon images next to level 4 heading  */
 article>h4{margin-right:5%;}
 
-/* Social media icons hang to right of header text. */
+/* Social media icons hang to right of level 4 heading text */
 article>h4>a>img{
   clear:none;
   float:right;
@@ -52,14 +53,14 @@ article>h4>a>img{
 
 /* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
 html * {font-family: 'Montserrat', sans-serif;font-size:large;line-height:1.5rem;}
-header > ul > li > a, header > ul > li:first-child > a > del {
+article>h1,article>h2,article>h3{font-family: 'Abril Fatface', serif;}
+header>ul>li> a,header>ul> li:first-child > a > del {
   font-family: 'Abril Fatface', serif;
   text-decoration:none;
 }
 article > pre > code, article > code {font-family:monospace;}
 
 nav ul li a {font-size:small;} 
-article > h1, article > h2, article > h3{font-family: 'Abril Fatface', serif;}
 aside>p{
   font-size:small;
 }

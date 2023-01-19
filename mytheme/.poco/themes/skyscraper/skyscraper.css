@@ -1,0 +1,12 @@
+@media (prefers-color-scheme:light) {
+:root {
+  --html-bg:gray
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+  --html-bg:SteelBlue;
+}
+}
+

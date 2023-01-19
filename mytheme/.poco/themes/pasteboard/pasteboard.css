@@ -1,0 +1,51 @@
+
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul {line-height:3em;}
+
+/*
+ * --------------------------------------------------
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a{color:DimGray;font-size:3em;font-weight:900;/*letter-spacing:-.1em;*/padding-right:1em;padding-left:0}
+
+/*
+/ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;} 
+
+
+nav{margin-bottom:0;}
+
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+:root {
+  --html-bg:gray;
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+  --html-bg:gray;
+}
+}
+
+

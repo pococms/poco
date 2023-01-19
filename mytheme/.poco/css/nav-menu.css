@@ -1,0 +1,58 @@
+/* Unfinished code for pure CSS nav menu with 0 classes.
+ * Based on this amazing work by Ray Messina:
+ * https://css-tricks.com/targetting-menu-elements-submenus-navigation-bar/
+ * https://codepen.io/RayM/pen/ARQmVQ
+ */
+nav {    
+  display: block;
+  overflow:visible;
+}
+
+nav ul {
+  margin: 0;
+  padding:0;
+  list-style: none;
+}
+  /* Top-level menu items */
+  nav ul a {
+    display:block; 
+    text-decoration: none;
+    padding: .8em 1.5em;
+    position: relative;
+  }
+  nav ul {  
+    display: inline-block;
+    vertical-align: top; 
+  }
+  nav ul li{position: relative;}
+  nav ul > li { 
+    float:left; 
+    margin-right: .4em; /* Space between menu elements */ 
+  } 
+  nav ul > li > a { 
+    margin-bottom:1px;
+  }
+  nav ul > li:last-child  { 
+  	margin-right: 0;
+  } 
+  
+  nav ul li a:first-child:nth-last-child(2):after { 
+   content:">"; 
+   position: absolute; 
+   padding-left:.5em;
+   height:0; 
+   width: 0; 
+ }
+   
+/* Hide the submenu way out there */
+nav ul ul {
+  position: absolute;
+  white-space: nowrap;
+  z-index: 1;
+  left: -99999em;
+}   
+   
+nav ul > li:hover > ul {
+  left: auto;
+  min-width: 100%;
+}

@@ -1,6 +1,6 @@
 ![Picture of nonexistent person](../.poco/demo/anna-256x256.jpg)
 
-Hi. I'm Anna Utopia and this are my blog.
+Hi. I'm Anna Utopia and this is my blog.
 
 I studied design at Montreal's [Concordia University](https://www.concordia.ca/),
 where I learned the importance of static site generators, a lesson
@@ -13,6 +13,5 @@ can often be found online watching those heartending Dodo videos.
 
 ###### Connections
 
-[![Twitter logo](../.poco/img/twitter-24px-blue-outline.svg)](https://www.instagram.com/e.emerald.repair/) [![Instagram logo](../.poco/img/instagram-24px-magenta-outline.svg)](https://www.instagram.com/e.emerald.repair/)   [![LinkedIn](../.poco/img/linkedin-24px-blue-outline.svg)](https://linkedin.com/)  [![YouTube logo](../.poco/img/youtube-24px-red-outline.svg)](https://youtube.com/@pococms/)  [![Facebook logo](../.poco/img/facebook-24px-blue-outline.svg)](https://facebook.com/)   
-
+[![Twitter logo](../.poco/img/twitter-24px-blue-outline.svg)](https://www.twitter.com) [![Instagram logo](../.poco/img/instagram-24px-magenta-outline.svg)](https://www.instagram.com)   [![LinkedIn](../.poco/img/linkedin-24px-blue-outline.svg)](https://linkedin.com/)  [![YouTube logo](../.poco/img/youtube-24px-red-outline.svg)](https://youtube.com)  [![Facebook logo](../.poco/img/facebook-24px-blue-outline.svg)](https://facebook.com/)   
 

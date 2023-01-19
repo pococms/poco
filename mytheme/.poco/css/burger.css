@@ -1,0 +1,55 @@
+/* Default: hidden */
+#header-poco-burger { display: none; }
+header#header-poco-burger > label + input {display:none;}
+header#header-poco-burger > label  { display: none;}
+
+header#header-poco-burger {
+  width: 100%;
+  background: var(--header-bg);
+}
+
+/* Burger menu is an unordered list. Remove normal list characteristics. */
+header#header-poco-burger ul > li, header#header-poco-burger ul > li > a {
+  list-style-type: none;
+  display: block; /* was inline. This makes more sense */
+  padding:0;
+}
+ 
+header#header-poco-burger a:hover { background: var(--menu-a-hover); }
+
+header#header-poco-burger > input:checked + ul   { display: block; }
+
+/* Hamburger menu items */
+header#header-poco-burger ul li a {
+  color: var(--burger-fg);
+  background-color: var(--burger-bg);
+  display:none;
+  box-sizing: border-box;
+  width: 100%;
+  border-top: 1px solid var(--burger-menu-separator-color);
+}
+/* Actual burger icon */
+header#header-poco-burger label {
+  display: none;
+  color: var(--burger-menu-fg);
+  background: var(--burger-menu-bg);
+  font-size:var(--burger-menu-font-size);
+  padding:0;
+}
+
+
+/* At this web page width or less..  */
+@media screen and (max-width: 768px){
+  /* Make the normal header invisible. */
+  #header-poco { display: none; }
+  /* Make the burger menu visible. */
+  #header-poco-burger {padding-left:0;margin-left:0;display: block; }
+  /* Display the burger menu and make it active. */
+  header#header-poco-burger label {padding-left:0;display: inline-block;} 
+  /* Stretch burger menu items across the containing area. */
+  header#header-poco-burger ul li a {display: block;}
+  /* Optional: hide the menu items until user clicks on burger icon. */
+  header#header-poco-burger > ul { display:none;}
+}
+
+

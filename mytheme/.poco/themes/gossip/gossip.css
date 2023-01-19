@@ -1,0 +1,195 @@
+/*
+ * --------------------------------------------------
+ * Special feature: "Featured Posts" section showing
+ * 3 images in a row with captions underneath.
+ * Start with an h3 ("Featured Posts, for example)
+ * then a ul with 3 items consisting of an image
+ * and text for it.
+ * --------------------------------------------------
+ */
+
+article > h3 + ul:nth-child(1) {
+  display:block;
+}
+article > h3 + ul {
+	padding:0;
+	margin:0;
+	list-style-type:none;
+}
+
+article > h3 + ul li {
+	width:30%;
+	padding-top:.5em;
+	float:left;
+	line-height:1em;
+}
+
+article > h3 + ul li > p {
+}
+
+article > h3 + ul li > p > img {
+  width:100%;
+}
+
+article > h3 + ul li:nth-child(3) > p {
+}
+
+
+
+article>h1{padding-top:0;font-size:6rem;font-weight:bold;text-align:center;color:var(--header-bg);}
+article>p>img{width:100%;text-align:center}
+/* OVERRIDE FRAMEWORK SIZES */
+article>h2{padding-top:.5em;}
+
+/* --------------------------------------------------
+ * HEADER: 
+ * - First item is bigger and formatted differently
+ * - Last item looks like a button (easy to suppress)
+ *   and appears to the far left of the page 
+ *   (on new browsers, still looks good on older ones)
+ * - Header is vertically centered
+ * --------------------------------------------------
+ */   
+
+
+/* Centers it vertically. Old-school, I know. */
+header{padding-top:3em;padding-bottom:3em}
+/* Requires newer browser but degrades gracefully */
+/* Necessary to get last item on header menu to the right side */
+header ul{
+    display: -webkit-flex;
+    display: -ms-flex;
+    display: flex;
+}
+
+/* Necessary to pull last item on header menu to the right side */
+header li {display:inline-block;}
+
+/* Format all menu items but the last */
+header>p,header>p>a,
+header ul li,header ul li>a {
+  text-shadow: 1px 1px 0 black;
+  font-size:2.25rem;
+  padding-right:.25em;
+}
+
+
+/* --------------------------------------------------
+ * SPECIAL FEATURE FOR HEADER: 
+ * First item in header gets special treatment:
+ * - Larger font size
+ * - Deeper text shadow
+ * --------------------------------------------------
+ */   
+
+header>ul>li:first-child>a,header>p:first-child>a{
+  font-size:3.25rem;
+  text-shadow: 5px 5px 0 black;
+  font-weight:bold;
+}
+
+/* --------------------------------------------------
+ * SPECIAL FEATURE FOR HEADER: 
+ * Pull last item in header to the right side
+ * --------------------------------------------------
+ */   
+
+header li:last-of-type {
+  font-size:1em;
+  margin-left: auto;
+  margin-right:2em;
+}
+
+
+/*
+ * --------------------------------------------------
+ * SPECIAL FEATURE FOR HEADER: 
+ * Last item in ul list is styled like 
+ * a button. Just omit text after the
+ * bullet character (asterisk) in your Markdown 
+ * if you don't want the effect. (Or remove
+ * these lines of from the theme CSS.)
+ * --------------------------------------------------
+ */
+/* Make the last item look and act like a button */
+header > ul > li:last-child > a {font-size:smaller;border: .125em solid var(--header-fg);border-radius:.5em;padding: .25em;color: var(--header-bg);background-color:var(--header-fg);padding: .25em;text-decoration: none;text-transform:uppercase;font-weight:bold;text-shadow:none;text-align:right}
+header > ul > li:last-child > a:hover {color: var(--header-bg);background-color: var(--header-fg);cursor: pointer;}
+
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+aside{margin-top:6rem;}
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+h1,h2,h3,
+header>h1,header>h2,header>h3,
+header>p,header>p>a,
+header ul li,header ul li>a,
+footer>ul li,footer>ul li>a,
+nav>h1,nav>h2,nav>h3,
+nav ul li,nav ul li>a,
+aside>h1,aside>h2,aside>h3,aside>h4{
+  font-family:'Oswald',sans-serif;
+  padding-right:.5em;
+}
+
+article>h1{text-shadow: 2px 2px 0 black;}
+
+/* --------------------------------------------------
+ * SPECIAL FEATURE FOR ASIDE:
+ * - h4, img, p in that order create a card effect
+ * - img is givena black background
+ * - h4 is forced to uppercase
+ * --------------------------------------------------
+ */   
+
+aside>h4{
+  font-size:1rem;
+  text-align:center;
+  font-weight:bold;
+  text-transform: uppercase;
+  background-color:yellow;
+  color:black;
+  padding-top:.2em;
+  border:1px solid black;
+}
+aside>p>img{
+  border:1px solid black;
+  display:block;
+}
+aside>p{
+  background-color:black;
+  color:white;
+  font-size:1rem;
+  border:1px solid black;
+  margin-bottom:1em;
+  padding:.5em;
+}
+:root {
+  --aside-width:25%;
+  --article-width:75%;
+}
+
+  header a, nav a{color:var(--header-fg);}
+  nav{background-color:var(--nav-bg);}
+  footer, footer a{color:var(--header-fg); background-color:var(--nav-bg);}
+  article>h1{color:var(--header-bg);}
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+@media (prefers-color-scheme:light) {
+:root {
+  --header-fg:var(--bg);          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
+  --nav-bg:black;
+  --h2-fg:var(--header-bg);   /* Background coloro of h2 */
+  --footer-fg:white;          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+  --header-fg:white;          /* Text color of header */
+  --header-bg:red;            /* Background color of header */
+  --h1-fg:white;              /* Text color of header */
+}
+}
+
+

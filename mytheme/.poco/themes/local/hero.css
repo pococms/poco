@@ -1,0 +1,93 @@
+/* --------------------------------------------------
+ * HEADER: 
+ * - First item is bigger and formatted differently
+ * - Last item looks like a button (easy to suppress)
+ *   and appears to the far left of the page 
+ *   (on new browsers, still looks good on older ones)
+ * - Header is vertically centered
+ * --------------------------------------------------
+ */   
+
+
+/* Centers it vertically. Old-school, I know. */
+header{padding-top:1em;padding-bottom:1em;border-bottom:1px solid gray;}
+/* Requires newer browser but degrades gracefully */
+/* Necessary to get last item on header menu to the right side */
+header ul{
+    display: -webkit-flex;
+    display: -ms-flex;
+    display: flex;
+}
+
+/* Necessary to pull last item on header menu to the right side */
+header li {display:inline-block;}
+
+/* Format all menu items but the first */
+header>p,header>p>a,
+header ul li,header ul li>a {
+  color:var(--fg);
+}
+
+
+/* --------------------------------------------------
+ * SPECIAL FEATURE FOR HEADER: 
+ * First item in header gets special treatment:
+ * - Larger font size
+ * - Deeper text shadow
+ * --------------------------------------------------
+ */   
+
+header>ul>li:first-child>a,header>p:first-child>a{
+  color:red;
+  font-size:2rem;
+  font-weight:900;
+}
+
+/* --------------------------------------------------
+ * SPECIAL FEATURE FOR HEADER: 
+ * Pull last item in header to the right side
+ * --------------------------------------------------
+ */   
+
+header li:last-of-type {
+  font-weight:bold;
+  font-size:1em;
+  margin-left: auto;
+  margin-right:2em;
+}
+
+
+
+/* OVERRIDE FRAMEWORK SIZES */
+
+/* OVERRIDE FRAMEWORK LAYOUT */
+
+/* OVERRIDE FRAMEWORK TYPOGRAPHY AND FONTS */
+html{font-size:22px;}
+article>h1{
+  font-weight:900;
+}
+
+
+
+/* OVERRIDE MEDIA QUERIES. COLORS FOR LIGHT & DARK THEMES */
+
+nav{
+  height:auto;
+  margin:0 auto;
+  position:relative;
+}
+
+@media (prefers-color-scheme:light) {
+:root {
+  nav-fg:var(--bg);
+  nav-bg:var(--fg);
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+}
+}
+
+

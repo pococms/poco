@@ -1,0 +1,142 @@
+html * {font-family:Cambria,'Hoefler Text',Utopia,'Liberation Serif','Nimbus Roman No9 L Regular',Times,'Times New Roman',serif;} 
+html{font-size:16px}
+p,p a,strong,em,a{font-size:1rem;line-height:1.75em}
+table{margin-top:1rem;}
+
+
+aside{border-left: 1px solid #DCDCDC;padding:1rem;}
+aside>h2{font-size:1.5em;font-weight:bold;}
+aside>h3{width:60%;font-size:1em;font-weight:bold;padding-top:3rem;}
+aside>h4{padding-top:2rem;font-size:1em;font-weight:bold;color:gray;}
+aside>p>img{float:right;width:40%;clear:right;display:block;}
+aside>p{line-height:1rem;padding-right:.5rem}
+
+/*
+ * --------------------------------------------------
+ * TODO: Document this. Pattern looks like this
+ * --------------------------------------------------
+ */
+
+aside>h5{font-style:italic;padding-left:0;color:gray}
+aside>h4+p+h5{padding-bottom:1rem;border-bottom:1px solid #CDCDCD;}
+
+
+footer{height:20vh;}
+footer{border-top:1px solid gray;}
+footer>table{white-space:nowrap}
+footer>table{font-size:.75em;}
+footer>table>td{width:1rem;}
+/* Make change to all headers (first row of table) */
+table{table-layout:fixed;width:100%;}
+footer>table th{border:0;}  /* Removes border from header row */
+footer>table td{border:0;}  /* Remove border from all other rows */
+footer>table>thead>tr{line-height:1.5rem;} /* Set height of header row */
+footer>table>tbody>tr{line-height:0;} /* Set height of all other rows */
+
+/* Text-align all rows left */
+footer>table>tbody>tr>td{text-align:left}
+
+
+article p>a,article p>a:visited{text-decoration:underline;text-decoration-color:blue;
+	-webkit-text-decoration-color:blue;}
+
+article>p{padding:.25rem 0 .25rem} 
+h1 {font-size:1.75rem;font-weight:bold;padding-top:1.75rem}
+article>h2{font-size:1.25rem;font-weight:bold;padding-top:1.25rem;padding-bottom:.5em;}
+article>p>img{width:95%;}
+article>p{width:95%}
+
+/*
+ * --------------------------------------------------
+ * TODO: Document this. It's used for those bulleted
+ * lists at the beginning of an article, but with
+ * SEO powers
+ * It works with an h4 (byline) followed by h2s,
+ * or an h4 followed by an img followed by an h2
+ * --------------------------------------------------
+ */
+
+article>h4+p+h2:before,
+article>h2+h2:before, 
+article>h4+h2:before{content:'■';margin-right:.5rem;}
+article>h4+p+h2,
+article>h2+h2, 
+article>h4+h2{padding-top:.25rem}
+
+
+article>h4{font-weight:normal;}
+article>h4>strong{color:black;font-weight:bold;}
+article>h4>em{font-weight:normal;}
+article>h4>a>img {width:14px;margin-left:.5rem;margin-right:.15rem;} /* Social media icons in byline */
+
+header,nav{white-space:nowrap;overflow:hidden;}
+header ol li,header ul li, nav ol li, nav ul li {margin-left:0;}
+header{border-bottom:1px solid #DCDCDC;margin-bottom:1rem;}
+header > ul {height:6rem;}
+article,nav,header,footer{padding-left:5%;} 
+
+/*
+ * --------------------------------------------------
+ * If you have more than one item, use an unordered list. 
+ * These styles show the first item with branding applied,
+ * any number of links following, still slightly
+ * larger than body text, and a last link that
+ * looks like a button.
+ * --------------------------------------------------
+ */
+header > ul, nav > ul  {list-style-type:none;}
+header > ul > li{font-size:1.25rem;}
+header > ul > li, nav > ul > li{display:inline;padding-right:.5rem;}
+
+/*
+ * --------------------------------------------------
+ * TODO: Document
+ * Special feature: First item in list has biggest
+ * branding
+ * --------------------------------------------------
+ */
+header > ul > li:first-child > a {font-size:3em;padding-right:1rem;text-decoration:none;letter-spacing:-.05em}
+
+
+/*
+ * --------------------------------------------------
+ * Special feature: Surround letters in first item 
+ * with ~~ characters to get change of color
+ * --------------------------------------------------
+ */
+header>ul>li:first-child>a>del{text-decoration:none;color:red;}
+
+
+nav{margin-bottom:1rem;}
+nav>ul{line-height:2rem;}
+nav>p>a{padding-right:2rem;}
+nav a,nav>ul>li>a,nav>ul>li>a:link,nav>ul>li>a:visited{text-decoration:none}
+nav>p>a:active,nav>p>a:hover,nav>ul>li>a:hover,nav>ul>li>a:active{
+  text-decoration:underline;
+  text-decoration-color:blue;
+	-webkit-text-decoration-color:blue;}
+
+
+
+article>dl>dt {font-weight:bold;padding-top:1rem;}
+article>dl>dd {margin-left:0;padding-bottom:.5rem;}
+
+article>h3{color:dimgray;font-size:1.5rem;padding-top:1rem;;padding-bottom:.5rem}
+
+:root {
+  --aside-width:35%;
+  --article-width:65%;
+}
+
+@media (prefers-color-scheme:light) {
+:root {
+  --a:black;
+}
+}
+
+@media (prefers-color-scheme:dark) {
+:root {
+  --a:white;
+}
+}
+
