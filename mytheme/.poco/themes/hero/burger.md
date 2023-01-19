@@ -1,5 +1,0 @@
-* [Home](/)
-* [Pricing](/)
-* [Contact](#)
-* [About](#)
-
