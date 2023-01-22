@@ -1,0 +1,35 @@
+
+/* Body of the speech bubble */
+article > h2 {
+  font-family:sans-serif;
+  font-size:2rem;
+  color:var(--bg);
+	margin-top:3rem;
+  padding:1rem;
+  position: relative;
+  height:auto;
+  width:50%;
+	background: var(--html-bg);
+	border-radius: .5em;
+}
+
+/* Tail of the speech bubble */
+article > h2:after {
+  content: '';
+	position: absolute;
+	bottom: 0;
+	left: 40%;
+	width: auto;
+	height: auto;
+	border: 1.5em solid transparent;
+	border-top-color: var(--html-bg);
+	border-bottom: 0;
+	border-left: 0;
+	margin-left: -.8rem;
+	margin-bottom: -2rem;
+}
+
+article > h2 > a {
+  color:var(--bg);
+  text-decoration:underline;
+}
