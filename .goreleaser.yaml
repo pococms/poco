@@ -64,7 +64,8 @@ brews:
     # GitHub/GitLab repository to push the formula to
     tap:
       # Repository owner template. (templateable)
-      owner: user
+      #owner: user
+      owner: pococms
 
       # Repository name. (templateable)
       name: homebrew-tap
