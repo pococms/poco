@@ -1,122 +1,33 @@
 #!/bin/zsh
-# ts1
-# Generates a multipage site in a temp directory.
-# Visual demonstrations of:
-# - global and page themes
-# - suppressing header, nav, footer, aside
-# 
-# Command-line options:
-# 
-# --theme {theme name}
-# -t {theme name}
-#
-# Example:
-#  
-#   ts1 --theme pocodocs
-#   ts1 --t pocodocs
-#
+# ############## TS3 ##################
+# ts2
+# Generates a complete theme gallery in a temp directory.
+# Visual demonstrations of both high and low content pages:
+# - suppressing header, nav, article, footer, aside
+# - Aside left/right
 
-# Default global theme. Can be altered with --theme command line option
-#THEME=pocodocs
-THEME=test
-
-
-
-# This will create a filenamed article-file.md to use
-# the filename feature where front matter can look like
-# this:
-# ---
-# article: "article-file.md"
-# ---
-read -r -d '' ARTICLE_FILE << EOM
-# This is a replacement article.
-
-It was inserted from a file
-
-EOM
+# Create an array of theme names
+declare -a themes=(
+  'base'
+  'clerk'
+  'electro' 
+  'gossip' 
+  'hero'
+  'informer'
+  'newman' 
+  'paper'
+  'pasteboard'
+  'pocodocs'
+  'rawdog'
+  'skyscraper'
+  'tufte'
+  )
 
 
-read -r -d '' FILE_TO_ARTICLE << EOM
----
-article: "article-file.md"
----
-# This text should not appear
-EOM
-
-# Read the contents of file .poco/demo/mdemo.md into the
-# shell variable $MDEMO
-read -r -d '' MDEMO << EOM
-$(<.poco/demo/mdemo.md)
-EOM
-
-# Explanation of how to test the theme interactively
-read -r -d '' INTERACTIVE_TESTING << EOM
-## How to test this theme
-* Stretch it wide and shrink it to phone proportions to ensure it's responsive
-EOM
-
-# Quickie test page test-page.md
-# Putting it up here makes it easier to 
-# throw together ad hoc tests
-read -r -d '' TEST_PAGE << EOM
----
-pagetheme: "test"
----
-
-$INTERACTIVE_TESTING 
-
-$MDEMO
-
-EOM
-
-
-# Quickie test header test-header.md
-read -r -d '' TEST_HEADER << EOM
-# TESTHEAD HERE ON THIS PAGE ONLY
-EOM
-
-
-
-
-# UTILITY FUNCTIONS
-function pause(){
-  echo "Please press enter..."
-  read nothing_at_all
-}
-
-# xxx
 function print_help(){
   echo "Options:"
-  echo "\t-t|--theme" >&2
-  echo "\tChange default theme for tests. The default is ${THEME}. Example:\n\t${1} --theme pocodocs\n" >&2
   echo "\t-l|--link-stylesheets" >&2
   echo "\tLink to stylesheets instead of inlining in the HTML. The default is inline. Example:\n\t${1} -l\n" >&2
-}
-
-
-
-# Placeholder SVG image creator
-# Creates simple rectange of default width 256, default height 128.
-# Puts optional text in the center, and allows an optional
-# filename (defaults to ./foo.svg).
-# Takes optional width, height, and text parameters, e.g.
-# svgplace 648 480 "IMAGE GOES HERE" box.svg
-function svgplace() {
-WIDTH=256
-HEIGHT=128
-TEXT=""
-FILENAME="./foo.svg"
-[ $1 ] && WIDTH=$1
-[ $2 ] && HEIGHT=$2
-[ $3 ] && TEXT=$3
-[ $4 ] && FILENAME=$4
-cat <<EOM > $FILENAME
-<svg width='$WIDTH' height='$HEIGHT' xmlns='http://www.w3.org/2000/svg' version='1.1' >
-<rect width="${WIDTH}" height="${HEIGHT}"  fill="lightgray" stroke="gray" stroke-width=".2"/>
-<text text-anchor="middle" x="50%" y="50%" dy=".35em" font-family="sans-serif" font-size="24px" font-weight="bold" fill="black">$3</text> 
-</svg>
-EOM
-echo "Created file ${FILENAME}"
 }
 
 
@@ -125,20 +36,6 @@ echo ""
 while :; do
     case $1 in
     
-   	 -t|--theme)
-   		 if [ -n "$2" ]; then
-   			 THEME=$2
-         #echo "Chose theme ${THEME}"
-         #pause
-   			 shift 2
-   			 continue
-   		 else
-   			 echo "ERROR: --theme needs a theme name. The default is ${THEME}. \nExample:\n\t${0} --theme pocodocs\n" >&2
-   			 #printf 'ERROR: "--theme" needs a theme name.\nExample:\n\t${0} --theme pocodocs\n' >&2
-   			 exit 1
-   		 fi
-   		 ;;
-   		 
    	 -l|--link-styles)
        LINK_STYLES="--link-styles"
        shift
@@ -170,500 +67,664 @@ while :; do
 done
 
 
+
+
+# Exit to the OS with a message and error code.
+# $1 is the message to display
+# $2 is the error code
+function quit_exit() {
+  echo $1
+  exit $2
+}
+
 # Create a temporary directory.
 # Supposed to work in both MacOS and Linux. Thank you, timo-tijhof 
 # https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
 tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir')
+# echo "Stress test: Removing factory themes"
+# rm -rf /Users/tom/Library/Application\ Support/pococms/
 echo "Creating poco project at temp directory ${tmpdir}"
-poco -new $tmpdir
-ALLDIRS=$tmpdir/level2/level3/
-mkdir -p  $ALLDIRS
+poco -new $tmpdir              
+ALLDIRS=$tmpdir/level2/level3/                                     
+mkdir -p  $ALLDIRS                                                                    
 if [[ $? -gt 0 ]]
 then
-  echo "Error creating subdirs"
+  quit_exit "Error creating root directory at ${tmpdir}" 1
 fi
 
-
-# Tests showing how to replace page elements
-# The next few constants work together
-# and are used on the DEMO_REPLACE_PAGE_ELEMENTS constant
-read -r -d '' REPLACE_HEADER << EOM
-**Ugly replacement header**
+# Read the contents of file .poco/demo/mdemo.md into the
+# shell variable $MDEMO
+read -r -d '' MDEMO << EOM
+$(<.poco/demo/mdemo.md)
 EOM
 
-read -r -d '' REPLACE_NAV << EOM
-**Ugly replacement NAV**
+
+# Generate links to low-content page tests
+read -r -d '' lcpanel << EOM
+## Ease of use like something something
+#####
+[Low-content](short_page.html) tests: 
+[Article only](short_page_article_only.html), Aside [right](short_page_aside_right.html), [left](short_page_aside_left.html)  
+**Try hiding** [header](short_page_no_header.html),
+[nav](short_page_no_nav.html),
+[article](short_page_no_article.html),
+[aside](short_page_no_aside.html),
+[footer](short_page_no_footer.html), or
+[Everything!](short_page_no_everything.html) (blank page expected)  
+[Theme home](index.html), 
+[All themes](../index.html)
 EOM
 
-read -r -d '' REPLACE_ASIDE << EOM
-**Ugly replacement ASIDE**
+
+# Generate links to high-content page tests
+read -r -d '' hcpanel << EOM
+#####
+[High-content](long_page.html) tests: 
+[Article only](long_page_article_only.html). Aside [right](long_page_aside_right.html), [left](long_page_aside_left.html)  
+**Try hiding** [header](long_page_no_header.html),
+[nav](long_page_no_nav.html),
+[article](long_page_no_article.html),
+[aside](long_page_no_aside.html),
+[footer](long_page_no_footer.html), or
+[Everything!](long_page_no_everything.html) (blank page expected)   
+[Theme home](index.html), 
+[All themes](../index.html)
 EOM
 
-read -r -d '' REPLACE_FOOTER << EOM
-**Ugly replacement FOOTER**
-EOM
+# Text of a high-content (long) page
+read -r -d '' hcontent << EOM
 
-echo $REPLACE_HEADER > $tmpdir/replace-header.md
-echo $REPLACE_NAV > $tmpdir/replace-nav.md
-echo $REPLACE_ASIDE > $tmpdir/replace-aside.md
-echo $REPLACE_FOOTER > $tmpdir/replace-footer.md
+## **High-content** page demo 
 
-read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS << EOM
----
-header: "replace-header.md"
-footer: "replace-footer.md"
-nav: "replace-nav.md"
-aside: "replace-aside.md"
-title: "Replace page elements on a per-page basis"
----
-# WHAT THIS PAGE DEMONSTRATES:
+* Does the sidebar look OK?
+* Resize page to check responsiveness
+* Test in dark mode
 
-This page shows how to replace page elments
-(that is header, footer, nav, and aside) on a per
-page bases using this front matter:
-
-    ---
-    header: "replace-header.md"
-    footer: "replace-footer.md"
-    nav: "replace-nav.md"
-    aside: "replace-aside.md"
-    title: "Replace page elements on a per-page basis"
-    ---
-
-The header, footer, aside, and nav for this page should 
-all have *ugly replacments*.
-
-
-See this same with the [default page elements](page-elements-default.html)
-supplied by the theme.
+"High-content" means that the page is  longer than most screens. 
+When testing themes it's useful to see how the footer and sidebar interact with long articles.
 
 $MDEMO
 EOM
 
-read -r -d '' DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT << EOM
----
-title: "Default page elements"
----
-# WHAT THIS PAGE DEMONSTRATES:
+# Text of a low-content (short) page
+read -r -d '' lpcontent << EOM
 
-This page uses the same theme as [page-elements.md](page-elements.html)
-but uses the theme's default page elements (header, nav, aside, and footer).
+## **Low-content** page demo 
 
+* Does the sidebar look OK?
+* Resize page to check responsiveness
+* Test in dark mode
 
-$MDEMO
-
-hi
-
-EOM
-
-
-
-
-
-
-# Generate links used to demonstrate themes
-# of subdir navigation
-read -r -d '' THEME_NAV << EOM
-## Theme demos
-* [Article from file](file-to-article.html)
-* [Retro](retro-theme-demo.html) theme
-* [Page](paper-theme-demo.html) theme
-* [newman](newman-theme-demo.html) theme
-* [hack](hack-theme-demo.html) theme
-* [Skyscraper](skyscraper-theme-demo.html) theme
+"Low-content" means that the page is shorter than most screens. 
+When testing themes it's useful to see how the sidebar behaves when it's longer than the 
+content of the article. This sentence shows how wide the article area is without taking up too much vertical space.  
 
 EOM
 
 
-
-# Generate links used to test support 
-# of subdir navigation
-read -r -d '' SUBDIR_NAV << EOM
-## Click these pages 1 directory levels down
-
-* [Level 2 page 1](level2/page2-1.html) (Uses Tufte theme)
-* [Level 2 page 2](level2/page2-2.html) (Overrides parts of theme)
-
-## Click these pages 2 directory levels down
-
-* [Level 3 page 1](level2/level3/page3-1.html)
-
+# Create the index page for this theme directory
+# $1 is the theme name
+# $2 is the tmp directory of the home page 
+function themehome() {
+# Create the index for this dir
+echo "---\npagetheme: ${1}\n---\n# Theme: ${1}" > $2/index.md
+echo $hcpanel >> $2/index.md
+echo $lcpanel >> $2/index.md
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
 EOM
+}
 
-# Generate links used to test support 
-# of page layout elements
-read -r -d '' PGLAYOUT_NAV << EOM
-
-$INTERACTIVE_TESTING
-
-## Page Layout variations
-* [Article from file](file-to-article.html)
-* [Aside on left](aside-left.html)
-* [Aside on right](aside-right.html)
-* [Suppress article](suppress-article.html)
-* [Suppress header](suppress-header.html)
-* [Suppress nav](suppress-nav.html)
-* [Suppress aside](suppress-aside.html)
-* [Suppress footer](suppress-footer.html)  
-* [Suppress everything](suppress-everything.html)  
-
-[Home](/index.html)  
-
-
+# Central location for long-content page demo
+# $1 is the theme name
+# $2 is the directory for the page
+function long_page() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
+# Theme $1
+$hcpanel
+$hcontent
 EOM
+echo $page >> $2/long_page.md
+}
 
-# Checklist of things to look for when viewing a theme
-read -r -d '' CHECKLIST << EOM
-## Things to look for in a theme
 
-* **Resize** the page to smaller dimensions such as a phone
-* **Footer**
-  - On long pages, does the footer obscure the text?
-
-[Home](/index.html)
+# Central location for low-content page demo
+# It creates a page with not too much content to make sure
+# that sidebar & footer are handled properly.
+# $1 is the theme name
+# $2 is the directory for the page
+function short_page() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+---
+# Theme: $1
+$lcpanel
+$lpcontent
 EOM
+echo $page >> $2/short_page.md
+}
 
+###########################################################
+# GENERATE VARIATIONS ON THEMES, HIGH-CONTENT PAGES
+###########################################################
 
-# Generate the page index.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' INDEX << EOM
----
-title: "PocoCMS home"
-theme: "${THEME}"
----
-# Project build tests 
-* [Test page](test-page.html)
-
-Is ftime working? {{ .ftime }}
-
-#### Title of this page: {{ .title }}
-
-* Replace [page elements](page-elements.html) such as head, nav, etc. on a per-page basis (default version [here](page-elements-default.html))
-
-hello, world.
-
-* [hack](hack-theme-demo.html) theme
-
-$THEME_NAV
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-
-$MDEMO
-
-## Square SVG image
-
-![square image here?](./square.svg)
-
-EOM
-
-
-
-
-# Generate the page aside-left.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' ASIDE_LEFT << EOM
----
-aside: left
----
-# Title of this page: {{ .title }}
-
-This page should have an aside on the **left**. 
-
-
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page aside-right.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' ASIDE_RIGHT << EOM
----
-aside: "right"
----
-# Title of this page: {{ .title }}
-
-This page should have an aside on the **left**. 
-
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page aside-left.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' ASIDE_LEFT << EOM
----
-aside: "left"
-styles:
----
-# Title of this page: {{ .title }}
-
-This page should have an aside on the **left**. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
+# -------------------------------------
+# high-content page, article only
+# -------------------------------------
 #
-# Generate the page supress-article.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_ARTICLE << EOM
+## $1 is the page theme
+# $2 is the directory for the page
+function long_page_article_only() {
+read -r -d '' page << EOM
 ---
-article: "SUPPRESS"
+pagetheme: "${1}"
+
+hide: header, nav, aside, footer
 ---
-# This shouldn't show up because article is suppressed
-# This page should have no header. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
+# Theme $1
+$hcontent
+### *Right aside* 
+$hcpanel
 EOM
+echo $page >> $2/long_page_article_only.md
+}
 
-# Generate the page supress-header.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_HEADER << EOM
----
-header: "SUPPRESS"
----
-# This page should have no header. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page supress-aside.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_ASIDE << EOM
----
-aside: "SUPPRESS"
----
-# This page should have no aside. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page supress-nav.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_NAV << EOM
----
-nav: "SUPPRESS"
----
-# This page should have no navbar. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page supress-footer.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_FOOTER << EOM
----
-footer: "SUPPRESS"
----
-# This page should have no footer. 
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page supress-everything.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SUPPRESS_EVERYTHING << EOM
----
-header: "SUPPRESS"
-nav: "SUPPRESS"
-article: "SUPPRESS"
-aside: "SUPPRESS"
-footer: "SUPPRESS"
----
-# This shouldn't show up because...
-
-article 
-(AND everything else!) is suppressed
-This page should have no header. 
-EOM
-
-# Generate the page named page2_1.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' PAGE_2_1 << EOM
----
-title: "level2/page2-1"
-pagetheme: "tufte"
-aside: "left"
----
-# Subdirectory level1 is 1 level below root
-#### Title of this page: {{ .title }}
-## Page level2/page2-1.html
-## Click these pages 1 directory level down
-
-* [Level 3 page 1](level3/page3-1.html)
-* [Home](./index.html)
-EOM
-
-# Generate the page named page2_2.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' PAGE_2_2 << EOM
----
-title: "level2/page2-2"
-styles: 
-- "article>h2{font-weight:bold;color:red;}"
-- "article>p{font-size:1.25em;font-style:italic;font-family:'Times New Roman', Times, serif;}"
----
-# This page demonstrate style overrides
-
-Note how h2 headers are red, and the body style is now an italic serif font.
-
-## Page level2/page2-2.html
-## Click these pages 1 directory level down
-* [Level 3 page 1](level3/page3-1.html)
-* [Home](./index.html)
-EOM
-
-
-# Generate the page named page3_1.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' PAGE_3_1 << EOM
----
-title: "level3/page3-1"
----
-# Subdirectory level3 is 2 level below root
-## Page level2/level3/page3-1.html
-## Click these pages 1 directory level up 
-* [Level 2 page 1](../page2-1.html)
-* [Level 2 page 2](../page2-2.html)
-* [Home](./index.html)
-EOM
-
-
-# Generate the page named paper-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' PAPER_THEME_DEMO << EOM
----
-title: "Paper theme"
-pagetheme: "Paper"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$MDEMO
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-# Generate the page named retro-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' RETRO_THEME_DEMO << EOM
----
-title: "Retro theme"
-pagetheme: "retro"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$MDEMO
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-
-
-
-# Generate the page named newman-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' NEWMAN_THEME_DEMO << EOM
----
-title: "{{ .theme }} theme"
-pagetheme: "newman"
-aside: "SUPPRESS"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$MDEMO
-EOM
-
-
-# Generate the page named skyscraper-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' SKYSCRAPER_THEME_DEMO << EOM
----
-title: "Skyscraper theme"
-pagetheme: "skyscraper"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-$MDEMO
-EOM
-
-# Generate the page named hack-theme-demo.md from the text
-# directly under the read until the text directly
-# above the second EOM
-read -r -d '' HACK_THEME_DEMO << EOM
----
-title: "hack theme"
-pagetheme: "hack"
----
-# Demonstration of the {{ .pagetheme }} theme.
-
-$MDEMO
-
-Normal text under an h1
-
-## Drilling down into an h2
-How amazing can this experience get?
-$SUBDIR_NAV
-$PGLAYOUT_NAV
-EOM
-
-
-svgplace 128 128 "128x128" "${tmpdir}/square.svg"
-
-echo $INDEX > $tmpdir/index.md
-echo $CHECKLIST > $tmpdir/checklist.md
-echo $DEMO_REPLACE_PAGE_ELEMENTS > $tmpdir/page-elements.md
-echo $DEMO_REPLACE_PAGE_ELEMENTS_DEFAULT > $tmpdir/page-elements-default.md
-echo $INTERACTIVE_TESTING > $tmpdir/interactive-testing.md
-echo $TEST_PAGE > $tmpdir/test-page.md
-echo $TEST_HEADER > $tmpdir/test-header.md
-echo $ASIDE_LEFT > $tmpdir/aside-left.md
-echo $ASIDE_RIGHT > $tmpdir/aside-right.md
-echo $ARTICLE_FILE > $tmpir/article-file.md
-echo $FILE_TO_ARTICLE > $tmpir/file-to-article.md
-echo $SUPPRESS_ARTICLE > $tmpdir/suppress-article.md
-echo $SUPPRESS_HEADER > $tmpdir/suppress-header.md
-echo $SUPPRESS_ASIDE > $tmpdir/suppress-aside.md
-echo $SUPPRESS_NAV > $tmpdir/suppress-nav.md
-echo $SUPPRESS_FOOTER > $tmpdir/suppress-footer.md
-echo $SUPPRESS_EVERYTHING > $tmpdir/suppress-everything.md
-echo $PAGE_2_1 > $tmpdir/level2/page2-1.md
-echo $PAGE_2_2 > $tmpdir/level2/page2-2.md
-echo $PAGE_3_1 > $tmpdir/level2/level3/page3-1.md
-echo $RETRO_THEME_DEMO > $tmpdir/retro-theme-demo.md
-echo $PAPER_THEME_DEMO > $tmpdir/paper-theme-demo.md
-echo $HACK_THEME_DEMO > $tmpdir/hack-theme-demo.md
-echo $NEWMAN_THEME_DEMO > $tmpdir/newman-theme-demo.md
-echo $SKYSCRAPER_THEME_DEMO > $tmpdir/skyscraper-theme-demo.md
-poco -verbose $LINK_STYLES $tmpdir
-if [[ $? -gt 0 ]]
+# -------------------------------------
+# high-content page, aside right
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function aside_content() {
+dir=$2
+#
+# UNFINISHED: I'm not sure where the custom 
+# foo-aside-content-right.md (where foo
+# is the name of the theme currently 
+# being processed) file would come from.
+# Other than that, logic is all there
+# See if there's a file in this directory with
+# the theme named followed by -aside-content-right.md
+# If so it will be used to generate an aside right
+# make specially for this theme.
+filename=aside-content-right.md
+lookfor="$1-$filename"
+#echo "Creating aside for theme ${1}"
+if [[ -f $lookfor ]];
 then
-  echo "Poco was unable to create the project"
-  echo "Contents of the directory:"
-  ls ${tmpdir}
+  # SPECIAL FILE FOUND
+  echo "Found ${lookfor}. Now read from that filename into a variable named $file"
+read -r -d '' file << EOM
+$(<$lookfor)
+EOM
 else
-  print_help
-  echo "Project created successfully"
-  open $tmpdir/WWW/index.html
-  #echo "Opening in local browser and local server"
-  cd $tmpdir
-  #poco -serve
+  # SPECIAL FILE NOT FOUND.
+  # Read in from EOM to EoM
+read -r -d '' page << EOM
+Dynamically generated aside content
+EOM
+#echo "${lookfor} not found, Using $filename"
+  lookfor=$filename
 fi
+
+#read nothing
+echo $page >> $2/aside_content.md
+}
+
+function long_page_aside_right() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+aside: "${1}/aside_content.md"
+sidebar: right
+---
+# Theme $1
+$hcontent
+### *Right aside* 
+$hcpanel
+EOM
+echo $page >> $2/long_page_aside_right.md
+}
+
+# -------------------------------------
+# High-content page, aside left
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function long_page_aside_left() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+sidebar: left
+---
+# Theme $1
+$hcontent
+### *Left aside* 
+$hcpanel
+EOM
+echo $page >> $2/long_page_aside_left.md
+}
+
+# -------------------------------------
+# High-content page, no header
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_header() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header
+---
+# Theme $1
+$hcontent
+$hcpanel
+### *Header* suppressed
+EOM
+echo $page >> $2/long_page_no_header.md
+}
+
+# -------------------------------------
+# High-content page, no nav 
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_nav() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+nav: "SUPPRESS"
+---
+# Theme $1
+$hcontent
+### *Nav* suppressed
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_nav.md
+}
+
+# -------------------------------------
+# High-content page, no article
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_article() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: article
+---
+# Theme $1
+$hcontent
+### *Nav* suppressed
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_article.md
+}
+
+# -------------------------------------
+# High-content page, no aside 
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_aside() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: aside
+---
+# Theme $1
+$hcontent
+### *Nav* suppressed
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_aside.md
+}
+
+
+
+
+# -------------------------------------
+# High-content page, no header
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_header() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header
+---
+# Theme $1
+$hcontent
+$hcpanel
+### *Header* suppressed
+EOM
+echo $page >> $2/long_page_no_header.md
+}
+
+# -------------------------------------
+# High-content page, no nav 
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_nav() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: nav
+---
+# Theme $1
+$hcontent
+### *Nav* suppressed
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_nav.md
+}
+
+
+# -------------------------------------
+# High-content page, no footer 
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_footer() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: footer
+---
+# Theme $1
+$hcontent
+### *Footer* suppressed
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_footer.md
+}
+
+# -------------------------------------
+# High-content page, no anything
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function long_page_no_everything() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header, nav, aside, article, footer
+---
+# Theme $1
+$hcontent
+### *Everything* suppressed: header, nav, article, footer
+$hcpanel
+EOM
+echo $page >> $2/long_page_no_everything.md
+}
+
+
+###########################################################
+# GENERATE VARIATIONS ON THEMES, LOW-CONTENT PAGES
+###########################################################
+
+# -------------------------------------
+# Low-content page, article only
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_article_only() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header, nav, aside, footer
+---
+# Theme $1
+$lpcontent
+### *Everything but article* suppressed: header, nav, aside, footer
+$lcpanel
+EOM
+echo $page >> $2/short_page_article_only.md
+}
+
+# -------------------------------------
+# Low-content page, aside right
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_aside_right() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+sidebar: "right"
+---
+# Theme $1
+$lpcontent
+### *Right aside* 
+$lcpanel
+EOM
+echo $page >> $2/short_page_aside_right.md
+}
+
+# -------------------------------------
+# Low-content page, aside left
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_aside_left() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+sidebar: "left"
+---
+# Theme $1
+$lpcontent
+### *Left aside* 
+$lcpanel
+EOM
+echo $page >> $2/short_page_aside_left.md
+}
+
+
+# -------------------------------------
+# Low-content page, no header
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_header() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header
+---
+# Theme $1
+$lpcontent
+$lcpanel
+### *Header* suppressed
+EOM
+echo $page >> $2/short_page_no_header.md
+}
+
+# -------------------------------------
+# Low-content page, no nav 
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_nav() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: nav
+---
+# Theme $1
+$lpcontent
+### *Nav* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_nav.md
+}
+
+# -------------------------------------
+# Low-content page, no article
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_article() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: article
+---
+# Theme $1
+$lpcontent
+### *Nav* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_article.md
+}
+
+
+
+# -------------------------------------
+# Low-content page, no aside 
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_aside() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: aside
+---
+# Theme $1
+$lpcontent
+### *Aside* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_aside.md
+}
+
+
+# -------------------------------------
+# Low-content page, no footer 
+# -------------------------------------
+#
+## $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_footer() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: footer
+---
+# Theme $1
+$lpcontent
+### *Footer* suppressed
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_footer.md
+}
+
+# -------------------------------------
+# Low-content page, no anything
+# -------------------------------------
+#
+# $1 is the page theme
+# $2 is the directory for the page
+function short_page_no_everything() {
+read -r -d '' page << EOM
+---
+pagetheme: "${1}"
+hide: header, nav, article, aside, footer
+---
+# Theme $1
+$lpcontent
+### *Everything* suppressed: header, nav, article, footer
+$lcpanel
+EOM
+echo $page >> $2/short_page_no_everything.md
+}
+
+
+
+
+
+
+
+
+
+
+function main_loop() {
+# Loop through the array of themes
+
+# Start the navigation panel listing all themes
+echo "\n" > $tmpdir/navthemes.md
+echo "## Themes and variations" >> $tmpdir/navthemes.md
+for theme in "${themes[@]}";
+  do
+    # Create a directory for each theme.
+    dir=$tmpdir/$theme
+    mkdir -p $dir
+    themehome $theme $dir
+
+    aside_content $theme $dir
+
+    long_page $theme $dir
+    long_page_article_only $theme $dir
+    long_page_aside_right $theme $dir
+    long_page_aside_left $theme $dir
+    long_page_no_header $theme $dir
+    long_page_no_nav $theme $dir
+    long_page_no_article $theme $dir
+    long_page_no_aside $theme $dir
+    long_page_no_footer $theme $dir
+    long_page_no_everything $theme $dir
+
+
+    short_page $theme $dir
+    short_page_article_only $theme $dir
+    short_page_aside_right $theme $dir
+    short_page_aside_left $theme $dir
+    short_page_no_header $theme $dir
+    short_page_no_nav $theme $dir
+    short_page_no_article $theme $dir
+    short_page_no_aside $theme $dir
+    short_page_no_footer $theme $dir
+    short_page_no_everything $theme $dir
+
+
+    echo "[${theme}]($theme/index.html) ">> $tmpdir/navthemes.md
+    #read -n fook
+  done
+cat $tmpdir/navthemes.md  > $tmpdir/index.md
+poco $LINK_STYLES $tmpdir
+echo "Project created successfully"
+open $tmpdir/WWW/index.html
+#echo "Project should have been built in ${tmpdir}:"
+#ls -lat $tmpdir
+#s -lat $tmpdir/paper
+quit_exit "That's all folks" 0
+}
+
+main_loop
 
