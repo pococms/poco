@@ -1,6 +1,6 @@
 #!/bin/zsh
-# ############## TS3 ##################
-# ts2
+# ############## TS1 ##################
+# ts1
 # Generates a complete theme gallery in a temp directory.
 # Visual demonstrations of both high and low content pages:
 # - suppressing header, nav, article, footer, aside
@@ -14,7 +14,6 @@ declare -a themes=(
   'gossip' 
   'hero'
   'informer'
-  'newman' 
   'paper'
   'pasteboard'
   'pocodocs'
