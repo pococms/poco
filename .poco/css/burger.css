@@ -11,7 +11,7 @@ header#header-poco-burger {
 /* Burger menu is an unordered list. Remove normal list characteristics. */
 header#header-poco-burger ul > li, header#header-poco-burger ul > li > a {
   list-style-type: none;
-  display: block; /* was inline. This makes more sense */
+  display: block; 
   padding:0;
 }
  
@@ -28,13 +28,15 @@ header#header-poco-burger ul li a {
   width: 100%;
   border-top: 1px solid var(--burger-menu-separator-color);
 }
+
 /* Actual burger icon */
 header#header-poco-burger label {
   display: none;
   color: var(--burger-menu-fg);
   background: var(--burger-menu-bg);
-  font-size:var(--burger-menu-font-size);
-  padding:0;
+  font-size: var(--burger-menu-font-size);
+  padding: var(--burger-menu-padding);
+  margin:var(--burger-menu-margin);
 }
 
 

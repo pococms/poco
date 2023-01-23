@@ -7,6 +7,8 @@
   --a:blue;                   /* Default link color */
   --fg:black;                 /* Default text color. */
   --bg:white;                 /* Default background color */
+  --accent-bg:var(--bg);      /* Accent background color */
+  --accent-fg:var(--fg);      /* Accent text color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */
@@ -20,6 +22,8 @@
   --burger-menu-hover-bg:var(--bg); /* Background color ifor burger menu hover */
   --burger-menu-font-border:none; /* Border around burger menu text/character */
   --burger-menu-font-size:1em; /* Size of the string representing the burger menu */
+  --burger-menu-margin:0;     /* Amount of space pushing into the burger menu icon */
+  --burger-menu-padding:0;    /* Amount of space surrounding the burger menu icon */
   --burger-menu-separator-color: var(--burger-menu-fg); /* Line between burger menu items  */
   --nav-fg:var(--fg);         /* Text color of nav */
   --nav-bg:var(--bg);         /* Background color of nav */
@@ -53,6 +57,8 @@
   --a:blue;                   /* Default link color */
   --fg:black;                 /* Default text color. */
   --bg:white;                 /* Default background color */
+  --accent-bg:var(--bg);      /* Accent background color */
+  --accent-fg:var(--fg);      /* Accent text color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */
@@ -101,6 +107,8 @@
   --a:cyan;                   /* Default link color */
   --fg:white;                 /* Default text color */
   --bg:MidnightBlue;          /* Default background color */
+  --accent-bg:var(--bg);      /* Accent background color */
+  --accent-fg:var(--fg);      /* Accent text color */
   --html-bg:var(--bg);        /* Color enclosing skinny themes */
   --html-font:sans-serif;     /* Set font everywhere */
   --header-fg:var(--fg);      /* Text color of header */

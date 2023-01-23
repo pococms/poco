@@ -11,7 +11,5 @@ stylesheets:
 - ../../css/type.css
 - ../../css/mediacolors.css
 - "pocodocs.css"
-styles:
-- "article>p{color:green;}"
 
 ---

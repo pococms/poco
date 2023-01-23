@@ -69,6 +69,16 @@ nav a:active,nav a:hover {color:var(--html-bg);}
 aside>p> a {color:var(--fg);}
 footer>ul>li>a,footer>ul>li>a:hover,footer>ul>li>a:active {color:var(--bg);}
 
+header > ul > li:first-child > a > del {color:red;}
+
+article>h1,article>h2,article>h3{color:var(--html-bg);}
+aside > p > a:hover {
+  text-decoration:underline;
+  text-decoration-color:var(--html-bg);
+  -webkit-text-decoration-color:var(--html-bg);
+}
+footer  a {color:var(--bg);}
+
 
 :root {
   --burger-menu-padding:1em;
