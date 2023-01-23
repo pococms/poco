@@ -343,7 +343,7 @@ type theme struct {
 	description string
 
 	// List of burger items already parsed and ready to publish
-	burger string
+	burger        string
 	hamburgerIcon string
 
 	// If true, don't insert article into output stream
@@ -796,7 +796,6 @@ func (t *theme) hamburgerToHTML(fm map[string]interface{}) {
 
 }
 
-
 // header() returns the header defined for this theme, if any.
 // If there's a burger defined for this theme, returns that too.
 func (c *config) header() string {
@@ -807,19 +806,19 @@ func (c *config) header() string {
 		return ""
 	}
 	if c.pageTheme.present {
-    if c.pageTheme.burger != "" {
-		  return c.pageTheme.burger + c.pageTheme.header
-    } else {
-		  return c.pageTheme.header
-    }
+		if c.pageTheme.burger != "" {
+			return c.pageTheme.burger + c.pageTheme.header
+		} else {
+			return c.pageTheme.header
+		}
 	}
 
 	if c.theme.present {
-    if c.theme.burger != "" {
-		  return c.theme.burger + c.theme.header
-    } else {
-		  return c.theme.header
-    }
+		if c.theme.burger != "" {
+			return c.theme.burger + c.theme.header
+		} else {
+			return c.theme.header
+		}
 	}
 
 	// xxx
@@ -1300,7 +1299,7 @@ func (c *config) inlineStylesheets(dir string) string {
 	if c.pageTheme.present {
 		slice = c.pageTheme.stylesheetFilenames
 		if c.pageTheme.burger != "" {
-      css := regularize(filepath.Join(c.stylesDir,""),"burger.css")
+			css := regularize(filepath.Join(c.stylesDir, ""), "burger.css")
 			slice = append(slice, css)
 		}
 		// Collect all the stylesheets mentioned.
@@ -2726,9 +2725,9 @@ func promptStringDefault(prompt string, defaultValue string) string {
 // only. c.port is a string like ":12345" and c.webroot is the
 // pathname of the directory to serve static files from.
 func (c *config) serve() {
-  if !strings.HasPrefix(c.port, ":") {
-    c.port = ":" + c.port
-  }
+	if !strings.HasPrefix(c.port, ":") {
+		c.port = ":" + c.port
+	}
 	if portBusy(c.port) {
 		print("Port %s is already in use", c.port)
 		os.Exit(1)
@@ -2755,7 +2754,7 @@ func theTime() string {
 // portBusy() returns true if the port
 // (in the form ":12345" is already in use.
 func portBusy(port string) bool {
- 	ln, err := net.Listen("tcp", port)
+	ln, err := net.Listen("tcp", port)
 	if err != nil {
 		return true
 	}
