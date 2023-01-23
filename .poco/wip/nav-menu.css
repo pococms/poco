@@ -1,0 +1,97 @@
+:root {
+  --a:blue;                   /* Default link color */
+  --fg:black;                 /* Default text color. */
+  --bg:white;                 /* Default background color */
+  --html-bg:var(--bg);        /* Color enclosing skinny themes */
+  --html-font:sans-serif;     /* Set font everywhere */
+  --burger-menu-fg:var(--bg); /* Color of the burger menu */
+  --burger-menu-bg:var(--fg); /* Background color of the burger menu */
+  --hx:green;
+  --burger-menu-font-border:none; /* Border around burger menu text/character */
+  --burger-menu-font-size:1em; /* Height of the textg representing the burger menu */
+  --burger-menu-separator-color: var(--burger-menu-fg); /* Line between burger menu items  */
+
+/* Insipired by https://codepen.io/RayM/pen/ARQmVQ */
+
+}
+nav {    
+  display: block;
+  vertical-align: top; 
+  display: inline-block;
+}
+nav ul {
+  margin: 0;
+  padding:0;
+  list-style: none;
+}
+nav a {
+  display:block; 
+  background: var(--burger-menu-bg); 
+  color:var(--burger-menu-fg); 
+  text-decoration: none;
+  padding: 1em;
+  position: relative;
+}
+nav ul li{position: relative;}
+
+/* margin-right is gap between menu itesm */
+nav > ul > li { float:left; margin-right: 1px; } 
+
+/* Text color of menu items WHEN hoevered over */
+nav li:hover > a { color:var(--hx); }
+
+/* Gap between menu items */
+nav li li a { margin-top:1px}
+
+/* Format the character for "menu has items" */
+nav li a:first-child:nth-last-child(2):before { 
+  content:""; 
+  position: absolute; 
+  height:0; 
+  width: 0; 
+  
+  /* Format indicator at end of word */
+  border: .3em solid transparent; 
+  top: 50%; /* Distance from top */
+  right:.5rem;  
+}
+   
+   
+/* submenu positioning*/
+nav ul ul {
+  position: absolute;
+  white-space: nowrap;
+  /* border-bottom: 5px solid  orange; */
+  z-index: 1;
+  left: -99999em;
+}
+
+nav > ul > li:hover > ul {
+  left: auto;
+  min-width: 100%;
+}
+
+nav > ul > li li:hover > ul { 
+  left: 100%;
+  top: 1rem;
+}
+/* arrow hover styling */
+nav > li > a:first-child:nth-last-child(2):before { 
+  border-top-color: #aaa; 
+}
+
+nav > li:hover > a:first-child:nth-last-child(2):before {
+  border: .3rem solid transparent; 
+  border-bottom-color: orange; 
+  margin-top:-.5rem
+}
+nav li li > a:first-child:nth-last-child(2):before {  
+  border-left-color: #aaa; 
+  margin-top: -.3rem
+}
+nav li li:hover > a:first-child:nth-last-child(2):before {
+  border: .3rem solid transparent; 
+  border-right-color: orange;
+  right: .75rem; 
+}
+

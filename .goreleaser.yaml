@@ -1,8 +1,11 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+# PocoCMS .goreleaser.yaml file creates binaries for all supported platforms
+# Change to the root directory of the repo and run:
+#
+# $ goreleaser
+#
+# Documentation at https://goreleaser.com
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - go mod tidy
     # you may remove this if you don't need go generate
     # - go generate ./...

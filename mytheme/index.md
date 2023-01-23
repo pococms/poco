@@ -9,8 +9,7 @@ sidebar: left
 # Static Site Generators
 
 
-#### By **Anna Utopia** | *December 3*   [![LinkedIn](../.poco/img/linkedin-24px-blue-outline.svg)](https://linkedin.com/) [![YouTube logo](../.poco/img/youtube-24px-red-outline.svg)](https://youtube.com/@pococms/)   [![Facebook logo](../.poco/img/facebook-24px-blue-outline.svg)](https://facebook.com/)   [![Instagram logo](../.poco/img/instagram-24px-magenta-outline.svg)](https://www.instagram.com/e.emerald.repair/)  [![Twitter logo](../.poco/img/twitter-24px-blue-outline.svg)](https://www.instagram.com/e.emerald.repair/)
-
+#### By **Anna Utopia** | *December 3*   [![LinkedIn](https://cdn.jsdelivr.net/gh/pococms/poco@main/.poco/img/linkedin-24px-blue-outline.svg)](https://linkedin.com/) [![YouTube logo](https://cdn.jsdelivr.net/gh/pococms/poco@main/.poco/img/youtube-24px-red-outline.svg)](https://youtube.com/@pococms/)   [![Facebook logo](https://cdn.jsdelivr.net/gh/pococms/poco@main/.poco/img/facebook-24px-blue-outline.svg)](https://facebook.com/)   [![Instagram logo](https://cdn.jsdelivr.net/gh/pococms/poco@main/.poco/img/instagram-24px-magenta-outline.svg)](https://www.instagram.com/e.emerald.repair/)  [![Twitter logo](https://cdn.jsdelivr.net/gh/pococms/poco@main/.poco/img/twitter-24px-blue-outline.svg)](https://www.instagram.com/)
 
 As you may have noted from my bio, it's almost like I was born to
 promote the idea of static site generators. If the universe actually
