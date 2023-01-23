@@ -54,9 +54,6 @@ changelog:
 # https://goreleaser.com/customization/homebrew/
 brews:
   -
-    # GOAMD64 to specify which amd64 version to use if there are multiple
-    # versions from the build section.
-    # Default is v1.
     goamd64: v1
 
     # NOTE: make sure the url_template, the token and given repo (github or
@@ -77,15 +74,12 @@ brews:
       # Defaults to the default repository branch.
       branch: main
 
-      # Optionally a token can be provided, if it differs from the token
-      # provided to GoReleaser
-      #token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-
     # Template for the url which is determined by the given Token (github,
     # gitlab or gitea)
     #
     # Default depends on the client.
-    url_template: "https://github.com/pococms/downloads/dist/{{ .Tag }}/{{ .ArtifactName }}"
+    #url_template: "https://github.com/pococms/downloads/dist/{{ .Tag }}/{{ .ArtifactName }}"
+    url_template: "https://github.com/pococms/poco/dist/{{ .Tag }}/{{ .ArtifactName }}"
 
     # Git author used to commit to the repository.
     # Defaults are shown.
