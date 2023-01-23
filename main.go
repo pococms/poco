@@ -442,7 +442,6 @@ type config struct {
 	cleanup bool
 
 	// # of files copied to webroot
-
 	copied int
 	// mdCopied tracks # of Markdown files converted and copied to webroot
 	mdCopied int
@@ -1301,7 +1300,8 @@ func (c *config) inlineStylesheets(dir string) string {
 	if c.pageTheme.present {
 		slice = c.pageTheme.stylesheetFilenames
 		if c.pageTheme.burger != "" {
-			slice = append(slice, "../../css/burger.css")
+      css := regularize(filepath.Join(c.stylesDir,""),"burger.css")
+			slice = append(slice, css)
 		}
 		// Collect all the stylesheets mentioned.
 		// Concatenate them into a big-ass string.
