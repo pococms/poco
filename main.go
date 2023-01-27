@@ -20,6 +20,7 @@ import (
 	"github.com/yuin/goldmark/text"
 	"html/template"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -317,11 +318,6 @@ func tagSurround(tag string, txt string, extra ...string) string {
 	}
 	return "<" + tag + ">" + txt + "</" + tag + ">" + add
 }
-
-// TODO: Document this
-const (
-	asideUnspecified int = 0
-)
 
 // TODO: Document
 // theme contains all the (lightweight) files needed for a theme:
@@ -1705,6 +1701,7 @@ func promptYes(format string, ss ...interface{}) bool {
 func main() {
 
 	c := newConfig()
+
 	// Add snazzy Go template functions like ftime() etc.
 	c.addTemplateFunctions()
 
@@ -1727,9 +1724,9 @@ func main() {
 	}
 
 	// Quit if running in main application directory
-	// if executableDir() == c.root {
-	//		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
-	// }
+	if executableDir() == c.root {
+		quit(1, nil, c, "%s", "Don't run poco in its own directory. Quitting.")
+	}
 
 	switch {
 	case !rootDirPresent && !c.newProjectFlag:
@@ -2201,23 +2198,6 @@ func copyFile(c *config, source string, target string) {
 
 }
 
-// copyPocoDir copies the embedded .poco directory into
-// the given directory, which is normally
-// a new project directory.
-func (c *config) copyPocoDir(f embed.FS, dir string) error {
-	if dir == "" {
-		dir = currDir()
-	}
-
-	source := filepath.Join(executableDir(), pocoDir)
-	target := dir
-	if err := cp.Copy(source, target); err != nil {
-		quit(1, nil, c, "Unable to copy Poco directory %s to target at at %s", source, target)
-	}
-	return nil
-
-}
-
 // dirExists() returns true if the name passed to it is a directory.
 func dirExists(path string) bool {
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -2357,12 +2337,96 @@ func (c *config) newSite() {
 		quit(1, err, c, "Unable to create new project directory %s", dir)
 	}
 	writeDefaultHomePage(c, c.root)
-
-	//target := filepath.Join(c.root, pocoDir)
-	target := dir
-	c.copyPocoDir(pocoFiles, target)
-	//c.copyPocoDir(pocoFiles, "")
+  c.copyEmbeddedPocoDir(pocoFiles, c.root); 
 }
+
+// copyEmbeddedPocoDir copies the .poco directory 
+// that's embedded in the Poco execuable to
+// the given directory, which is normally
+// a new project directory.
+func (c *config) copyEmbeddedPocoDir(files embed.FS, dir string) {
+  fs.WalkDir(files, ".", func(path string, d fs.DirEntry, err error) error {
+    if err != nil {
+      quit(1, err, nil, "Walkdir error at " + dir)
+      return err
+    }
+    if d.IsDir() {
+			dest := filepath.Join(c.root, path)
+			err := os.MkdirAll(dest, os.ModePerm)
+			if err != nil && !os.IsExist(err) {
+				quit(1, err, c, "Unable to copy embedded directory %s", c.webroot)
+			}
+    } else {
+      dest := filepath.Join(dir, path)
+      c.embedCp(files, path, dest)
+    }
+    return nil
+  })
+}
+
+
+// ls() is a diagnostic routine to display the contents
+// of the embedded poco directory
+func ls (files embed.FS, dir string) {
+  fs.WalkDir(files, dir, func(path string, d fs.DirEntry, err error) error {
+    if err != nil {
+      quit(1, err, nil, "Walkdir error at " + dir)
+      return err
+    }
+    if d.IsDir() {
+      fmt.Printf("mkdir %s\n", path)
+    } else {
+      filename := filepath.Join(path, d.Name())
+      fmt.Println(filename)
+      show(files, path)
+    }
+    return nil
+  })
+}
+
+func show(files embed.FS, filename string) {
+  f, err := files.Open(filename); 
+  if err != nil {
+    fmt.Printf("Error opening %s: %v\n", filename, err.Error())
+    os.Exit(1)
+  }
+  bytes, err := ioutil.ReadAll(f); 
+  if err != nil {
+    fmt.Printf("Error reading %s: %v\n", filename, err.Error())
+  } else {
+    fmt.Println(string(bytes))
+    os.Exit(1)
+  }
+  err = f.Close()
+  if err != nil {
+    quit(1, err, nil, "Error closing embedded file", filename)
+  }
+
+}
+
+
+
+
+func (c *config) embedCp(files embed.FS, filename string, dest string) {
+  //wait("embedCp() copy %s to %s", filename, dest)
+  f, err := files.Open(filename)
+  if err != nil {
+    quit(1, err, c, "Error opening embedded file", filename)
+  }
+  bytes, err := ioutil.ReadAll(f) 
+  if err != nil {
+    quit(1, err, c, "Error reading embedded file", filename)
+  }
+  err = ioutil.WriteFile(dest, bytes, 0644)
+  if err != nil {
+    quit(1, err, c, "Error copying embedded file", dest)
+  }
+  err = f.Close()
+  if err != nil {
+    quit(1, err, c, "Error closing embedded file", filename)
+  }
+}
+
 
 // Generates a simple home page
 // and writes it to index.md in dir. Uses the file
