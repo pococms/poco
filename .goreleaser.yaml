@@ -17,8 +17,6 @@ builds:
       - windows
       - darwin
 
-dist: ../downloads/dist
-
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
@@ -44,4 +42,13 @@ changelog:
       - '^docs:'
       - '^test:'
 
+brews:
+  - name: pococms
+    description: TODO
+    homepage: TODO
+    license: MIT
+    folder: Formula
+    tap:
+      owner: pococms
+      name: homebrew-tap
 
