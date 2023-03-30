@@ -47,6 +47,7 @@ brews:
     description: TODO
     homepage: TODO
     license: MIT
+    folder: Formula
     tap:
       owner: pococms
       name: homebrew-tap
